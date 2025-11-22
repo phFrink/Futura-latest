@@ -107,13 +107,35 @@ export const RealNotificationProvider = ({ children }) => {
         title: notification.title,
         message: notification.message,
         icon: notification.icon,
+        recipient_id: notification.recipient_id,
+        recipient_role: notification.recipient_role,
       }));
 
-      setNotifications(transformedNotifications);
-      console.log("📦 Transformed notifications:", transformedNotifications);
+      // STRICT client-side filter for homeowners: ONLY show notifications where
+      // recipient_id EXACTLY matches current userId (NO broadcast, NO role-based)
+      let filteredNotifications = transformedNotifications;
+      if (userId && userRole === 'home owner') {
+        console.log('🔒 STRICT Client-side homeowner filter: ONLY showing notifications with exact recipient_id match');
+        filteredNotifications = transformedNotifications.filter(notification => {
+          // STRICT: Only accept if recipient_id EXACTLY matches userId
+          const isExactMatch = notification.recipient_id === userId;
 
-      // Count unread notifications
-      const unread = transformedNotifications.filter((n) => !n.read).length;
+          if (!isExactMatch) {
+            console.log(`❌ Filtered out notification: "${notification.title}" (recipient_id: ${notification.recipient_id || 'NULL'}, expected: ${userId})`);
+          }
+
+          return isExactMatch;
+        });
+
+        console.log(`✅ STRICT Filter: ${transformedNotifications.length} → ${filteredNotifications.length} notifications for user ${userId}`);
+        console.log(`✅ All notifications have recipient_id = ${userId}`);
+      }
+
+      setNotifications(filteredNotifications);
+      console.log("📦 Final notifications:", filteredNotifications);
+
+      // Count unread notifications from filtered list
+      const unread = filteredNotifications.filter((n) => !n.read).length;
       setUnreadCount(unread);
       console.log("🔔 Unread count:", unread);
     } catch (error) {

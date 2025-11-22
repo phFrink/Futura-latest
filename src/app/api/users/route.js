@@ -126,6 +126,23 @@ export async function GET(request) {
         };
       }
 
+      // Determine user status from multiple sources (priority order):
+      // 1. user_metadata.status (explicitly set)
+      // 2. profile.status (from profiles table)
+      // 3. banned_until (Supabase Auth ban status)
+      // 4. default to "active"
+      let userStatus = "active";
+      if (user.user_metadata?.status) {
+        userStatus = user.user_metadata.status;
+      } else if (profile?.status) {
+        userStatus = profile.status;
+      } else if (user.banned_until) {
+        // Check if ban is still active (in the future)
+        const banDate = new Date(user.banned_until);
+        const now = new Date();
+        userStatus = banDate > now ? "inactive" : "active";
+      }
+
       return {
         id: user.id,
         email: user.email,
@@ -141,7 +158,7 @@ export async function GET(request) {
         user_metadata_role: user.user_metadata?.role || null, // Store original user_metadata.role
         staff_type: staffType, // 'resident', 'assistant', or null
         is_staff: isStaff, // Flag to identify staff members
-        status: user.banned_until ? "inactive" : "active",
+        status: userStatus,
         avatar_url: profile?.avatar_url || user.user_metadata?.profilePhoto,
         profile_photo:
           user.user_metadata?.profile_photo ||
@@ -149,12 +166,13 @@ export async function GET(request) {
           user.user_metadata?.profilePhoto ||
           null,
         phone: profile?.phone || user.user_metadata?.phone,
-        address: profile?.address || "",
+        address: profile?.address || user.user_metadata?.address || "",
         branch_info: branchInfo, // Branch information for staff
         created_at: user.created_at,
         updated_at: profile?.updated_at || user.updated_at,
         last_sign_in_at: user.last_sign_in_at,
         email_verified: user.email_confirmed_at ? true : false,
+        email_confirmed_at: user.email_confirmed_at,
         profile_complete: profile?.profile_complete || false,
         // Additional staff fields
         staff_id: staffRecord?.staff_id || null,
@@ -243,6 +261,7 @@ export async function POST(request) {
           role_id: userData.role_id || null,
           address: userData.address?.trim() || null,
           profile_photo: userData.profile_photo || null,
+          status: userData.status || "active",
           email_verified: true,
           phone_verified: false,
         },
@@ -261,6 +280,32 @@ export async function POST(request) {
     }
 
     console.log("✅ User created successfully:", authData.user.id);
+
+    // Create profile in profiles table if it exists
+    try {
+      const profileData = {
+        id: authData.user.id,
+        first_name: userData.first_name.trim(),
+        last_name: userData.last_name.trim(),
+        phone: userData.phone?.trim() || null,
+        address: userData.address?.trim() || null,
+        status: "active",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .insert(profileData);
+
+      if (profileError) {
+        console.log("⚠️ Profile creation warning:", profileError.message);
+      } else {
+        console.log("✅ Profile created successfully");
+      }
+    } catch (profileErr) {
+      console.log("⚠️ Profile table not available or error:", profileErr.message);
+    }
 
     // Return formatted user data
     const formattedUser = {
@@ -323,7 +368,7 @@ export async function PUT(request) {
       );
     }
 
-    // Update user metadata
+    // Prepare update data with user_metadata
     const updateData = {
       user_metadata: {
         first_name: userData.first_name?.trim(),
@@ -341,10 +386,29 @@ export async function PUT(request) {
         phone: userData.phone?.trim() || null,
         address: userData.address?.trim() || null,
         profile_photo: userData.profile_photo || null,
+        status: userData.status,
       },
     };
 
-    // Update user in Supabase Auth
+    // Add banned_until to the same update call if status is being changed
+    if (userData.status !== undefined) {
+      if (userData.status === "inactive") {
+        console.log(`🔒 Setting banned_until for user: ${userId}`);
+        const bannedUntil = new Date();
+        bannedUntil.setFullYear(bannedUntil.getFullYear() + 100);
+        updateData.banned_until = bannedUntil.toISOString();
+      } else if (userData.status === "active") {
+        console.log(`🔓 Removing ban for user: ${userId}`);
+        updateData.banned_until = "none";
+      }
+    }
+
+    // Update user in Supabase Auth (single call with all updates)
+    console.log("📝 Updating user with data:", {
+      status: userData.status,
+      banned_until: updateData.banned_until,
+    });
+
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.updateUserById(userId, updateData);
 
@@ -361,59 +425,35 @@ export async function PUT(request) {
     }
 
     console.log("✅ User updated successfully in Auth:", userId);
+    console.log("✅ User metadata status:", authData.user.user_metadata?.status);
+    console.log("✅ Banned until:", authData.user.banned_until || "not banned");
 
-    // Update user status using Supabase ban/unban feature
-    // Status is checked via user.banned_until field during login
-    if (userData.status !== undefined) {
-      try {
-        if (userData.status === "inactive") {
-          console.log(`🔒 Banning user in Supabase Auth: ${userId}`);
-          const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
-            userId,
-            { ban_duration: "none" } // Ban indefinitely
-          );
-          if (banError) {
-            console.error("❌ Failed to ban user:", banError);
-            return NextResponse.json(
-              {
-                success: false,
-                error: banError.message || "Failed to ban user",
-                message: `Failed to update user status: ${banError.message}`,
-              },
-              { status: 400 }
-            );
-          }
-          console.log("✅ User banned in Supabase Auth");
-        } else if (userData.status === "active") {
-          console.log(`🔓 Unbanning user in Supabase Auth: ${userId}`);
-          const { error: unbanError } = await supabaseAdmin.auth.admin.updateUserById(
-            userId,
-            { ban_duration: "0" } // Remove ban
-          );
-          if (unbanError) {
-            console.error("❌ Failed to unban user:", unbanError);
-            return NextResponse.json(
-              {
-                success: false,
-                error: unbanError.message || "Failed to unban user",
-                message: `Failed to update user status: ${unbanError.message}`,
-              },
-              { status: 400 }
-            );
-          }
-          console.log("✅ User unbanned in Supabase Auth");
-        }
-      } catch (statusUpdateError) {
-        console.error("❌ Exception during status update:", statusUpdateError);
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Exception updating user status",
-            message: `Failed to update user status: ${statusUpdateError.message}`,
-          },
-          { status: 400 }
-        );
+    // Update profile in profiles table if it exists
+    try {
+      const profileUpdate = {
+        first_name: userData.first_name?.trim(),
+        last_name: userData.last_name?.trim(),
+        phone: userData.phone?.trim() || null,
+        address: userData.address?.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only add status if it's provided
+      if (userData.status !== undefined) {
+        profileUpdate.status = userData.status;
       }
+
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .upsert({ id: userId, ...profileUpdate });
+
+      if (profileError) {
+        console.log("⚠️ Profile update warning:", profileError.message);
+      } else {
+        console.log("✅ Profile updated successfully");
+      }
+    } catch (profileErr) {
+      console.log("⚠️ Profile table not available or error:", profileErr.message);
     }
 
     // Return formatted user data
@@ -424,7 +464,7 @@ export async function PUT(request) {
       last_name: authData.user.user_metadata?.last_name || "",
       role: authData.user.user_metadata?.role || "",
       role_id: authData.user.user_metadata?.role_id || null,
-      status: userData.status || "active",
+      status: authData.user.user_metadata?.status || userData.status || "active",
       phone: authData.user.user_metadata?.phone || null,
       address: authData.user.user_metadata?.address || null,
       profile_photo: authData.user.user_metadata?.profile_photo || null,
@@ -432,6 +472,7 @@ export async function PUT(request) {
       updated_at: authData.user.updated_at,
       last_sign_in_at: authData.user.last_sign_in_at,
       email_verified: authData.user.email_confirmed_at ? true : false,
+      email_confirmed_at: authData.user.email_confirmed_at,
     };
 
     return NextResponse.json({

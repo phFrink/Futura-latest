@@ -1,21 +1,47 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// Create Supabase Admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
+// Function to create Supabase admin client safely
+function createSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    console.error("❌ Missing Supabase credentials:");
+    console.error("  - NEXT_PUBLIC_SUPABASE_URL:", url ? "✓ Set" : "✗ Missing");
+    console.error("  - SUPABASE_SERVICE_ROLE_KEY:", key ? "✓ Set" : "✗ Missing");
+    return null;
+  }
+
+  return createClient(url, key, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
-);
+  });
+}
+
+// Create Supabase Admin client
+const supabaseAdmin = createSupabaseAdmin();
 
 // GET - Fetch all notifications
 export async function GET(request) {
   try {
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      console.error("❌ Supabase admin client not initialized - missing environment variables");
+      return NextResponse.json(
+        {
+          success: true,
+          count: 0,
+          unreadCount: 0,
+          notifications: [],
+          warning: "Notification service unavailable - check server configuration",
+        },
+        { status: 200 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit") || "50";
     const status = searchParams.get("status"); // unread, read, archived
@@ -47,39 +73,51 @@ export async function GET(request) {
     if (userId && role) {
       console.log(`🔍 Applying filter for userId: "${userId}" and role: "${role}"`);
 
-      // Homeowners (clients) ONLY see notifications specifically for them OR notifications for "all"
-      if (role === 'homeowner') {
-        console.log(`🔒 Homeowner filter: showing only notifications assigned to them or broadcast to all`);
-        // Homeowners can ONLY see:
-        // 1. Notifications where recipient_id matches their userId (specifically assigned)
-        // 2. Notifications with recipient_role = 'all' (broadcast to everyone)
-        // This is a strict filter to prevent seeing any role-based notifications
-        query = query.or(`recipient_id.eq.${userId},recipient_role.eq.all`);
+      // Normalize role (handle both "homeowner" and "home owner")
+      const normalizedRole = role.toLowerCase().replace(/\s+/g, '');
+
+      // STRICT FILTER for Homeowners: ONLY notifications where recipient_id exactly matches
+      if (normalizedRole === 'homeowner') {
+        console.log(`🔒 STRICT Homeowner filter: ONLY notifications with recipient_id = ${userId}`);
+        // Homeowners see ONLY notifications where recipient_id EXACTLY matches their userId
+        // NO broadcast, NO role-based notifications
+        query = query.eq('recipient_id', userId);
+
+        console.log(`✅ Homeowner STRICT filter applied: recipient_id = ${userId} (EXACT match only)`);
       } else {
         // Admin/staff roles see notifications that are either:
         // 1. Specifically for them (recipient_id matches)
         // 2. For their role (recipient_role matches)
         // 3. For all users (recipient_role = 'all')
         const filterQuery = `recipient_id.eq.${userId},recipient_role.eq.${role},recipient_role.eq.all`;
-        console.log(`🔒 Filter applied: ${filterQuery}`);
+        console.log(`🔒 Staff filter applied: ${filterQuery}`);
         query = query.or(filterQuery);
       }
     } else if (role) {
       console.log(`🔍 Applying filter for role only: "${role}"`);
 
-      // All roles (including admin) only see notifications for their role or "all"
-      const filterQuery = `recipient_role.eq.${role},recipient_role.eq.all`;
-      console.log(`🔒 Filter applied: ${filterQuery}`);
-      query = query.or(filterQuery);
+      // Normalize role
+      const normalizedRole = role.toLowerCase().replace(/\s+/g, '');
 
-      // Additional safety: exclude NULL recipient_role when no userId
-      query = query.not('recipient_role', 'is', null);
+      if (normalizedRole === 'homeowner') {
+        console.log(`⚠️ Homeowner without userId - cannot filter properly, returning empty`);
+        // For security, don't show any notifications if homeowner has no userId
+        query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Return empty
+      } else {
+        // All roles (including admin) only see notifications for their role or "all"
+        const filterQuery = `recipient_role.eq.${role},recipient_role.eq.all`;
+        console.log(`🔒 Role filter applied: ${filterQuery}`);
+        query = query.or(filterQuery);
+
+        // Additional safety: exclude NULL recipient_role when no userId
+        query = query.not('recipient_role', 'is', null);
+      }
     } else if (userId) {
       console.log(`🔍 Applying filter for userId only: "${userId}"`);
 
-      // Only show notifications specifically for this user OR broadcast to all
-      const filterQuery = `recipient_id.eq.${userId},recipient_role.eq.all`;
-      query = query.or(filterQuery);
+      // STRICT filter: Only show notifications where recipient_id exactly matches
+      console.log(`🔒 STRICT UserId filter applied: recipient_id = ${userId} (EXACT match only)`);
+      query = query.eq('recipient_id', userId);
     } else {
       console.log("⚠️ No role or userId provided - showing all notifications");
     }
@@ -88,11 +126,34 @@ export async function GET(request) {
 
     if (error) {
       console.error("❌ Error fetching notifications:", error);
+      console.error("❌ Error code:", error.code);
+      console.error("❌ Error details:", error.details);
+      console.error("❌ Error hint:", error.hint);
+
+      // Check if the table doesn't exist
+      if (error.code === "42P01" || error.message.includes("relation") || error.message.includes("does not exist")) {
+        console.error("❌ notifications_tbl table does not exist!");
+        return NextResponse.json(
+          {
+            success: true,
+            count: 0,
+            unreadCount: 0,
+            notifications: [],
+            warning: "Notifications table not found - please create the table in Supabase",
+          },
+          { status: 200 }
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
           error: error.message,
-          details: error,
+          details: {
+            code: error.code,
+            message: error.message,
+            hint: error.hint,
+          },
         },
         { status: 500 }
       );
@@ -137,6 +198,17 @@ export async function GET(request) {
 // POST - Create a new notification
 export async function POST(request) {
   try {
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Notification service unavailable - check server configuration",
+        },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     const {
       notification_type = "manual",
@@ -222,6 +294,17 @@ export async function POST(request) {
 // PUT - Update notification (mark as read, etc.)
 export async function PUT(request) {
   try {
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Notification service unavailable - check server configuration",
+        },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     const { id, status, read_at } = body;
 
@@ -294,6 +377,17 @@ export async function PUT(request) {
 // DELETE - Delete notification
 export async function DELETE(request) {
   try {
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Notification service unavailable - check server configuration",
+        },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const clearAll = searchParams.get("clearAll"); // New parameter to clear all notifications
@@ -386,6 +480,17 @@ export async function DELETE(request) {
 // This endpoint cleans up old notifications that have recipient_role='all' when they should be role-specific
 export async function PATCH(request) {
   try {
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Notification service unavailable - check server configuration",
+        },
+        { status: 503 }
+      );
+    }
+
     const { action } = await request.json();
 
     if (action === 'fix_notification_roles') {

@@ -72,6 +72,7 @@ export default function ClientLandingPage() {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [approvedReservations, setApprovedReservations] = useState([]);
+  const [pendingReservations, setPendingReservations] = useState([]);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -187,6 +188,35 @@ export default function ClientLandingPage() {
         setApprovedReservations(reservationsData || []);
       }
 
+      // Fetch PENDING reservations for current user
+       console.log("🔍 Fetching pending reservations for user ID:", user);
+      if (user?.id) {
+        console.log("🔍 Fetching pending reservations for user ID:", user);
+
+        const { data: pendingData, error: pendingError } = await supabase
+          .from("property_reservations")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "pending");
+
+        if (pendingError) {
+          console.error("❌ Error fetching pending reservations:", pendingError);
+        } else {
+          console.log("📋 Pending reservations found:", pendingData?.length || 0);
+          console.log("📋 Pending reservations data:", pendingData);
+
+          if (pendingData && pendingData.length > 0) {
+            console.log("📋 Property IDs with pending reservations:",
+              pendingData.map(r => r.property_id)
+            );
+          }
+
+          setPendingReservations(pendingData || []);
+        }
+      } else {
+        console.log("⚠️ No user ID available, skipping pending reservations fetch");
+      }
+
       setProperties(propertiesData || []);
       setFilteredProperties(propertiesData || []);
     } catch (error) {
@@ -195,6 +225,19 @@ export default function ClientLandingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to check if property has pending reservation for current user
+  const hasPendingReservation = (propertyId) => {
+    const hasPending = pendingReservations.some(
+      reservation => reservation.property_id === propertyId
+    );
+
+    if (hasPending) {
+      console.log(`✅ Property ${propertyId} has pending reservation`);
+    }
+
+    return hasPending;
   };
 
   // Helper function to get spec value from property_area array
@@ -529,6 +572,9 @@ export default function ClientLandingPage() {
       setShowReceiptModal(true);
 
       toast.success(result.message || "Reservation submitted successfully!");
+
+      // Refresh properties and pending reservations
+      fetchProperties();
 
       // Reset form
       setReservationForm({
@@ -969,75 +1015,99 @@ export default function ClientLandingPage() {
                             Reserved
                           </Button>
                         ) : (
-                          // Property is available - show all action buttons
+                          // Property is available - check if user has pending reservation
                           <>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => setSelectedProperty(property)}
-                                className="flex-1 bg-slate-100 text-slate-900 hover:bg-slate-200"
-                              >
-                                View Details
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  if (!isAuthenticated) {
-                                    sessionStorage.setItem(
-                                      "redirect_after_login",
-                                      "/client-home"
-                                    );
-                                    sessionStorage.setItem(
-                                      "selected_property",
-                                      JSON.stringify(property)
-                                    );
-                                    toast.info(
-                                      "Please login to reserve this property"
-                                    );
-                                    router.push("/client-login");
-                                  } else if (
-                                    !profile?.phone ||
-                                    !profile?.address
-                                  ) {
-                                    // Check if phone and address are in user profile
-                                    toast.warning(
-                                      "Please complete your profile (phone and address) before making a reservation"
-                                    );
-                                    sessionStorage.setItem(
-                                      "redirect_after_profile_update",
-                                      "/client-home"
-                                    );
-                                    sessionStorage.setItem(
-                                      "selected_property",
-                                      JSON.stringify(property)
-                                    );
-                                    router.push("/client-account");
-                                  } else {
+                            {(() => {
+                              const isPending = isAuthenticated && hasPendingReservation(property.property_id);
+                              console.log(`🏠 Property ${property.property_id}:`, {
+                                isAuthenticated,
+                                hasPending: isPending,
+                                pendingReservationsCount: pendingReservations.length
+                              });
+                              return isPending;
+                            })() ? (
+                              // Show waiting for approval message
+                              <div className="w-full">
+                                <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 text-center">
+                                  <div className="flex items-center justify-center gap-2 text-amber-700">
+                                    <AlertCircle className="h-5 w-5" />
+                                    <span className="font-semibold">Waiting for Approval</span>
+                                  </div>
+                                  <p className="text-sm text-amber-600 mt-1">
+                                    Your reservation request is pending review
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              // Show action buttons
+                              <>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => setSelectedProperty(property)}
+                                    className="flex-1 bg-slate-100 text-slate-900 hover:bg-slate-200"
+                                  >
+                                    View Details
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      if (!isAuthenticated) {
+                                        sessionStorage.setItem(
+                                          "redirect_after_login",
+                                          "/client-home"
+                                        );
+                                        sessionStorage.setItem(
+                                          "selected_property",
+                                          JSON.stringify(property)
+                                        );
+                                        toast.info(
+                                          "Please login to reserve this property"
+                                        );
+                                        router.push("/client-login");
+                                      } else if (
+                                        !profile?.phone ||
+                                        !profile?.address
+                                      ) {
+                                        // Check if phone and address are in user profile
+                                        toast.warning(
+                                          "Please complete your profile (phone and address) before making a reservation"
+                                        );
+                                        sessionStorage.setItem(
+                                          "redirect_after_profile_update",
+                                          "/client-home"
+                                        );
+                                        sessionStorage.setItem(
+                                          "selected_property",
+                                          JSON.stringify(property)
+                                        );
+                                        router.push("/client-account");
+                                      } else {
+                                        setSelectedProperty(property);
+                                        // Pre-fill phone and address from user metadata
+                                        setReservationForm((prev) => ({
+                                          ...prev,
+                                          phone: profile?.phone || "",
+                                          address: profile?.address || "",
+                                        }));
+                                        setShowAppointmentModal(true);
+                                      }
+                                    }}
+                                    className="flex-1 bg-red-600 hover:bg-red-700"
+                                  >
+                                    Reserve Now
+                                  </Button>
+                                </div>
+                                <Button
+                                  onClick={() => {
                                     setSelectedProperty(property);
-                                    // Pre-fill phone and address from user metadata
-                                    setReservationForm((prev) => ({
-                                      ...prev,
-                                      phone: profile?.phone || "",
-                                      address: profile?.address || "",
-                                    }));
-                                    setShowAppointmentModal(true);
-                                  }
-                                }}
-                                className="flex-1 bg-red-600 hover:bg-red-700"
-                              >
-                                Reserve Now
-                              </Button>
-                            </div>
-                            <Button
-                              onClick={() => {
-                                setSelectedProperty(property);
-                                setShowInquiryModal(true);
-                                // Reset OTP states
-                                setOtpSent(false);
-                                setOtpCode("");
-                                setOtpVerified(false);
-                                setOtpTimer(0);
-                                if (isAuthenticated) {
-                                  const fullName =
-                                    profile?.full_name ||
+                                    setShowInquiryModal(true);
+                                    // Reset OTP states
+                                    setOtpSent(false);
+                                    setOtpCode("");
+                                    setOtpVerified(false);
+                                    setOtpTimer(0);
+                                    if (isAuthenticated) {
+                                      const fullName =
+                                        profile?.full_name ||
                                     profile?.first_name ||
                                     user?.email?.split("@")[0] ||
                                     "";
@@ -1056,6 +1126,8 @@ export default function ClientLandingPage() {
                             >
                               Send Inquiry
                             </Button>
+                              </>
+                            )}
                           </>
                         )}
                       </div>

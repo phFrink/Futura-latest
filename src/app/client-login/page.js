@@ -21,6 +21,7 @@ function ClientLoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [rateLimitError, setRateLimitError] = useState(false);
+  const [generalError, setGeneralError] = useState('');
   const [cooldown, setCooldown] = useState(0);
 
   const validateForm = () => {
@@ -52,6 +53,7 @@ function ClientLoginPageContent() {
 
     setLoading(true);
     setRateLimitError(false);
+    setGeneralError('');
 
     const { data, error } = await login(formData.email, formData.password);
     setLoading(false);
@@ -76,7 +78,13 @@ function ClientLoginPageContent() {
       return;
     }
 
-    if (!error && data) {
+    // Check for other errors (like inactive status)
+    if (error) {
+      setGeneralError(error);
+      return;
+    }
+
+    if (data) {
       // Check if there's a redirect URL in session storage
       const redirectTo = sessionStorage.getItem('redirect_after_login');
       if (redirectTo) {
@@ -121,6 +129,18 @@ function ClientLoginPageContent() {
                   <div className="ml-3">
                     <p className="text-sm text-yellow-700">
                       <strong>Too many attempts.</strong> Please wait {cooldown} seconds before trying again.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {generalError && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">
+                      <strong>Error:</strong> {generalError}
                     </p>
                   </div>
                 </div>

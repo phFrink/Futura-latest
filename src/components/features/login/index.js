@@ -67,27 +67,41 @@ export default function LoginComponent() {
       if (error) {
         setError(error.message);
       } else {
-        // First, check if user's account is active/inactive in profiles table
-        console.log("🔍 Checking user status in profiles...");
+        // First, check user_metadata.status - HIGHEST PRIORITY CHECK
+        const userMetadataStatus = data.user?.user_metadata?.status;
+
+        console.log("🔍 Checking user_metadata.status:", userMetadataStatus);
+
+        // Only block login if status is explicitly "inactive" (undefined = active)
+        if (userMetadataStatus === "inactive") {
+          console.log("❌ Login denied: User status is inactive");
+          setError("Your account has been deactivated. Please contact the administrator.");
+          await supabase.auth.signOut();
+          return;
+        }
+
+        // Second, check if user's account is active/inactive in profiles table (fallback)
+        console.log("🔍 Checking user status in profiles table...");
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("status")
           .eq("id", data.user.id)
           .single();
 
-        // Check user status
-        const userStatus = profileData?.status || "active";
+        // Check user status from profiles table
+        const profileStatus = profileData?.status;
 
         console.log("📊 User status check:", {
           userId: data.user.id,
           email: data.user.email,
-          status: userStatus,
+          userMetadataStatus: userMetadataStatus,
+          profileStatus: profileStatus,
           profileError: profileError?.message
         });
 
-        // If user is inactive, deny login immediately
-        if (userStatus === "inactive") {
-          console.log("❌ Login denied: User account is inactive");
+        // If profile status is inactive, deny login immediately
+        if (profileStatus === "inactive") {
+          console.log("❌ Login denied: Profile status is inactive");
           setError("Your account has been deactivated. Please contact the administrator.");
           await supabase.auth.signOut();
           return;
@@ -99,7 +113,8 @@ export default function LoginComponent() {
         console.log("✅ Login successful:", {
           email: data.user.email,
           role: userRole,
-          status: userStatus,
+          userMetadataStatus: userMetadataStatus,
+          profileStatus: profileStatus,
           metadata: data.user.user_metadata
         });
 

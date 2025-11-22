@@ -56,10 +56,13 @@ export default function ContractToSell() {
           setCurrentUserId(user.id);
           // Load contracts for this user
           await loadContracts(user.id);
+        } else {
+          // No user logged in, load all contracts
+          await loadContracts();
         }
       } catch (error) {
         console.error("Error getting current user:", error);
-        // If not authenticated, just load all contracts
+        // If error occurs, just load all contracts
         await loadContracts();
       }
     };

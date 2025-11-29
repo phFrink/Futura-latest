@@ -29,9 +29,7 @@ import {
   Armchair,
   Package,
 } from "lucide-react";
-// import NotificationBell from "@/components/ui/NotificationBell";
-// import MockNotificationBell from "@/components/ui/MockNotificationBell";
-import RealNotificationBell from "@/components/ui/RealNotificationBell";
+import AdminNotificationBell from "@/components/ui/AdminNotificationBell";
 import { useNewItemCounts } from "@/hooks/useNewItemCounts";
 import {
   Sidebar,
@@ -220,7 +218,7 @@ const navigationItems = [
     roles: ["admin", "customer service", "sales representative", "collection"],
   },
   {
-    title: "Settings",
+    title: "User Management",
     url: "/settings/users",
     icon: Users,
     countKey: null,
@@ -606,7 +604,7 @@ export default function MainLayout({ children, currentPageName }) {
                 {/* Right side - Notification Bell and User Info */}
                 <div className="flex items-center gap-3">
                   {/* Notification Bell */}
-                  <RealNotificationBell />
+                  <AdminNotificationBell />
 
                   {/* User Avatar with Dropdown - Desktop only */}
                   <div className="hidden md:block relative">

@@ -29,13 +29,62 @@ const ClientNotificationBell = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Get current user ID on mount
+  React.useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
+          console.log("🔔 ClientNotificationBell - Current User ID:", user.id);
+        }
+      } catch (error) {
+        console.error("Error getting current user:", error);
+      }
+    };
+    getCurrentUser();
+  }, []);
+
+  // ADDITIONAL SAFEGUARD: Filter notifications one more time in component
+  // This ensures ONLY notifications for the current user are displayed
+  const filteredNotifications = React.useMemo(() => {
+    if (!currentUserId) return notifications;
+
+    const filtered = notifications.filter(notification => {
+      // STRICT: Only show if recipient_id exactly matches current user
+      const isMatch = notification.recipient_id === currentUserId;
+
+      if (!isMatch) {
+        console.warn(`🚨 ClientNotificationBell BLOCKED notification: "${notification.title}"`);
+        console.warn(`   - recipient_id: ${notification.recipient_id || 'NULL'}`);
+        console.warn(`   - expected: ${currentUserId}`);
+      }
+
+      return isMatch;
+    });
+
+    console.log(`🔔 ClientNotificationBell - Component-level filter: ${notifications.length} → ${filtered.length} notifications`);
+    return filtered;
+  }, [notifications, currentUserId]);
+
+  // Recalculate unread count from filtered notifications
+  const filteredUnreadCount = React.useMemo(() => {
+    return filteredNotifications.filter(n => !n.read).length;
+  }, [filteredNotifications]);
 
   // Debug logging
   React.useEffect(() => {
-    console.log("🔔 ClientNotificationBell - Notifications:", notifications);
-    console.log("🔔 ClientNotificationBell - Unread count:", unreadCount);
+    console.log("🔔 ClientNotificationBell - Notifications:", filteredNotifications);
+    console.log("🔔 ClientNotificationBell - Unread count:", filteredUnreadCount);
     console.log("🔔 ClientNotificationBell - Loading:", loading);
-  }, [notifications, unreadCount, loading]);
+  }, [filteredNotifications, filteredUnreadCount, loading]);
 
   const getNotificationDescription = (notification) => {
     // Use the message from the database if available
@@ -186,18 +235,18 @@ const ClientNotificationBell = () => {
           )}
 
           {/* Notification Badge */}
-          {!loading && unreadCount > 0 && (
+          {!loading && filteredUnreadCount > 0 && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
             >
-              {unreadCount > 99 ? "99+" : unreadCount}
+              {filteredUnreadCount > 99 ? "99+" : filteredUnreadCount}
             </motion.div>
           )}
 
           {/* Pulse animation for unread notifications */}
-          {!loading && unreadCount > 0 && (
+          {!loading && filteredUnreadCount > 0 && (
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-400 rounded-full animate-ping opacity-75"></div>
           )}
         </button>
@@ -239,9 +288,9 @@ const ClientNotificationBell = () => {
                           My Notifications
                         </h3>
                       </div>
-                      {unreadCount > 0 && (
+                      {filteredUnreadCount > 0 && (
                         <span className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full">
-                          {unreadCount} new
+                          {filteredUnreadCount} new
                         </span>
                       )}
                     </div>
@@ -260,7 +309,7 @@ const ClientNotificationBell = () => {
                         )}
                       </button>
 
-                      {unreadCount > 0 && (
+                      {filteredUnreadCount > 0 && (
                         <button
                           onClick={handleMarkAllAsRead}
                           disabled={actionLoading === "mark-all"}
@@ -311,7 +360,7 @@ const ClientNotificationBell = () => {
                 {/* Notifications List */}
                 {!loading && (
                   <div className="max-h-96 overflow-y-auto">
-                    {isEmpty(notifications) ? (
+                    {isEmpty(filteredNotifications) ? (
                       <div className="px-4 py-8 text-center text-slate-500">
                         <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                         <p className="font-medium mb-1">No notifications yet</p>
@@ -321,8 +370,8 @@ const ClientNotificationBell = () => {
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-100">
-                        {notifications &&
-                          notifications?.map((notification, index) => (
+                        {filteredNotifications &&
+                          filteredNotifications?.map((notification, index) => (
                             <motion.div
                               key={notification.id}
                               initial={{ opacity: 0, x: -20 }}
@@ -405,12 +454,12 @@ const ClientNotificationBell = () => {
                 )}
 
                 {/* Footer */}
-                {!loading && notifications && notifications.length > 0 && (
+                {!loading && filteredNotifications && filteredNotifications.length > 0 && (
                   <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 rounded-b-xl">
                     <div className="flex items-center justify-between text-xs text-slate-500">
                       <span>
-                        {notifications.length} notification
-                        {notifications.length !== 1 ? "s" : ""}
+                        {filteredNotifications.length} notification
+                        {filteredNotifications.length !== 1 ? "s" : ""}
                       </span>
                       <button
                         onClick={() => {

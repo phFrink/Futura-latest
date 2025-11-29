@@ -32,6 +32,7 @@ export default function Account() {
     id: "",
     email: "",
     first_name: "",
+    middle_name: "",
     last_name: "",
     phone: "",
     address: "",
@@ -41,6 +42,7 @@ export default function Account() {
 
   const [formData, setFormData] = useState({
     first_name: "",
+    middle_name: "",
     last_name: "",
     phone: "",
     address: "",
@@ -60,10 +62,14 @@ export default function Account() {
 
       if (session?.user) {
         const user = session.user;
+        console.log("👤 [Account] Loading user data for:", user.id);
+        console.log("📋 [Account] Current user_metadata:", user.user_metadata);
+
         const data = {
           id: user.id,
           email: user.email,
           first_name: user.user_metadata?.first_name || "",
+          middle_name: user.user_metadata?.middle_name || "",
           last_name: user.user_metadata?.last_name || "",
           phone: user.user_metadata?.phone || "",
           address: user.user_metadata?.address || "",
@@ -71,9 +77,11 @@ export default function Account() {
           profile_photo: user.user_metadata?.profile_photo || "",
         };
 
+        console.log("✅ [Account] Loaded user data:", data);
         setUserData(data);
         setFormData({
           first_name: data.first_name,
+          middle_name: data.middle_name,
           last_name: data.last_name,
           phone: data.phone,
           address: data.address,
@@ -82,7 +90,7 @@ export default function Account() {
         setPhotoPreview(data.profile_photo);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("❌ [Account] Error loading user data:", error);
       toast.error("Failed to load user data");
     } finally {
       setLoading(false);
@@ -192,33 +200,57 @@ export default function Account() {
       }
 
       // Update user metadata via API
+      const updatePayload = {
+        userId: userData.id,
+        first_name: formData.first_name,
+        middle_name: formData.middle_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        address: formData.address,
+        profile_photo: photoUrl,
+        role: userData.role, // Keep existing role
+      };
+
+      console.log("📤 [Account] Sending update to API:", updatePayload);
+      console.log("📍 [Account] Updating user ID:", userData.id);
+
       const response = await fetch("/api/users", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId: userData.id,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          address: formData.address,
-          profile_photo: photoUrl,
-          role: userData.role, // Keep existing role
-        }),
+        body: JSON.stringify(updatePayload),
       });
 
       const result = await response.json();
+      console.log("📥 [Account] API Response:", result);
 
       if (result.success) {
+        console.log("✅ [Account] Profile updated successfully!");
+        console.log("🔄 [Account] Updated user data:", result.data);
+
+        // Refresh the session to get updated user_metadata
+        console.log("🔄 [Account] Refreshing session to get latest user_metadata...");
+        const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          console.error("❌ [Account] Session refresh error:", refreshError);
+        } else {
+          console.log("✅ [Account] Session refreshed successfully!");
+          console.log("📋 [Account] New user_metadata:", session?.user?.user_metadata);
+        }
+
         toast.success("Profile updated successfully!");
         setIsEditing(false);
         setSelectedPhotoFile(null);
-        // Reload user data to reflect changes
+
+        // Reload user data to reflect changes immediately
         await loadUserData();
-        // Reload the page to update the header
+
+        // Reload the page to update the header and other components
         window.location.reload();
       } else {
+        console.error("❌ [Account] Update failed:", result.message);
         toast.error(result.message || "Failed to update profile");
       }
     } catch (error) {
@@ -233,6 +265,7 @@ export default function Account() {
     setIsEditing(false);
     setFormData({
       first_name: userData.first_name,
+      middle_name: userData.middle_name,
       last_name: userData.last_name,
       phone: userData.phone,
       address: userData.address,
@@ -322,7 +355,7 @@ export default function Account() {
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                     {userData.first_name && userData.last_name
-                      ? `${userData.first_name} ${userData.last_name}`
+                      ? `${userData.first_name} ${userData.middle_name ? userData.middle_name + ' ' : ''}${userData.last_name}`
                       : userData.email?.split("@")[0]}
                   </h2>
                   <p className="text-slate-600 mb-3 flex items-center gap-2 justify-center md:justify-start">
@@ -365,6 +398,25 @@ export default function Account() {
                         ) : (
                           <p className="text-slate-900 py-2 px-3 bg-slate-50 rounded-lg">
                             {userData.first_name || "Not provided"}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Middle Name <span className="text-slate-400 text-xs">(Optional)</span>
+                        </label>
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            name="middle_name"
+                            value={formData.middle_name}
+                            onChange={handleInputChange}
+                            placeholder="Enter middle name"
+                            className="w-full"
+                          />
+                        ) : (
+                          <p className="text-slate-900 py-2 px-3 bg-slate-50 rounded-lg">
+                            {userData.middle_name || "Not provided"}
                           </p>
                         )}
                       </div>

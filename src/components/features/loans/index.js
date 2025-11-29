@@ -232,6 +232,8 @@ export default function Loans() {
     indexOfLastItem
   );
   const totalPages = Math.ceil(filteredContracts.length / itemsPerPage);
+  const totalAmountProperty10 = Number(selectedContract?.downpayment_total || 0) ?? Number(selectedContract.property_price * 0.10) ?? 0;
+  const totalAmountProperty = Number(totalAmountProperty10);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -597,14 +599,24 @@ export default function Loans() {
               </div>
 
               <div className="p-6">
-                {/* Payment Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Payment Summary
+               */}
+               {selectedContract.reservation?.reservation_fee}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <p className="text-xs text-blue-600 font-semibold mb-1">
-                      10% Downpayment Total
+                      10% Total Amount of Property
                     </p>
                     <p className="text-2xl font-bold text-blue-900">
-                      {formatCurrency(selectedContract.downpayment_total || (selectedContract.property_price * 0.10))}
+                      {formatCurrency(totalAmountProperty - Number(selectedContract?.reservation_fee_paid))}
+                    </p>
+                  </div>
+                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                    <p className="text-xs text-amber-600 font-semibold mb-1">
+                      Downpayment
+                    </p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {formatCurrency(selectedContract.reservation?.reservation_fee || selectedContract.reservation_fee_paid || 0)}
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">

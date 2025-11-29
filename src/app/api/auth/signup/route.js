@@ -30,7 +30,7 @@ export async function POST(request) {
         { status: 500 }
       );
     }
-    const { firstName, lastName, email, password, phone, address } =
+    const { firstName, middleName, lastName, email, password, phone, address } =
       await request.json();
 
     // Validate input
@@ -59,7 +59,7 @@ export async function POST(request) {
     }
 
     // Construct full name
-    const fullName = `${firstName} ${lastName}`;
+    const fullName = `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`;
 
     // Create user with Admin API - All data stored in user_metadata
     const { data: authData, error: authError } =
@@ -69,9 +69,10 @@ export async function POST(request) {
         email_confirm: true, // Auto-confirm email
         user_metadata: {
           first_name: firstName,
+          middle_name: middleName || null,
           last_name: lastName,
           full_name: fullName,
-          display_name: `${firstName.trim()} ${lastName.trim()}`,
+          display_name: `${firstName.trim()} ${middleName?.trim() ? middleName.trim() + ' ' : ''}${lastName.trim()}`,
           phone: phone || "",
           address: address || "",
           role: "home owner",

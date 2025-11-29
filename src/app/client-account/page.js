@@ -40,6 +40,7 @@ export default function ClientAccountPage() {
 
   const [formData, setFormData] = useState({
     first_name: '',
+    middle_name: '',
     last_name: '',
     phone: '',
     address: '',
@@ -72,6 +73,7 @@ export default function ClientAccountPage() {
 
     setFormData({
       first_name: profile?.first_name || '',
+      middle_name: profile?.middle_name || '',
       last_name: profile?.last_name || '',
       phone: profile?.phone || '',
       address: profile?.address || '',
@@ -168,6 +170,7 @@ export default function ClientAccountPage() {
         body: JSON.stringify({
           userId: user.id,
           first_name: formData.first_name,
+          middle_name: formData.middle_name,
           last_name: formData.last_name,
           phone: formData.phone,
           address: formData.address,
@@ -195,6 +198,7 @@ export default function ClientAccountPage() {
 
           setFormData({
             first_name: updatedMetadata?.first_name || '',
+            middle_name: updatedMetadata?.middle_name || '',
             last_name: updatedMetadata?.last_name || '',
             phone: updatedMetadata?.phone || '',
             address: updatedMetadata?.address || '',
@@ -219,6 +223,7 @@ export default function ClientAccountPage() {
     setIsEditing(false);
     setFormData({
       first_name: profile?.first_name || '',
+      middle_name: profile?.middle_name || '',
       last_name: profile?.last_name || '',
       phone: profile?.phone || '',
       address: profile?.address || '',
@@ -339,7 +344,7 @@ export default function ClientAccountPage() {
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                     {profile?.first_name && profile?.last_name
-                      ? `${profile.first_name} ${profile.last_name}`
+                      ? `${profile.first_name} ${profile.middle_name ? profile.middle_name + ' ' : ''}${profile.last_name}`
                       : user?.email?.split("@")[0]}
                   </h2>
                   <p className="text-slate-600 mb-3 flex items-center gap-2 justify-center md:justify-start">
@@ -380,6 +385,25 @@ export default function ClientAccountPage() {
                         ) : (
                           <p className="text-slate-900 py-2 px-3 bg-slate-50 rounded-lg">
                             {profile?.first_name || "Not provided"}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Middle Name <span className="text-slate-400 text-xs">(Optional)</span>
+                        </label>
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            name="middle_name"
+                            value={formData.middle_name}
+                            onChange={handleInputChange}
+                            placeholder="Enter middle name"
+                            className="w-full"
+                          />
+                        ) : (
+                          <p className="text-slate-900 py-2 px-3 bg-slate-50 rounded-lg">
+                            {profile?.middle_name || "Not provided"}
                           </p>
                         )}
                       </div>

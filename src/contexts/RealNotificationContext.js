@@ -2,11 +2,20 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase client with realtime enabled
-const supabase = createClient(
+// Create TWO Supabase clients - one for admin (default storage) and one for client (custom storage)
+
+// Admin Supabase client (uses default 'sb-' storage key)
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      // Uses default storage key for admin
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
     realtime: {
       params: {
         eventsPerSecond: 10,
@@ -14,6 +23,46 @@ const supabase = createClient(
     },
   }
 );
+
+// Client Supabase client (uses 'futura-client-auth' storage key)
+const supabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'futura-client-auth', // Client-specific storage key
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
+);
+
+// Helper function to detect which client to use based on active session
+const getActiveSupabaseClient = async () => {
+  // Check client session first (homeowner)
+  const { data: { session: clientSession } } = await supabaseClient.auth.getSession();
+  if (clientSession) {
+    console.log("✅ Using CLIENT Supabase client (futura-client-auth)");
+    return { client: supabaseClient, userType: 'client' };
+  }
+
+  // Check admin session (default storage)
+  const { data: { session: adminSession } } = await supabaseAdmin.auth.getSession();
+  if (adminSession) {
+    console.log("✅ Using ADMIN Supabase client (default storage)");
+    return { client: supabaseAdmin, userType: 'admin' };
+  }
+
+  console.warn("⚠️ No active session found in either client");
+  return { client: null, userType: null };
+};
 
 const RealNotificationContext = createContext();
 
@@ -41,25 +90,66 @@ export const RealNotificationProvider = ({ children }) => {
     try {
       console.log("🔍 Loading notifications from API...");
 
-      // Get current user ID and role
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get the active Supabase client (admin or client)
+      const { client: activeClient, userType } = await getActiveSupabaseClient();
+
+      if (!activeClient) {
+        console.warn("⚠️ No active session found - user not logged in");
+        setNotifications([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
+
+      // Get session from the active client
+      const { data: { session }, error: sessionError } = await activeClient.auth.getSession();
+
+      if (sessionError) {
+        console.error("❌ Error getting session:", sessionError);
+        setLoading(false);
+        return;
+      }
+
+      if (!session) {
+        console.warn("⚠️ No active session found");
+        setNotifications([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
+
+      // Get current user ID and role from session
+      const user = session.user;
       const userId = user?.id;
       const userRole = user?.user_metadata?.role?.toLowerCase();
 
-      console.log("👤 Current User Info:");
+      console.log("👤 Current User Info (from session):");
+      console.log("  - User Type:", userType);
       console.log("  - User ID:", userId);
       console.log("  - User Email:", user?.email);
       console.log("  - User Role:", userRole);
       console.log("  - Full user_metadata:", user?.user_metadata);
-      console.log("  - Full user object:", user);
+
+      if (!userId) {
+        console.error("❌ No user ID found in session!");
+        setLoading(false);
+        return;
+      }
 
       // Build query params
       const params = new URLSearchParams();
       if (userId) params.append("userId", userId);
       if (userRole) params.append("role", userRole);
 
+      // Determine which API endpoint to use
+      const normalizedRole = userRole?.toLowerCase().replace(/\s+/g, '');
+      const apiEndpoint = normalizedRole === 'homeowner'
+        ? '/api/notifications/client'  // Client API for homeowners
+        : '/api/notifications/admin';   // Admin API for staff/admin
+
+      console.log("📤 Using API endpoint:", apiEndpoint);
       console.log("📤 Fetching notifications with params:", params.toString());
-      const response = await fetch(`/api/notifications?${params.toString()}`);
+      const response = await fetch(`${apiEndpoint}?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,31 +201,16 @@ export const RealNotificationProvider = ({ children }) => {
         recipient_role: notification.recipient_role,
       }));
 
-      // STRICT client-side filter for homeowners: ONLY show notifications where
-      // recipient_id EXACTLY matches current userId (NO broadcast, NO role-based)
-      let filteredNotifications = transformedNotifications;
-      if (userId && userRole === 'home owner') {
-        console.log('🔒 STRICT Client-side homeowner filter: ONLY showing notifications with exact recipient_id match');
-        filteredNotifications = transformedNotifications.filter(notification => {
-          // STRICT: Only accept if recipient_id EXACTLY matches userId
-          const isExactMatch = notification.recipient_id === userId;
+      // ✅ NO client-side filtering needed - APIs handle it!
+      // - Admin API already excludes homeowner notifications
+      // - Client API already filters by recipient_id
+      console.log(`✅ Received ${transformedNotifications.length} notifications from ${apiEndpoint}`);
+      console.log("📦 Final notifications (from API):", transformedNotifications);
 
-          if (!isExactMatch) {
-            console.log(`❌ Filtered out notification: "${notification.title}" (recipient_id: ${notification.recipient_id || 'NULL'}, expected: ${userId})`);
-          }
+      setNotifications(transformedNotifications);
 
-          return isExactMatch;
-        });
-
-        console.log(`✅ STRICT Filter: ${transformedNotifications.length} → ${filteredNotifications.length} notifications for user ${userId}`);
-        console.log(`✅ All notifications have recipient_id = ${userId}`);
-      }
-
-      setNotifications(filteredNotifications);
-      console.log("📦 Final notifications:", filteredNotifications);
-
-      // Count unread notifications from filtered list
-      const unread = filteredNotifications.filter((n) => !n.read).length;
+      // Count unread notifications
+      const unread = transformedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unread);
       console.log("🔔 Unread count:", unread);
     } catch (error) {
@@ -177,6 +252,7 @@ export const RealNotificationProvider = ({ children }) => {
     const recipientId = notification.recipient_id;
     const userId = userInfo.id;
     const userRole = userInfo.role?.toLowerCase();
+    const normalizedRole = userRole?.replace(/\s+/g, '');
 
     console.log("🔍 Checking notification visibility:");
     console.log("  - Notification recipient_role:", recipientRole);
@@ -185,30 +261,58 @@ export const RealNotificationProvider = ({ children }) => {
     console.log("  - Current user role:", userRole);
     console.log("  - Notification object:", notification);
 
-    // If specific user ID is set, check if it matches (HIGHEST PRIORITY)
-    if (recipientId) {
+    // STRICT FILTER for Homeowners: ONLY notifications with exact recipient_id match
+    if (normalizedRole === 'homeowner') {
+      console.log("🔒 STRICT Homeowner filter applied in real-time");
+      // Homeowners ONLY see notifications where recipient_id EXACTLY matches
+      // NO broadcast (recipient_role="all"), NO role-based notifications
       if (recipientId === userId) {
-        console.log("  ✅ Notification is for specific user (ID match)");
+        console.log("  ✅ Notification is for specific homeowner (ID match)");
         return true;
       } else {
-        console.log("  ❌ Notification has recipient_id but doesn't match current user");
+        console.log("  ❌ Notification is NOT for this homeowner (recipient_id mismatch or null)");
         return false;
       }
     }
 
-    // If recipient_role is "all", everyone should see it
+    // For non-homeowner roles (admin, staff, etc.):
+    // These users can see:
+    // 1. Role-based notifications (recipient_id is null/not set)
+    // 2. Broadcast notifications (recipient_role = "all")
+    // 3. Notifications specifically for them (recipient_id matches)
+
+    // If recipient_role is "all", staff/admin users should see it
     if (recipientRole === "all") {
-      console.log("  ✅ Notification is for ALL users");
+      console.log("  ✅ Notification is for ALL staff users");
       return true;
     }
 
     // If role matches current user's role
     if (recipientRole && recipientRole === userRole) {
-      console.log("  ✅ Notification is for user's role");
+      // If no specific recipient_id is set (role-based notification), show it
+      if (!recipientId) {
+        console.log("  ✅ Notification is role-based (no recipient_id) and matches user's role");
+        return true;
+      }
+      // If recipient_id is set, it must match the current user
+      if (recipientId === userId) {
+        console.log("  ✅ Notification is for specific user in matching role");
+        return true;
+      } else {
+        console.log("  ❌ Notification has recipient_id for different user in same role");
+        return false;
+      }
+    }
+
+    // If specific user ID is set but role doesn't match, check if it's for this user
+    if (recipientId === userId) {
+      console.log("  ✅ Notification is specifically for this user (ID match)");
       return true;
     }
 
     console.log("  ❌ Notification is NOT for current user");
+    console.log("     - recipient_role:", recipientRole, "!== user role:", userRole);
+    console.log("     - recipient_id:", recipientId, "!== user ID:", userId);
     return false;
   };
 
@@ -219,27 +323,40 @@ export const RealNotificationProvider = ({ children }) => {
     let notificationSubscription = null;
     let reconnectTimeout = null;
     let pollingInterval = null;
+    let activeSupabaseClient = null; // Store the active client for cleanup
 
     // Get current user and set up subscription
     const setupRealtimeSubscription = async () => {
       try {
-        // Get current user info
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        // Get the active Supabase client (admin or client)
+        const { client: activeClient, userType } = await getActiveSupabaseClient();
+        activeSupabaseClient = activeClient; // Store for cleanup
+
+        if (!activeClient) {
+          console.warn("⚠️ No session found for real-time subscription");
+          await loadNotifications();
+          return;
+        }
+
+        // Get current user info from session
+        const { data: { session } } = await activeClient.auth.getSession();
+        if (session?.user) {
+          const user = session.user;
           const userInfo = {
             id: user.id,
             role: user.user_metadata?.role?.toLowerCase(),
+            userType: userType, // 'admin' or 'client'
           };
           setCurrentUser(userInfo);
-          console.log("👤 Current user set:", userInfo);
+          console.log("👤 Current user set for real-time subscription:", userInfo);
         }
 
         // Initial load
         await loadNotifications();
 
         // Set up real-time listener for new notifications
-        console.log("📡 Setting up real-time subscription...");
-        notificationSubscription = supabase
+        console.log("📡 Setting up real-time subscription using", userType, "client...");
+        notificationSubscription = activeClient
           .channel("notifications_realtime", {
             config: {
               broadcast: { self: true },
@@ -275,6 +392,8 @@ export const RealNotificationProvider = ({ children }) => {
                 title: payload.new.title,
                 message: payload.new.message,
                 icon: payload.new.icon,
+                recipient_id: payload.new.recipient_id,
+                recipient_role: payload.new.recipient_role,
               };
 
               console.log("✅ Adding notification to state:", newNotification.title);
@@ -326,8 +445,8 @@ export const RealNotificationProvider = ({ children }) => {
               // Attempt to reconnect after 5 seconds
               reconnectTimeout = setTimeout(() => {
                 console.log("🔄 Attempting to reconnect...");
-                if (notificationSubscription) {
-                  supabase.removeChannel(notificationSubscription);
+                if (notificationSubscription && activeSupabaseClient) {
+                  activeSupabaseClient.removeChannel(notificationSubscription);
                 }
                 setupRealtimeSubscription();
               }, 5000);
@@ -355,8 +474,8 @@ export const RealNotificationProvider = ({ children }) => {
 
     // Cleanup subscription on unmount
     return () => {
-      if (notificationSubscription) {
-        supabase.removeChannel(notificationSubscription);
+      if (notificationSubscription && activeSupabaseClient) {
+        activeSupabaseClient.removeChannel(notificationSubscription);
       }
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);

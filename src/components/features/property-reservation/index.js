@@ -737,6 +737,524 @@ export default function ReservationDetails() {
     setShowContractViewModal(true);
   };
 
+  const handleViewExistingContract = async (reservation) => {
+    try {
+      // Fetch the contract details
+      const response = await fetch(`/api/contracts?contractNumber=${reservation.contract.contract_number}`);
+      const result = await response.json();
+
+      if (!result.success || !result.data || result.data.length === 0) {
+        toast.error("Failed to load contract details");
+        return;
+      }
+
+      const contract = result.data[0];
+
+      // Generate contract HTML
+      const trackingNumber = reservation.tracking_number || `TRK-${reservation.reservation_id?.slice(0, 8).toUpperCase()}`;
+      const contractNumber = contract.contract_number;
+      const currentDate = new Date(contract.contract_signed_date || contract.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      const propertyPrice = contract.property_price || 0;
+      const downpaymentTotal = contract.downpayment_total || 0;
+      const monthlyInstallment = contract.monthly_installment || 0;
+      const paymentPlanMonths = contract.payment_plan_months || 12;
+      const bankFinancingAmount = contract.bank_financing_amount || 0;
+
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("en-PH", {
+          style: "currency",
+          currency: "PHP",
+        }).format(amount);
+      };
+
+      const contractContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Contract to Sell - ${contractNumber}</title>
+            <meta charset="UTF-8">
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+
+              body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                padding: 40px;
+                max-width: 1000px;
+                margin: 0 auto;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                color: #1a202c;
+                line-height: 1.6;
+                font-size: 14px;
+              }
+
+              .contract-wrapper {
+                background: white;
+                padding: 50px;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+              }
+
+              .document-header {
+                text-align: center;
+                padding: 30px;
+                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                border-radius: 8px;
+                margin-bottom: 40px;
+                color: white;
+              }
+
+              .company-logo {
+                width: 80px;
+                height: 80px;
+                background: white;
+                border-radius: 50%;
+                margin: 0 auto 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                font-weight: 900;
+                color: #dc2626;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+              }
+
+              .company-name {
+                font-size: 32px;
+                font-weight: 800;
+                margin-bottom: 10px;
+                letter-spacing: 3px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+              }
+
+              .company-details {
+                font-size: 13px;
+                opacity: 0.95;
+                line-height: 1.8;
+                font-weight: 300;
+              }
+
+              .document-title {
+                text-align: center;
+                font-size: 28px;
+                font-weight: 800;
+                margin: 40px 0 20px;
+                color: #2d3748;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                position: relative;
+                padding-bottom: 15px;
+              }
+
+              .document-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100px;
+                height: 4px;
+                background: linear-gradient(90deg, #dc2626, #991b1b);
+                border-radius: 2px;
+              }
+
+              .contract-meta {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 30px;
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                border-radius: 8px;
+                margin-bottom: 40px;
+                border-left: 5px solid #dc2626;
+              }
+
+              .contract-number {
+                font-size: 16px;
+                font-weight: 700;
+                color: #dc2626;
+              }
+
+              .contract-date {
+                font-size: 14px;
+                color: #64748b;
+                font-weight: 600;
+              }
+
+              .section-title {
+                font-size: 18px;
+                font-weight: 700;
+                margin-top: 40px;
+                margin-bottom: 20px;
+                color: #2d3748;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 12px 20px;
+                background: linear-gradient(90deg, #fef2f2 0%, #ffffff 100%);
+                border-left: 5px solid #dc2626;
+                border-radius: 4px;
+              }
+
+              .party-info {
+                margin: 25px 0;
+                padding: 30px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                border-radius: 8px;
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+              }
+
+              .info-grid {
+                display: grid;
+                grid-template-columns: 180px 1fr;
+                gap: 20px;
+                margin: 15px 0;
+              }
+
+              .info-label {
+                font-weight: 700;
+                color: #4a5568;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+              }
+
+              .info-label:before {
+                content: '▪';
+                color: #dc2626;
+                font-size: 20px;
+                margin-right: 8px;
+              }
+
+              .info-value {
+                padding: 10px 15px;
+                background: white;
+                border-radius: 4px;
+                border: 1px solid #e2e8f0;
+                font-weight: 600;
+                color: #2d3748;
+              }
+
+              .intro-text {
+                text-align: justify;
+                margin-bottom: 30px;
+                padding: 25px;
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                border-left: 5px solid #991b1b;
+                border-radius: 4px;
+                line-height: 1.8;
+                font-size: 15px;
+              }
+
+              .payment-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                margin: 30px 0;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+              }
+
+              .payment-table th {
+                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                color: white;
+                padding: 18px;
+                text-align: left;
+                font-weight: 700;
+                font-size: 15px;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+              }
+
+              .payment-table th:last-child {
+                text-align: right;
+              }
+
+              .payment-table td {
+                padding: 18px;
+                border-bottom: 1px solid #e2e8f0;
+                background: white;
+              }
+
+              .payment-table tr:last-child td {
+                border-bottom: none;
+              }
+
+              .payment-table tr:nth-child(even) td {
+                background: #fef2f2;
+              }
+
+              .payment-table tr:hover td {
+                background: #fee2e2;
+              }
+
+              .amount-highlight {
+                font-weight: 800;
+                font-size: 16px;
+                color: #dc2626;
+              }
+
+              .terms-list {
+                margin-left: 0;
+                margin-bottom: 30px;
+                padding: 0;
+                counter-reset: terms-counter;
+              }
+
+              .terms-list li {
+                margin-bottom: 20px;
+                text-align: justify;
+                padding: 20px;
+                background: white;
+                border-radius: 8px;
+                border-left: 4px solid #dc2626;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                position: relative;
+                padding-left: 60px;
+                list-style: none;
+                counter-increment: terms-counter;
+              }
+
+              .terms-list li:before {
+                content: counter(terms-counter);
+                position: absolute;
+                left: 20px;
+                top: 20px;
+                width: 30px;
+                height: 30px;
+                background: linear-gradient(135deg, #dc2626, #991b1b);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 14px;
+              }
+
+              .signature-section {
+                margin-top: 60px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 50px;
+                padding: 40px 0;
+              }
+
+              .signature-box {
+                text-align: center;
+                padding: 30px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                border-radius: 8px;
+                border: 2px dashed #cbd5e0;
+              }
+
+              .signature-line {
+                border-top: 3px solid #2d3748;
+                margin-top: 80px;
+                padding-top: 15px;
+              }
+
+              .signature-label {
+                font-size: 12px;
+                margin-bottom: 8px;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              }
+
+              .signature-name {
+                font-weight: 800;
+                margin-bottom: 8px;
+                font-size: 16px;
+                color: #2d3748;
+              }
+
+              .page-footer {
+                text-align: center;
+                font-size: 12px;
+                color: #64748b;
+                margin-top: 50px;
+                padding: 25px;
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                border-radius: 8px;
+                border-top: 3px solid #dc2626;
+              }
+
+              .footer-logo {
+                font-weight: 800;
+                color: #dc2626;
+                margin-bottom: 5px;
+              }
+
+              @media print {
+                body {
+                  background: white;
+                  padding: 20px;
+                }
+                .contract-wrapper {
+                  box-shadow: none;
+                  padding: 20px;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="contract-wrapper">
+              <!-- Header -->
+              <div class="document-header">
+                <div class="company-logo">FH</div>
+                <div class="company-name">FUTURA HOMES</div>
+                <div class="company-details">
+                  Premium Real Estate Solutions<br>
+                  Office: [Your Complete Address Here] | Contact: (XXX) XXX-XXXX<br>
+                  Email: info@futurahomes.com | Registration No: [Registration Number]
+                </div>
+              </div>
+
+              <!-- Document Title -->
+              <div class="document-title">Contract to Sell</div>
+
+              <!-- Contract Metadata -->
+              <div class="contract-meta">
+                <div class="contract-number">Contract No: ${contractNumber}</div>
+                <div class="contract-date">Date: ${currentDate}</div>
+              </div>
+
+              <!-- Preamble -->
+              <div class="intro-text">
+                This <strong>CONTRACT TO SELL</strong> is entered into on this <strong>${currentDate}</strong>, in the Philippines, by and between the parties identified below. Both parties acknowledge and agree to the terms and conditions set forth in this agreement.
+              </div>
+
+              <!-- Vendor Section -->
+              <div class="section-title">🏢 The Vendor</div>
+              <div class="party-info">
+                <p style="margin-bottom: 15px; font-size: 15px; line-height: 1.8;">
+                  <strong style="color: #dc2626; font-size: 16px;">FUTURA HOMES</strong>, a duly registered real estate development company organized and existing under Philippine laws, with principal office address at [Complete Address], hereinafter referred to as the <strong>"VENDOR"</strong>.
+                </p>
+              </div>
+
+              <!-- Vendee Section -->
+              <div class="section-title">👤 The Vendee / Buyer</div>
+              <div class="party-info">
+                <div class="info-grid">
+                  <div class="info-label">Full Name</div>
+                  <div class="info-value">${contract.client_name}</div>
+
+                  <div class="info-label">Residential Address</div>
+                  <div class="info-value">${contract.client_address}</div>
+
+                  <div class="info-label">Contact Number</div>
+                  <div class="info-value">${contract.client_phone}</div>
+
+                  <div class="info-label">Email Address</div>
+                  <div class="info-value">${contract.client_email}</div>
+                </div>
+                <p style="margin-top: 20px; padding: 15px; background: white; border-radius: 4px; font-weight: 600; color: #4a5568;">
+                  Hereinafter referred to as the <strong style="color: #dc2626;">"VENDEE"</strong> or <strong style="color: #dc2626;">"BUYER"</strong>
+                </p>
+              </div>
+
+              <!-- Property Section -->
+              <div class="section-title">🏡 Subject Property</div>
+              <div class="party-info">
+                <div class="info-grid">
+                  <div class="info-label">Property Title</div>
+                  <div class="info-value">${contract.property_title}</div>
+
+                  <div class="info-label">Total Contract Price</div>
+                  <div class="info-value amount-highlight">${formatCurrency(propertyPrice)}</div>
+                </div>
+              </div>
+
+              <!-- Payment Terms -->
+              <div class="section-title">💰 Payment Terms</div>
+              <table class="payment-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th style="text-align: right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 700;">Total Property Price</td>
+                    <td style="text-align: right;" class="amount-highlight">${formatCurrency(propertyPrice)}</td>
+                  </tr>
+                  <tr>
+                    <td>10% Downpayment Total</td>
+                    <td style="text-align: right; font-weight: 700;">${formatCurrency(downpaymentTotal)}</td>
+                  </tr>
+                  <tr>
+                    <td>Payment Plan Duration</td>
+                    <td style="text-align: right; font-weight: 700;">${paymentPlanMonths} months</td>
+                  </tr>
+                  <tr>
+                    <td>Monthly Installment</td>
+                    <td style="text-align: right; font-weight: 700;">${formatCurrency(monthlyInstallment)}</td>
+                  </tr>
+                  <tr>
+                    <td>90% Bank Financing</td>
+                    <td style="text-align: right; font-weight: 700;">${formatCurrency(bankFinancingAmount)}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Terms and Conditions -->
+              <div class="section-title">📋 Terms and Conditions</div>
+              <ol class="terms-list">
+                <li>The VENDEE agrees to pay the downpayment of <strong>${formatCurrency(downpaymentTotal)}</strong> in <strong>${paymentPlanMonths} monthly installments</strong> of <strong>${formatCurrency(monthlyInstallment)}</strong> each.</li>
+                <li>Upon full payment of the downpayment, the VENDEE shall apply for bank financing to cover the remaining 90% of the property price amounting to <strong>${formatCurrency(bankFinancingAmount)}</strong>.</li>
+                <li>The VENDOR shall provide full assistance to the VENDEE in processing all necessary documents required for bank financing and property transfer.</li>
+                <li>All payments shall be made in Philippine Pesos (PHP) through the designated payment channels provided by the VENDOR.</li>
+                <li>Late payments may be subject to penalties and interest charges as per company policy. The VENDEE shall be notified of any overdue amounts.</li>
+                <li>The property shall remain under the ownership of the VENDOR until full payment of the contract price is received and all obligations are fulfilled.</li>
+              </ol>
+
+              <!-- Signature Section -->
+              <div class="signature-section">
+                <div class="signature-box">
+                  <div class="signature-line">
+                    <div class="signature-name">${contract.client_name}</div>
+                    <div class="signature-label">Vendee / Buyer</div>
+                    <div style="margin-top: 10px; color: #64748b;">Date: _________________</div>
+                  </div>
+                </div>
+                <div class="signature-box">
+                  <div class="signature-line">
+                    <div class="signature-name">FUTURA HOMES</div>
+                    <div class="signature-label">Vendor</div>
+                    <div style="margin-top: 10px; color: #64748b;">Date: _________________</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="page-footer">
+                <div class="footer-logo">FUTURA HOMES</div>
+                Contract No: ${contractNumber} | Generated: ${currentDate}<br>
+                © ${new Date().getFullYear()} Futura Homes. All Rights Reserved.<br>
+                <small style="color: #94a3b8; margin-top: 5px; display: block;">This is a legally binding document. Please read all terms carefully before signing.</small>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      setContractPreviewHtml(contractContent);
+      setShowContractViewModal(true);
+      toast.success("Contract loaded successfully");
+    } catch (error) {
+      console.error("Error loading contract:", error);
+      toast.error("Failed to load contract: " + error.message);
+    }
+  };
+
   const handlePrintContract = () => {
     // Close the view modal
     setShowContractViewModal(false);
@@ -1920,7 +2438,7 @@ export default function ReservationDetails() {
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                router.push(`/contracts/${reservation.contract.contract_id}`);
+                                handleViewExistingContract(reservation);
                               }}
                               className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs py-2"
                             >
@@ -2234,7 +2752,7 @@ export default function ReservationDetails() {
                                 <Button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push(`/contracts/${reservation.contract.contract_id}`);
+                                    handleViewExistingContract(reservation);
                                   }}
                                   className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-3 py-1 text-xs"
                                   title="View Contract"
@@ -4198,58 +4716,69 @@ export default function ReservationDetails() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowContractViewModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto shadow-2xl"
+              className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden shadow-2xl"
             >
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-blue-600 text-white p-4 flex justify-between items-center border-b">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Contract Preview
-                </h2>
+              {/* Modern Modal Header */}
+              <div className="sticky top-0 bg-gradient-to-r from-red-600 via-red-700 to-red-800 text-white px-8 py-5 flex justify-between items-center border-b border-red-900/20 z-10">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/10 backdrop-blur-sm p-2.5 rounded-lg">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-wide">Contract Preview</h2>
+                    <p className="text-xs text-red-100 mt-0.5">Review your contract to sell document</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowContractViewModal(false)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold"
+                  className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  title="Close preview"
                 >
-                  ✕ Close
+                  <XCircle className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Contract Preview Container */}
-              <div className="p-6 bg-gray-50">
+              <div className="overflow-y-auto max-h-[calc(95vh-180px)] bg-gradient-to-br from-gray-50 to-gray-100 p-8">
                 <div
-                  className="bg-white p-8 shadow-md rounded border border-gray-200"
+                  className="bg-white shadow-lg rounded-lg p-10"
                   dangerouslySetInnerHTML={{
                     __html: contractPreviewHtml,
-                  }}
-                  style={{
-                    fontFamily: "'Times New Roman', Times, serif",
                   }}
                 />
               </div>
 
-              {/* Modal Footer with Action Buttons */}
-              <div className="sticky bottom-0 bg-gray-100 border-t p-4 flex gap-3 justify-end">
-                <Button
-                  onClick={() => setShowContractViewModal(false)}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handlePrintContract}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 flex items-center gap-2"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print / Download
-                </Button>
+              {/* Modern Modal Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-8 py-6 flex gap-4 justify-between items-center z-10 shadow-md">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Document is ready for review and printing</span>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowContractViewModal(false)}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg border border-gray-300 transition-all duration-200 hover:shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Close
+                  </button>
+                  <button
+                    onClick={handlePrintContract}
+                    className="inline-flex items-center gap-2 px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print / Download
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

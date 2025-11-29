@@ -92,6 +92,12 @@ export async function GET(request) {
         const filterQuery = `recipient_id.eq.${userId},recipient_role.eq.${role},recipient_role.eq.all`;
         console.log(`🔒 Staff filter applied: ${filterQuery}`);
         query = query.or(filterQuery);
+
+        // IMPORTANT: Exclude all homeowner notifications from admin/staff view
+        // This ensures admins don't see client/homeowner-specific notifications
+        console.log(`🚫 Excluding homeowner notifications from ${role} view`);
+        query = query.not('recipient_role', 'eq', 'home owner');
+        query = query.not('recipient_role', 'eq', 'homeowner');
       }
     } else if (role) {
       console.log(`🔍 Applying filter for role only: "${role}"`);
@@ -111,6 +117,11 @@ export async function GET(request) {
 
         // Additional safety: exclude NULL recipient_role when no userId
         query = query.not('recipient_role', 'is', null);
+
+        // IMPORTANT: Exclude all homeowner notifications from admin/staff view
+        console.log(`🚫 Excluding homeowner notifications from ${role} view`);
+        query = query.not('recipient_role', 'eq', 'home owner');
+        query = query.not('recipient_role', 'eq', 'homeowner');
       }
     } else if (userId) {
       console.log(`🔍 Applying filter for userId only: "${userId}"`);

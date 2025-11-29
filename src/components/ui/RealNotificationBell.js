@@ -27,7 +27,7 @@ const RealNotificationBell = () => {
     createTestNotification,
     refreshNotifications,
   } = useRealNotifications();
-
+//alert(JSON.stringify(notifications));
   const [isOpen, setIsOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
 

@@ -147,7 +147,7 @@ export const ClientAuthProvider = ({ children }) => {
     };
   }, []);
 
-  const signup = async (firstName, lastName, email, password, phone = '', address = '') => {
+  const signup = async (firstName, middleName = '', lastName, email, password, phone = '', address = '') => {
     try {
       // Call server-side API to create user with Admin API
       const response = await fetch('/api/auth/signup', {
@@ -157,6 +157,7 @@ export const ClientAuthProvider = ({ children }) => {
         },
         body: JSON.stringify({
           firstName,
+          middleName,
           lastName,
           email,
           password,

@@ -15,6 +15,7 @@ function ClientSignupPageContent() {
   const { signup, loading: authLoading } = useClientAuth();
   const [formData, setFormData] = useState({
     firstName: '',
+    middleName: '',
     lastName: '',
     email: '',
     password: '',
@@ -66,6 +67,7 @@ function ClientSignupPageContent() {
     setLoading(true);
     const { data, error } = await signup(
       formData.firstName,
+      formData.middleName,
       formData.lastName,
       formData.email,
       formData.password,
@@ -108,7 +110,7 @@ function ClientSignupPageContent() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* First Name and Last Name */}
+              {/* First Name, Middle Name, and Last Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -131,6 +133,22 @@ function ClientSignupPageContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Middle Name <span className="text-slate-400 text-xs">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+                    <Input
+                      type="text"
+                      value={formData.middleName}
+                      onChange={(e) => setFormData({ ...formData, middleName: e.target.value })}
+                      className="pl-10"
+                      placeholder="Dela"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Last Name *
                   </label>
                   <div className="relative">
@@ -140,7 +158,7 @@ function ClientSignupPageContent() {
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                       className="pl-10"
-                      placeholder="Doe"
+                      placeholder="Cruz"
                     />
                   </div>
                   {errors.lastName && (

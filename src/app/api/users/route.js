@@ -147,12 +147,13 @@ export async function GET(request) {
         id: user.id,
         email: user.email,
         first_name: profile?.first_name || user.user_metadata?.first_name || "",
+        middle_name: profile?.middle_name || user.user_metadata?.middle_name || "",
         last_name: profile?.last_name || user.user_metadata?.last_name || "",
         full_name:
           user.user_metadata?.full_name ||
           `${profile?.first_name || user.user_metadata?.first_name || ""} ${
-            profile?.last_name || user.user_metadata?.last_name || ""
-          }`.trim(),
+            profile?.middle_name || user.user_metadata?.middle_name ? (profile?.middle_name || user.user_metadata?.middle_name) + ' ' : ''
+          }${profile?.last_name || user.user_metadata?.last_name || ""}`.trim(),
         role: userRole,
         role_id: user.user_metadata?.role_id || null,
         user_metadata_role: user.user_metadata?.role || null, // Store original user_metadata.role
@@ -253,9 +254,10 @@ export async function POST(request) {
         email_confirm: true, // Auto-verify email
         user_metadata: {
           first_name: userData.first_name.trim(),
+          middle_name: userData.middle_name?.trim() || null,
           last_name: userData.last_name.trim(),
-          full_name: `${userData.first_name.trim()} ${userData.last_name.trim()}`,
-          display_name: `${userData.first_name.trim()} ${userData.last_name.trim()}`,
+          full_name: `${userData.first_name.trim()} ${userData.middle_name?.trim() ? userData.middle_name.trim() + ' ' : ''}${userData.last_name.trim()}`,
+          display_name: `${userData.first_name.trim()} ${userData.middle_name?.trim() ? userData.middle_name.trim() + ' ' : ''}${userData.last_name.trim()}`,
           phone: userData.phone?.trim() || null,
           role: userData.role,
           role_id: userData.role_id || null,
@@ -312,6 +314,7 @@ export async function POST(request) {
       id: authData.user.id,
       email: authData.user.email,
       first_name: userData.first_name.trim(),
+      middle_name: userData.middle_name?.trim() || null,
       last_name: userData.last_name.trim(),
       role: userData.role,
       role_id: userData.role_id || null,
@@ -347,10 +350,12 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const { userId, ...userData } = await request.json();
-    console.log("✏️ API: Updating user:", userId);
+    console.log("✏️ [API] Updating user:", userId);
+    console.log("📋 [API] Received user data:", userData);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
+      console.error("❌ [API] Supabase admin client not available");
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -358,6 +363,7 @@ export async function PUT(request) {
     }
 
     if (!userId) {
+      console.error("❌ [API] No userId provided");
       return NextResponse.json(
         {
           success: false,
@@ -372,14 +378,15 @@ export async function PUT(request) {
     const updateData = {
       user_metadata: {
         first_name: userData.first_name?.trim(),
+        middle_name: userData.middle_name?.trim() || null,
         last_name: userData.last_name?.trim(),
         full_name:
           userData.first_name && userData.last_name
-            ? `${userData.first_name.trim()} ${userData.last_name.trim()}`
+            ? `${userData.first_name.trim()} ${userData.middle_name?.trim() ? userData.middle_name.trim() + ' ' : ''}${userData.last_name.trim()}`
             : undefined,
         display_name:
           userData.first_name && userData.last_name
-            ? `${userData.first_name.trim()} ${userData.last_name.trim()}`
+            ? `${userData.first_name.trim()} ${userData.middle_name?.trim() ? userData.middle_name.trim() + ' ' : ''}${userData.last_name.trim()}`
             : undefined,
         role: userData.role,
         role_id: userData.role_id || null,
@@ -389,6 +396,8 @@ export async function PUT(request) {
         status: userData.status,
       },
     };
+
+    console.log("📝 [API] Prepared user_metadata update:", updateData.user_metadata);
 
     // Add banned_until to the same update call if status is being changed
     if (userData.status !== undefined) {
@@ -404,16 +413,18 @@ export async function PUT(request) {
     }
 
     // Update user in Supabase Auth (single call with all updates)
-    console.log("📝 Updating user with data:", {
+    console.log("📝 [API] Calling Supabase updateUserById for:", userId);
+    console.log("📝 [API] Update data:", {
       status: userData.status,
       banned_until: updateData.banned_until,
+      user_metadata: updateData.user_metadata,
     });
 
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.updateUserById(userId, updateData);
 
     if (authError) {
-      console.error("❌ Auth update error:", authError);
+      console.error("❌ [API] Auth update error:", authError);
       return NextResponse.json(
         {
           success: false,
@@ -424,9 +435,10 @@ export async function PUT(request) {
       );
     }
 
-    console.log("✅ User updated successfully in Auth:", userId);
-    console.log("✅ User metadata status:", authData.user.user_metadata?.status);
-    console.log("✅ Banned until:", authData.user.banned_until || "not banned");
+    console.log("✅ [API] User updated successfully in Auth:", userId);
+    console.log("✅ [API] Updated user_metadata:", authData.user.user_metadata);
+    console.log("✅ [API] User metadata status:", authData.user.user_metadata?.status);
+    console.log("✅ [API] Banned until:", authData.user.banned_until || "not banned");
 
     // Update profile in profiles table if it exists
     try {
@@ -461,6 +473,7 @@ export async function PUT(request) {
       id: authData.user.id,
       email: authData.user.email,
       first_name: authData.user.user_metadata?.first_name || "",
+      middle_name: authData.user.user_metadata?.middle_name || "",
       last_name: authData.user.user_metadata?.last_name || "",
       role: authData.user.user_metadata?.role || "",
       role_id: authData.user.user_metadata?.role_id || null,

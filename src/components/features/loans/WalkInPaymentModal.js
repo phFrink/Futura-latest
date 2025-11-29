@@ -443,7 +443,7 @@ export default function WalkInPaymentModal({
                   </div>
 
                   {/* Weekly Payment */}
-                  <div
+                  {/* <div
                     className={`border-2 rounded-lg p-3 cursor-pointer transition-all ${
                       paymentType === 'weekly'
                         ? 'border-purple-500 bg-purple-50'
@@ -473,8 +473,8 @@ export default function WalkInPaymentModal({
                     </div>
                   </div>
 
-                  {/* Daily Payment */}
-                  <div
+                   Daily Payment */}
+                  {/* <div
                     className={`border-2 rounded-lg p-3 cursor-pointer transition-all ${
                       paymentType === 'daily'
                         ? 'border-amber-500 bg-amber-50'
@@ -502,7 +502,7 @@ export default function WalkInPaymentModal({
                         ))}
                       </p>
                     </div>
-                  </div>
+                  </div>  */}
 
                   {/* Partial/Custom Payment */}
                   <div

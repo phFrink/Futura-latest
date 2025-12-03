@@ -263,6 +263,35 @@ export default function Complaints() {
     }
   };
 
+  // Handle close complaint
+  const handleCloseComplaint = async (complaint) => {
+    try {
+      // Call API to update status to closed
+      const response = await fetch('/api/complaints', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: complaint.id,
+          status: 'closed',
+        }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to close complaint');
+      }
+
+      // Update local state
+      await loadData();
+      toast.success('Complaint closed successfully!');
+    } catch (error) {
+      console.error('Error closing complaint:', error);
+      toast.error('Error closing complaint: ' + error.message);
+    }
+  };
+
   // Handle decline complaint
   const handleDeclineComplaint = async (complaint) => {
     try {
@@ -472,12 +501,18 @@ export default function Complaints() {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       investigating: 'bg-blue-100 text-blue-800',
-      resolved: 'bg-green-100 text-green-800',
       closed: 'bg-gray-100 text-gray-800',
-      escalated: 'bg-red-100 text-red-800',
-      in_progress: 'bg-indigo-100 text-indigo-800',
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      pending: 'Pending',
+      investigating: 'Under Review',
+      closed: 'Closed',
+    };
+    return labels[status] || status;
   };
   
   const getSeverityColor = (severity) => {
@@ -518,18 +553,14 @@ export default function Complaints() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="investigating">Investigating</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="investigating">Under Review</SelectItem>
                   <SelectItem value="closed">Closed</SelectItem>
-                  <SelectItem value="escalated">Escalated</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
                 <SelectTrigger className="w-40"><SelectValue placeholder="All Severity" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Severity</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
@@ -602,21 +633,21 @@ export default function Complaints() {
                           </Badge>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className={`${getStatusColor(complaint.status)} border capitalize text-xs`}>
-                            {complaint.status}
+                          <Badge className={`${getStatusColor(complaint.status)} border text-xs`}>
+                            {getStatusLabel(complaint.status)}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           {formattedDate(new Date(complaint.created_date), "MMM d, yyyy")}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-1">
+                          <div className="flex items-center justify-center gap-2">
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
                               onClick={() => handleViewComplaint(complaint)}
-                              title="View"
+                              title="View Details"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -633,9 +664,9 @@ export default function Complaints() {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={() => handleApproveComplaint(complaint)}
-                              disabled={complaint.status !== 'pending'}
-                              title="Approve"
+                              onClick={() => handleCloseComplaint(complaint)}
+                              disabled={complaint.status === 'closed'}
+                              title="Close Complaint"
                             >
                               <CheckCircle className="w-4 h-4" />
                             </Button>
@@ -643,36 +674,6 @@ export default function Complaints() {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleRejectComplaint(complaint)}
-                              disabled={complaint.status === 'closed'}
-                              title="Reject"
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                              onClick={() => handleDeclineComplaint(complaint)}
-                              disabled={complaint.status === 'escalated'}
-                              title="Decline"
-                            >
-                              <Ban className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                              onClick={() => handleRevertComplaint(complaint)}
-                              disabled={complaint.status === 'pending'}
-                              title="Revert to Pending"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
                               onClick={() => handleDeleteComplaint(complaint)}
                               title="Delete"
                             >
@@ -860,11 +861,7 @@ export default function Complaints() {
                       className="w-full px-4 py-3 text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all appearance-none cursor-pointer"
                     >
                       <option value="pending">Pending</option>
-                      <option value="investigating">Investigating</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                      <option value="escalated">Escalated</option>
+                      <option value="investigating">Under Review</option>
                     </select>
                   </div>
                 </div>
@@ -1084,11 +1081,7 @@ export default function Complaints() {
                       className="w-full px-4 py-3 text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer"
                     >
                       <option value="pending">Pending</option>
-                      <option value="investigating">Investigating</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                      <option value="escalated">Escalated</option>
+                      <option value="investigating">Under Review</option>
                     </select>
                   </div>
                 </div>

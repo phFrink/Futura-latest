@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Home, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
+  const [mounted, setMounted] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,17 +19,60 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated (they should be after clicking email link)
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        setError("Invalid or expired reset link. Please request a new one.");
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Handle the password reset token from URL
+    const handlePasswordReset = async () => {
+      try {
+        // Check if there's a hash in the URL (Supabase sends tokens in the hash)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+
+        console.log('🔑 Password reset - URL params:', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          type
+        });
+
+        // If we have tokens and it's a recovery type, set the session
+        if (accessToken && type === 'recovery') {
+          console.log('✅ Valid recovery token found, setting session...');
+
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
+
+          if (sessionError) {
+            console.error('❌ Session error:', sessionError);
+            setError("Invalid or expired reset link. Please request a new one.");
+            return;
+          }
+
+          console.log('✅ Session established successfully');
+        } else {
+          // No tokens in URL, check for existing session
+          const { data: { session } } = await supabase.auth.getSession();
+
+          if (!session) {
+            console.warn('⚠️ No session or tokens found');
+            setError("Invalid or expired reset link. Please request a new one.");
+          }
+        }
+      } catch (err) {
+        console.error('❌ Error handling password reset:', err);
+        setError("An error occurred. Please try again.");
       }
     };
-    checkAuth();
-  }, [supabase]);
+
+    if (mounted) {
+      handlePasswordReset();
+    }
+  }, [supabase, mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,6 +110,10 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">

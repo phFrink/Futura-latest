@@ -7,9 +7,15 @@ import { useRouter, usePathname } from "next/navigation";
 export default function ProtectedRoute({ children, requiredRoles = [] }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const supabase = createClientComponentClient();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Handle mounting to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -101,15 +107,20 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
     return () => {
       subscription?.unsubscribe();
     };
-  }, [router, supabase, requiredRoles, pathname]);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Prevent hydration mismatch - don't render anything until mounted
+  if (!mounted) {
+    return null;
+  }
 
   // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verifying authentication...</p>
+          <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying authentication...</p>
         </div>
       </div>
     );

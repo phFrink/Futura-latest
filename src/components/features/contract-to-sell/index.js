@@ -23,6 +23,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
@@ -46,6 +47,9 @@ export default function ContractToSell() {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [voidingContract, setVoidingContract] = useState(null);
+  const [isVoiding, setIsVoiding] = useState(false);
 
   useEffect(() => {
     // Get current user
@@ -165,6 +169,11 @@ export default function ContractToSell() {
         color: "bg-red-100 text-red-800 border-red-200",
         icon: XCircle,
         label: "Cancelled",
+      },
+      voided: {
+        color: "bg-red-100 text-red-800 border-red-200",
+        icon: Trash2,
+        label: "Voided",
       },
       pending: {
         color: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -611,6 +620,11 @@ export default function ContractToSell() {
                                                       <li>
                                                         <strong>DEFAULT:</strong> In case of default by the VENDEE in the payment of any installment or violation of any of the terms and conditions hereof, the VENDOR shall have the right to cancel this contract and forfeit all payments made as liquidated damages.
                                                       </li>
+
+                                                      <li style="background: #fee2e2; padding: 15px; border-left: 4px solid #dc2626; margin: 15px 0;">
+                                                        <strong style="color: #991b1b;">⚠️ IMPORTANT NOTICE - NON-PAYMENT POLICY:</strong>
+                                                        <span style="color: #7f1d1d;"> If the VENDEE fails to pay the monthly installment for THREE (3) consecutive months, this contract shall be automatically voided and the property will be taken back by FUTURA HOMES. All payments made shall be forfeited, and the VENDEE shall have no further claim to the property. The VENDEE acknowledges and agrees to this condition upon signing this contract.</span>
+                                                      </li>
                         
                                                       <li>
                                                         <strong>TAXES AND FEES:</strong> All taxes, registration fees, documentary stamp tax, transfer fees, and other charges incidental to the sale and transfer of the property shall be for the account of the VENDEE unless otherwise agreed upon.
@@ -876,6 +890,45 @@ export default function ContractToSell() {
     toast.success("Payment processed successfully!");
   };
 
+  const handleVoidContract = (contract) => {
+    setVoidingContract(contract);
+    setShowVoidModal(true);
+  };
+
+  const confirmVoidContract = async () => {
+    if (!voidingContract) return;
+
+    setIsVoiding(true);
+    try {
+      const response = await fetch("/api/contracts/void", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contract_id: voidingContract.contract_id,
+          reason: "Non-payment for 3 consecutive months",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Contract voided successfully! Billing records deleted.");
+        setShowVoidModal(false);
+        setVoidingContract(null);
+        loadContracts(currentUserId); // Reload contracts
+      } else {
+        toast.error(result.message || "Failed to void contract");
+      }
+    } catch (error) {
+      console.error("Error voiding contract:", error);
+      toast.error("Error voiding contract: " + error.message);
+    } finally {
+      setIsVoiding(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -1001,6 +1054,7 @@ export default function ContractToSell() {
               <option value="completed">Completed</option>
               <option value="pending">Pending</option>
               <option value="cancelled">Cancelled</option>
+              <option value="voided">Voided</option>
             </select>
           </div>
         </CardContent>
@@ -1102,6 +1156,15 @@ export default function ContractToSell() {
                           <Printer className="h-3 w-3" /> /{" "}
                           <Download className="h-3 w-3" />
                         </Button>
+                        {contract.contract_status === "active" && (
+                          <Button
+                            onClick={() => handleVoidContract(contract)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+                            title="Void Contract (3 months non-payment)"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>
@@ -1463,6 +1526,124 @@ export default function ContractToSell() {
           onSuccess={handlePaymentSuccess}
         />
       )}
+
+      {/* Void Contract Confirmation Modal */}
+      <AnimatePresence>
+        {showVoidModal && voidingContract && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => !isVoiding && setShowVoidModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-red-600 text-white p-6 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Void Contract</h3>
+                    <p className="text-red-100 text-sm">
+                      This action cannot be undone
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <div className="mb-6">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-red-900 font-medium mb-2">
+                      ⚠️ Warning: You are about to void this contract
+                    </p>
+                    <p className="text-xs text-red-700">
+                      This will void the contract and delete all associated
+                      billing records. The property will be returned to
+                      available status.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">
+                        Contract Number:
+                      </span>
+                      <span className="font-mono font-bold text-slate-900">
+                        {voidingContract.contract_number}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Client:</span>
+                      <span className="font-medium text-slate-900">
+                        {voidingContract.client_name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Property:</span>
+                      <span className="font-medium text-slate-900">
+                        {voidingContract.property?.property_title || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Reason:</span>
+                      <span className="font-medium text-red-600">
+                        3 Months Non-Payment
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                  <p className="text-xs text-amber-900">
+                    <strong>Note:</strong> All payments made by the client will
+                    be forfeited as per the contract terms. The client will have
+                    no further claim to the property.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowVoidModal(false)}
+                    disabled={isVoiding}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmVoidContract}
+                    disabled={isVoiding}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isVoiding ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Voiding...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Void Contract
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

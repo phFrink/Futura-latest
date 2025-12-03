@@ -45,7 +45,10 @@ export default function Account() {
     middle_name: "",
     last_name: "",
     phone: "",
-    address: "",
+    street: "",
+    barangay: "",
+    city: "",
+    province: "",
     profile_photo: "",
   });
 
@@ -79,12 +82,20 @@ export default function Account() {
 
         console.log("✅ [Account] Loaded user data:", data);
         setUserData(data);
+
+        // Parse address into separate fields
+        const address = data.address || '';
+        const addressParts = address.split(',').map(part => part.trim());
+
         setFormData({
           first_name: data.first_name,
           middle_name: data.middle_name,
           last_name: data.last_name,
           phone: data.phone,
-          address: data.address,
+          street: addressParts[0] || "",
+          barangay: addressParts[1] || "",
+          city: addressParts[2] || "",
+          province: addressParts[3] || "",
           profile_photo: data.profile_photo,
         });
         setPhotoPreview(data.profile_photo);
@@ -119,6 +130,19 @@ export default function Account() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Special handling for phone number - only allow digits and max 11 characters
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, ''); // Remove non-digits
+      if (digitsOnly.length <= 11) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: digitsOnly,
+        }));
+      }
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -178,6 +202,13 @@ export default function Account() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate phone number - must be exactly 11 digits
+    if (formData.phone && formData.phone.length !== 11) {
+      toast.error('Phone number must be exactly 11 digits');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -199,6 +230,15 @@ export default function Account() {
         }
       }
 
+      // Combine address fields into a single string
+      const addressParts = [
+        formData.street,
+        formData.barangay,
+        formData.city,
+        formData.province
+      ].filter(part => part && part.trim() !== '');
+      const combinedAddress = addressParts.join(', ');
+
       // Update user metadata via API
       const updatePayload = {
         userId: userData.id,
@@ -206,7 +246,7 @@ export default function Account() {
         middle_name: formData.middle_name,
         last_name: formData.last_name,
         phone: formData.phone,
-        address: formData.address,
+        address: combinedAddress,
         profile_photo: photoUrl,
         role: userData.role, // Keep existing role
       };
@@ -263,12 +303,20 @@ export default function Account() {
 
   const handleCancel = () => {
     setIsEditing(false);
+
+    // Parse address into separate fields
+    const address = userData.address || '';
+    const addressParts = address.split(',').map(part => part.trim());
+
     setFormData({
       first_name: userData.first_name,
       middle_name: userData.middle_name,
       last_name: userData.last_name,
       phone: userData.phone,
-      address: userData.address,
+      street: addressParts[0] || "",
+      barangay: addressParts[1] || "",
+      city: addressParts[2] || "",
+      province: addressParts[3] || "",
       profile_photo: userData.profile_photo,
     });
     setPhotoPreview(userData.profile_photo);
@@ -467,14 +515,27 @@ export default function Account() {
                           Phone Number
                         </label>
                         {isEditing ? (
-                          <Input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            placeholder="+63 912 345 6789"
-                            className="w-full"
-                          />
+                          <div>
+                            <Input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              placeholder="09123456789"
+                              maxLength={11}
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className="w-full"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">
+                              Must be exactly 11 digits (e.g., 09123456789)
+                              {formData.phone && (
+                                <span className={formData.phone.length === 11 ? "text-green-600 ml-2" : "text-orange-600 ml-2"}>
+                                  ({formData.phone.length}/11 digits)
+                                </span>
+                              )}
+                            </p>
+                          </div>
                         ) : (
                           <div className="flex items-center gap-2 text-slate-900 py-2 px-3 bg-slate-50 rounded-lg">
                             <Phone className="w-4 h-4 text-slate-400" />
@@ -484,21 +545,79 @@ export default function Account() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
+                          <MapPin className="w-4 h-4 inline mr-1 text-blue-600" />
                           Address
                         </label>
                         {isEditing ? (
-                          <textarea
-                            name="address"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                            placeholder="Enter address"
-                            rows="3"
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 mb-1">
+                                Street
+                              </label>
+                              <Input
+                                type="text"
+                                name="street"
+                                value={formData.street}
+                                onChange={handleInputChange}
+                                placeholder="Enter street address"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 mb-1">
+                                Barangay
+                              </label>
+                              <Input
+                                type="text"
+                                name="barangay"
+                                value={formData.barangay}
+                                onChange={handleInputChange}
+                                placeholder="Enter barangay"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 mb-1">
+                                City
+                              </label>
+                              <Input
+                                type="text"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleInputChange}
+                                placeholder="Enter city"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 mb-1">
+                                Province
+                              </label>
+                              <Input
+                                type="text"
+                                name="province"
+                                value={formData.province}
+                                onChange={handleInputChange}
+                                placeholder="Enter province"
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
                         ) : (
                           <div className="flex items-start gap-2 text-slate-900 py-2 px-3 bg-slate-50 rounded-lg min-h-[80px]">
                             <MapPin className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
-                            <span>{userData.address || "Not provided"}</span>
+                            <div className="flex-1">
+                              {formData.street || formData.barangay || formData.city || formData.province ? (
+                                <div className="space-y-1">
+                                  {formData.street && <div><span className="font-medium text-xs text-slate-500">Street:</span> {formData.street}</div>}
+                                  {formData.barangay && <div><span className="font-medium text-xs text-slate-500">Barangay:</span> {formData.barangay}</div>}
+                                  {formData.city && <div><span className="font-medium text-xs text-slate-500">City:</span> {formData.city}</div>}
+                                  {formData.province && <div><span className="font-medium text-xs text-slate-500">Province:</span> {formData.province}</div>}
+                                </div>
+                              ) : (
+                                <span className="text-slate-500">Not provided</span>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

@@ -64,8 +64,6 @@ const STATUSES = [
 
 const TARGET_AUDIENCES = [
   { value: "all_homeowners", label: "All Homeowners" },
-  { value: "active_homeowners", label: "Active Homeowners" },
-  { value: "specific_property", label: "Specific Property" },
 ];
 
 const HomeOwnerAnnouncement = () => {

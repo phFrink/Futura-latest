@@ -721,30 +721,6 @@ export default function ClientLandingPage() {
                         <Calendar className="mr-3 h-4 w-4" />
                         <span>My Bookings</span>
                       </Link>
-                      <Link
-                        href="/client-requests"
-                        className="flex items-center px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <Wrench className="mr-3 h-4 w-4" />
-                        <span>My Requests</span>
-                      </Link>
-                      <Link
-                        href="/client-amenities"
-                        className="flex items-center px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <Armchair className="mr-3 h-4 w-4" />
-                        <span>My Amenities</span>
-                      </Link>
-                      <Link
-                        href="/client-complaints"
-                        className="flex items-center px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <MessageSquare className="mr-3 h-4 w-4" />
-                        <span>My Complaints</span>
-                      </Link>
                       <button
                         onClick={() => {
                           setShowProfileMenu(false);

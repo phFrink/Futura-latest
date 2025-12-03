@@ -126,8 +126,8 @@ export default function Reports() {
     try {
       // Determine table name based on active report
       const tableName = activeReport === 'service_requests' ? 'request_tbl' :
-        activeReport === 'homeowners' ? 'homeowner_tbl' :
-          activeReport === 'properties' ? 'property_tbl' :
+        activeReport === 'homeowners' ? 'property_contracts' :
+          activeReport === 'properties' ? 'property_info_tbl' :
             activeReport === 'complaints' ? 'complaint_tbl' :
               activeReport === 'billings' ? 'contract_payment_schedules' :
                 activeReport === 'announcements' ? 'homeowner_announcements' :
@@ -144,12 +144,13 @@ export default function Reports() {
       // Apply date filters ONLY if both startDate and endDate are provided
       // If no dates are set, ALL records are returned (no filtering)
       if (startDate && endDate) {
-        const dateField = activeReport === 'homeowners' ? 'move_in_date' :
+        const dateField = activeReport === 'homeowners' ? 'contract_date' :
           activeReport === 'service_requests' ? 'created_at' :
-            activeReport === 'complaints' ? 'created_at' :
-              activeReport === 'billings' ? 'due_date' :
-                activeReport === 'announcements' ? 'created_date' :
-                  'created_at';
+            activeReport === 'properties' ? 'created_date' :
+              activeReport === 'complaints' ? 'created_at' :
+                activeReport === 'billings' ? 'due_date' :
+                  activeReport === 'announcements' ? 'created_date' :
+                    'created_at';
 
         console.log('📊 Applying date filter on field:', dateField);
         console.log('   From:', startDate, 'To:', endDate);
@@ -162,15 +163,32 @@ export default function Reports() {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('❌ Supabase error:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
 
+        // If date filter caused error, try again without date filter
+        if (startDate && endDate && error.code) {
+          console.log('🔄 Retrying query without date filter...');
+          const { data: retryData, error: retryError } = await supabase.from(tableName).select('*');
+
+          if (!retryError && retryData) {
+            console.log('✅ Retry successful! Retrieved', retryData.length, 'records');
+            let sortedData = retryData && retryData.length > 0 ? JSON.parse(JSON.stringify(retryData)) : [];
+            setReportData(sortedData);
+            setFilteredData(sortedData);
+            toast.warning('Date filter not available for this report type. Showing all records.');
+            setLoading(false);
+            return;
+          }
+        }
+
         // Set empty data to show "No data" message
         setReportData([]);
         setFilteredData([]);
+        toast.error('Failed to load report data. Please try again.');
         return;
       }
 

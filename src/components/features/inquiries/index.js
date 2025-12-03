@@ -548,9 +548,6 @@ export default function Inquiries() {
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="declined">Declined</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="responded">Responded</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1025,9 +1022,6 @@ export default function Inquiries() {
                     className="select select-bordered w-full focus:select-primary transition-colors bg-white/80"
                   >
                     <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="responded">Responded</option>
-                    <option value="closed">Closed</option>
                   </select>
                 </div>
                 <div className="form-control">

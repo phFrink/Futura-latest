@@ -429,26 +429,35 @@ export const RealNotificationProvider = ({ children }) => {
               }
             }
           )
-          .subscribe((status) => {
-            console.log("📡 Subscription status:", status);
-            setSubscriptionStatus(status);
+          .subscribe((statusUpdate) => {
+            console.log("📡 Subscription status:", statusUpdate);
+            setSubscriptionStatus(statusUpdate);
 
-            if (status === "SUBSCRIBED") {
+            if (statusUpdate === "SUBSCRIBED") {
               console.log("✅ Real-time subscription active!");
               // Clear any reconnect timeout
               if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
                 reconnectTimeout = null;
               }
-            } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-              console.error(`❌ Real-time subscription ${status}! Will attempt to reconnect...`);
+            } else if (statusUpdate === "CHANNEL_ERROR" || statusUpdate === "TIMED_OUT" || statusUpdate === "CLOSED") {
+              console.error("❌ Real-time subscription error! Status:", statusUpdate);
               // Attempt to reconnect after 5 seconds
+              if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+              }
               reconnectTimeout = setTimeout(() => {
                 console.log("🔄 Attempting to reconnect...");
                 if (notificationSubscription && activeSupabaseClient) {
-                  activeSupabaseClient.removeChannel(notificationSubscription);
+                  try {
+                    activeSupabaseClient.removeChannel(notificationSubscription);
+                  } catch (err) {
+                    console.error("Error removing channel:", err);
+                  }
                 }
-                setupRealtimeSubscription();
+                setupRealtimeSubscription().catch(err => {
+                  console.error("Reconnection failed:", err);
+                });
               }, 5000);
             }
           });

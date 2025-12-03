@@ -381,7 +381,7 @@ export default function Properties() {
 
     if (statusFilter !== "all") {
       filtered = filtered.filter(
-        (property) => property.property_availability === statusFilter
+        (property) => property.displayAvailability === statusFilter
       );
     }
 

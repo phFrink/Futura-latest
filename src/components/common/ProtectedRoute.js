@@ -26,7 +26,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
           error,
         } = await supabase.auth.getSession();
 
-        console.log("🔍 ProtectedRoute - Session check:", {
+        console.log("ProtectedRoute - Session check:", {
           hasSession: !!session,
           error: error?.message,
           pathname
@@ -34,7 +34,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
 
         // If no session, redirect based on current route
         if (!session || error) {
-          console.log("❌ No session found, redirecting to login");
+          console.log("No session found, redirecting to login");
           setIsAuthorized(false);
           setIsLoading(false);
           // Use window.location for hard redirect
@@ -44,7 +44,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
 
         // Get user role
         const userRole = session.user?.user_metadata?.role?.toLowerCase();
-        console.log("🔐 Protected route check:", {
+        console.log(" Protected route check:", {
           userRole,
           requiredRoles,
           pathname,
@@ -55,7 +55,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
         // Check if user has required role
         if (requiredRoles.length > 0) {
           const normalizedRoles = requiredRoles.map((r) => r.toLowerCase());
-          console.log("🔍 Role check details:", {
+          console.log("Role check details:", {
             userRole,
             normalizedRoles,
             includes: normalizedRoles.includes(userRole),
@@ -63,7 +63,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
           });
 
           if (!userRole || !normalizedRoles.includes(userRole)) {
-            console.log("❌ Access denied - insufficient permissions", {
+            console.log("Access denied - insufficient permissions", {
               reason: !userRole ? "No role found" : "Role not in allowed list",
               userRole,
               requiredRoles: normalizedRoles
@@ -74,7 +74,7 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
         }
 
         // User is authorized
-        console.log("✅ Access granted");
+        console.log("Access granted");
         setIsAuthorized(true);
       } catch (error) {
         console.error("Auth check error:", error);
@@ -94,10 +94,10 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔔 Auth state change:", event, "Has session:", !!session);
+      console.log("Auth state change:", event, "Has session:", !!session);
 
       if (event === "SIGNED_OUT" || !session) {
-        console.log("🔓 User signed out, forcing redirect to login");
+        console.log("User signed out, forcing redirect to login");
         setIsAuthorized(false);
         // Force hard redirect
         window.location.href = "/login";

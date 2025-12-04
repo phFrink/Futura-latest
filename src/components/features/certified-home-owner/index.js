@@ -342,21 +342,21 @@ export default function CertifiedHomeOwner() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           Certified Property Reservations
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           View and manage your property reservations
         </p>
       </div>
 
       {/* Search and Filters Card */}
-      <Card className="mb-6 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
+      <Card className="mb-4 sm:mb-6 shadow-sm">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-center">
             {/* Search Input */}
             <div className="flex-1 w-full">
               <div className="relative">
@@ -366,18 +366,18 @@ export default function CertifiedHomeOwner() {
                   placeholder="Search by property, contract number, or tracking number..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-12 text-base"
+                  className="pl-10 h-10 sm:h-12 text-sm sm:text-base"
                 />
               </div>
             </div>
 
             {/* Status Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-500" />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-gray-700"
+                className="h-10 sm:h-12 px-3 sm:px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-gray-700 text-sm sm:text-base w-full"
               >
                 <option value="all">All Status</option>
                 <option value="active">Approved</option>
@@ -415,8 +415,8 @@ export default function CertifiedHomeOwner() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full min-w-[640px]">
                 {/* Table Header */}
                 <thead className="bg-gray-50 border-b-2 border-gray-200">
                   <tr>
@@ -449,10 +449,10 @@ export default function CertifiedHomeOwner() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="md:hover:bg-gray-50 transition-colors"
                     >
                       {/* Property Column */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-red-100 rounded-lg">
                             <Home className="w-5 h-5 text-red-600" />
@@ -483,52 +483,52 @@ export default function CertifiedHomeOwner() {
                       </td>
 
                       {/* Contract Number Column */}
-                      <td className="px-6 py-4">
-                        <p className="font-mono font-semibold text-gray-900">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
+                        <p className="font-mono text-sm sm:text-base font-semibold text-gray-900">
                           {contract.contract_number}
                         </p>
                       </td>
 
                       {/* Date Column */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-700">
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                          <span className="text-xs sm:text-sm text-gray-700">
                             {formatDate(contract.contract_signed_date)}
                           </span>
                         </div>
                       </td>
 
                       {/* Amount Column */}
-                      <td className="px-6 py-4">
-                        <p className="font-bold text-lg text-red-600">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
+                        <p className="font-bold text-base sm:text-lg text-red-600">
                           {formatCurrency(Math.max(0, contract.remaining_balance || 0))}
                         </p>
                       </td>
 
                       {/* Status Column */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
                         {getStatusBadge(contract.contract_status)}
                       </td>
 
                       {/* Action Column */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 justify-center">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-2 justify-center">
                           <Button
                             size="sm"
                             onClick={() => handleViewDetails(contract)}
-                            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
+                            className="w-full sm:w-auto bg-white md:hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm text-xs sm:text-sm"
                           >
-                            <Eye className="w-4 h-4 mr-2" />
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                             View
                           </Button>
                           <Button
                             size="sm"
                             onClick={() => handleTransferContract(contract)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                            className="w-full sm:w-auto bg-blue-600 md:hover:bg-blue-700 text-white shadow-sm text-xs sm:text-sm"
                             disabled={contract.contract_status === 'cancelled' || contract.contract_status === 'completed'}
                           >
-                            <ArrowRightLeft className="w-4 h-4 mr-2" />
+                            <ArrowRightLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                             Transfer
                           </Button>
                         </div>
@@ -581,11 +581,11 @@ export default function CertifiedHomeOwner() {
                 </div>
               </div>
 
-              <div className="p-8">
+              <div className="p-4 sm:p-6 md:p-8">
                 {/* Transfer History Information */}
                 {selectedContract.transfer_history && (
-                  <Card className="mb-6 border-l-4 border-l-blue-500 bg-blue-50 shadow-md">
-                    <CardContent className="p-6">
+                  <Card className="mb-4 sm:mb-6 border-l-4 border-l-blue-500 bg-blue-50 shadow-md">
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex items-start gap-4">
                         <div className="p-3 bg-blue-100 rounded-lg">
                           <RefreshCw className="w-6 h-6 text-blue-600" />
@@ -658,11 +658,11 @@ export default function CertifiedHomeOwner() {
                 )}
 
                 {/* Client & Property Info Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   {/* Client Information */}
                   <Card className="border-l-4 border-l-blue-500 shadow-md">
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-3">
+                    <CardContent className="p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-5 flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
                           <Building2 className="w-5 h-5 text-blue-600" />
                         </div>
@@ -707,8 +707,8 @@ export default function CertifiedHomeOwner() {
 
                   {/* Property Information */}
                   <Card className="border-l-4 border-l-green-500 shadow-md">
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-3">
+                    <CardContent className="p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-5 flex items-center gap-3">
                         <div className="p-2 bg-green-100 rounded-lg">
                           <Home className="w-5 h-5 text-green-600" />
                         </div>
@@ -745,15 +745,15 @@ export default function CertifiedHomeOwner() {
                 </div>
 
                 {/* Payment Structure */}
-                <Card className="mb-8 shadow-md">
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <Card className="mb-6 sm:mb-8 shadow-md">
+                  <CardContent className="p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-3">
                       <div className="p-2 bg-indigo-100 rounded-lg">
                         <CreditCard className="w-5 h-5 text-indigo-600" />
                       </div>
                       Payment Structure
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                       <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-xl border border-blue-200">
                         <div className="flex items-center gap-2 mb-3">
                           <DollarSign className="w-4 h-4 text-blue-600" />
@@ -843,8 +843,8 @@ export default function CertifiedHomeOwner() {
                 {/* Payment Schedule */}
                 {selectedContract.payment_schedules &&
                   selectedContract.payment_schedules.length > 0 && (
-                    <Card className="mb-8 shadow-md">
-                      <CardContent className="p-6">
+                    <Card className="mb-6 sm:mb-8 shadow-md">
+                      <CardContent className="p-4 sm:p-6">
                         <div className="flex items-start justify-between mb-6">
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-amber-100 rounded-lg">
@@ -865,8 +865,8 @@ export default function CertifiedHomeOwner() {
                           </Badge>
                         </div>
 
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
+                        <div className="overflow-x-auto -mx-4 sm:mx-0">
+                          <table className="w-full min-w-[640px]">
                             <thead>
                               <tr className="border-b-2 border-gray-200 bg-gray-50">
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -947,10 +947,10 @@ export default function CertifiedHomeOwner() {
                   )}
 
                 {/* Related Activity Section */}
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6">
                   {/* Inquiries Section */}
                   <Card className="border-l-4 border-l-purple-500 shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-purple-100 rounded-lg">
@@ -1017,7 +1017,7 @@ export default function CertifiedHomeOwner() {
 
                   {/* Service Requests Section */}
                   <Card className="border-l-4 border-l-blue-500 shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-blue-100 rounded-lg">
@@ -1085,7 +1085,7 @@ export default function CertifiedHomeOwner() {
 
                   {/* Complaints Section */}
                   <Card className="border-l-4 border-l-red-500 shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-red-100 rounded-lg">

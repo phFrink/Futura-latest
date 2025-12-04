@@ -51,24 +51,24 @@ export default function Appointments() {
   }, [appointments, statusFilter]);
 
   useEffect(() => {
-    console.log("🔵 Current user state changed:", currentUser);
+    console.log("Current user state changed:", currentUser);
   }, [currentUser]);
 
   const loadCurrentUser = async () => {
     try {
-      console.log("🔵 Loading current user...");
+      console.log("Loading current user...");
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log("🔵 Session:", session);
+      console.log("Session:", session);
       if (session?.user) {
-        console.log("✅ Current user loaded:", session.user);
+        console.log("Current user loaded:", session.user);
         setCurrentUser(session.user);
       } else {
-        console.error("❌ No user session found");
+        console.error("No user session found");
       }
     } catch (error) {
-      console.error("❌ Error loading current user:", error);
+      console.error("Error loading current user:", error);
     }
   };
 
@@ -172,8 +172,8 @@ export default function Appointments() {
   };
 
   const handleApproveClick = (appointment) => {
-    console.log("🔵 Approve button clicked for appointment:", appointment);
-    console.log("🔵 Current user at click time:", currentUser);
+    console.log("Approve button clicked for appointment:", appointment);
+    console.log("Current user at click time:", currentUser);
     setSelectedAppointment(appointment);
     setApprovalNotes("");
     setApproveModalOpen(true);
@@ -187,13 +187,13 @@ export default function Appointments() {
 
   const handleApprove = async () => {
     if (!selectedAppointment) {
-      console.error("❌ Missing selected appointment");
+      console.error("Missing selected appointment");
       toast.error("Missing appointment data");
       return;
     }
 
-    console.log("🔵 Starting approval process...");
-    console.log("🔵 Selected appointment:", selectedAppointment);
+    console.log("Starting approval process...");
+    console.log("Selected appointment:", selectedAppointment);
 
     setProcessingId(selectedAppointment.appointment_id);
     try {
@@ -202,18 +202,18 @@ export default function Appointments() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      console.log("🔵 Session retrieved:", session);
+      console.log("Session retrieved:", session);
 
       if (!session?.user) {
-        console.error("❌ No active session found");
+        console.error("No active session found");
         toast.error("Please log in to approve appointments");
         setProcessingId(null);
         return;
       }
 
       const approverId = session.user.id;
-      console.log("🔵 Approver ID:", approverId);
-      console.log("🔵 User role:", getRole);
+      console.log("Approver ID:", approverId);
+      console.log("User role:", getRole);
 
       const requestBody = {
         appointment_id: selectedAppointment.appointment_id,
@@ -221,8 +221,8 @@ export default function Appointments() {
         approval_notes: approvalNotes,
       };
 
-      console.log("🔵 Sending request to /api/book-tour/approve");
-      console.log("🔵 Request body:", requestBody);
+      console.log("Sending request to /api/book-tour/approve");
+      console.log("Request body:", requestBody);
 
       const response = await fetch("/api/book-tour/approve", {
         method: "POST",
@@ -230,10 +230,10 @@ export default function Appointments() {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("🔵 Response status:", response.status);
+      console.log("Response status:", response.status);
 
       const result = await response.json();
-      console.log("🔵 Response data:", result);
+      console.log("Response data:", result);
 
       if (result.success) {
         toast.success(result.message || "Appointment approved successfully!");
@@ -242,11 +242,11 @@ export default function Appointments() {
         setApprovalNotes("");
         await loadAppointments();
       } else {
-        console.error("❌ Approval failed:", result.message);
+        console.error("Approval failed:", result.message);
         toast.error(result.message || "Failed to approve appointment");
       }
     } catch (error) {
-      console.error("❌ Error approving appointment:", error);
+      console.error("Error approving appointment:", error);
       toast.error("Error approving appointment: " + error.message);
     } finally {
       setProcessingId(null);
@@ -267,7 +267,7 @@ export default function Appointments() {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        console.error("❌ No active session found");
+        console.error("No active session found");
         toast.error("Please log in to reject appointments");
         setProcessingId(null);
         return;

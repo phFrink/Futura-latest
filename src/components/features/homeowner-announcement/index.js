@@ -402,31 +402,31 @@ const HomeOwnerAnnouncement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50/50 via-white to-red-50/30 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-red-50/50 via-white to-red-50/30 p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-red-100"
+          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-4 sm:p-6 border border-red-100"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-r from-red-400 to-red-500 rounded-xl shadow-lg">
-                <Megaphone className="w-6 h-6 text-white" />
+              <div className="p-2 sm:p-3 bg-gradient-to-r from-red-400 to-red-500 rounded-xl shadow-lg">
+                <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
                   Homeowner Announcements
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Create and manage announcements for certified homeowners
                 </p>
               </div>
             </div>
             <Button
               onClick={() => openModal()}
-              className="bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all"
+              className="w-full sm:w-auto bg-gradient-to-r from-red-400 to-red-500 md:hover:from-red-500 md:hover:to-red-600 text-white shadow-lg md:hover:shadow-xl transition-all text-xs sm:text-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Announcement
@@ -439,9 +439,9 @@ const HomeOwnerAnnouncement = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-red-100"
+          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-4 sm:p-6 border border-red-100"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -482,7 +482,7 @@ const HomeOwnerAnnouncement = () => {
         </motion.div>
 
         {/* Announcements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <AnimatePresence>
             {filteredAnnouncements.length === 0 ? (
               <motion.div
@@ -503,14 +503,14 @@ const HomeOwnerAnnouncement = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="group hover:shadow-xl transition-all duration-300 border-red-100 overflow-hidden bg-white/80 backdrop-blur-sm">
+                  <Card className="group md:hover:shadow-xl transition-all duration-300 border-red-100 overflow-hidden bg-white/80 backdrop-blur-sm">
                     {/* Image */}
                     <div className="relative h-48 bg-gradient-to-br from-red-100 to-red-50 overflow-hidden">
                       {announcement.image_url ? (
                         <img
                           src={announcement.image_url}
                           alt={announcement.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full">
@@ -533,7 +533,7 @@ const HomeOwnerAnnouncement = () => {
                     <CardHeader>
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="text-lg line-clamp-2 group-hover:text-red-600 transition-colors">
+                          <CardTitle className="text-base sm:text-lg line-clamp-2 md:group-hover:text-red-600 transition-colors">
                             {announcement.title}
                           </CardTitle>
                         </div>
@@ -570,10 +570,10 @@ const HomeOwnerAnnouncement = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => togglePin(announcement)}
-                          className="flex-1 border-red-200 hover:bg-red-50"
+                          className="flex-1 border-red-200 md:hover:bg-red-50 text-xs sm:text-sm"
                         >
                           <Pin
-                            className={`w-4 h-4 ${
+                            className={`w-3 h-3 sm:w-4 sm:h-4 ${
                               announcement.is_pinned ? "fill-current" : ""
                             }`}
                           />
@@ -582,17 +582,17 @@ const HomeOwnerAnnouncement = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => openModal(announcement)}
-                          className="flex-1 border-red-200 hover:bg-red-50"
+                          className="flex-1 border-red-200 md:hover:bg-red-50 text-xs sm:text-sm"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openDeleteModal(announcement)}
-                          className="flex-1 border-red-200 hover:bg-red-50 hover:text-red-600"
+                          className="flex-1 border-red-200 md:hover:bg-red-50 md:hover:text-red-600 text-xs sm:text-sm"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
                       </div>
                     </CardContent>
@@ -636,7 +636,7 @@ const HomeOwnerAnnouncement = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Image Upload */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
@@ -724,7 +724,7 @@ const HomeOwnerAnnouncement = () => {
                 </div>
 
                 {/* Category and Priority */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
                       Category
@@ -773,7 +773,7 @@ const HomeOwnerAnnouncement = () => {
                 </div>
 
                 {/* Target Audience and Status */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
                       Target Audience
@@ -845,14 +845,14 @@ const HomeOwnerAnnouncement = () => {
                     type="button"
                     variant="outline"
                     onClick={closeModal}
-                    className="flex-1 border-red-200 hover:bg-red-50"
+                    className="flex-1 border-red-200 md:hover:bg-red-50 text-xs sm:text-sm"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={uploading}
-                    className="flex-1 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white shadow-lg"
+                    className="flex-1 bg-gradient-to-r from-red-400 to-red-500 md:hover:from-red-500 md:hover:to-red-600 text-white shadow-lg text-xs sm:text-sm"
                   >
                     {uploading ? (
                       <div className="flex items-center gap-2">
@@ -890,9 +890,9 @@ const HomeOwnerAnnouncement = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-4 sm:p-6"
             >
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div className="p-3 bg-red-100 rounded-full">
                   <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
@@ -918,13 +918,13 @@ const HomeOwnerAnnouncement = () => {
                 <Button
                   variant="outline"
                   onClick={closeDeleteModal}
-                  className="flex-1 border-gray-300"
+                  className="flex-1 border-gray-300 text-xs sm:text-sm"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleDelete}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  className="flex-1 bg-red-500 md:hover:bg-red-600 text-white text-xs sm:text-sm"
                 >
                   Delete
                 </Button>

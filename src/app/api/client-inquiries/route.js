@@ -31,7 +31,7 @@ export async function GET(request) {
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset");
 
-    console.log("🔍 API: Fetching client inquiries with filters:", {
+    console.log("API: Fetching client inquiries with filters:", {
       roleId,
       status,
       userId,
@@ -86,7 +86,7 @@ export async function GET(request) {
     const { data: inquiries, error, count } = await query;
 
     if (error) {
-      console.error("❌ Fetch error:", error);
+      console.error("Fetch error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -97,7 +97,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${inquiries.length} inquiries (total: ${count})`);
+    console.log(`Found ${inquiries.length} inquiries (total: ${count})`);
 
     return NextResponse.json({
       success: true,
@@ -106,7 +106,7 @@ export async function GET(request) {
       message: `Found ${inquiries.length} inquiries`,
     });
   } catch (error) {
-    console.error("❌ Fetch client inquiries error:", error);
+    console.error("Fetch client inquiries error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -131,7 +131,7 @@ export async function DELETE(request) {
       );
     }
 
-    console.log("🗑️ API: Deleting inquiry:", inquiryId);
+    console.log("API: Deleting inquiry:", inquiryId);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -148,7 +148,7 @@ export async function DELETE(request) {
       .eq("inquiry_id", inquiryId);
 
     if (error) {
-      console.error("❌ Delete error:", error);
+      console.error("Delete error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -159,14 +159,14 @@ export async function DELETE(request) {
       );
     }
 
-    console.log("✅ Inquiry deleted successfully");
+    console.log("Inquiry deleted successfully");
 
     return NextResponse.json({
       success: true,
       message: "Inquiry deleted successfully",
     });
   } catch (error) {
-    console.error("❌ Delete inquiry error:", error);
+    console.error("Delete inquiry error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -191,7 +191,7 @@ export async function PATCH(request) {
       );
     }
 
-    console.log("📝 API: Updating inquiry status:", inquiryId, "→", status);
+    console.log("API: Updating inquiry status:", inquiryId, "→", status);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -227,7 +227,7 @@ export async function PATCH(request) {
       .single();
 
     if (error) {
-      console.error("❌ Update error:", error);
+      console.error("Update error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -238,7 +238,7 @@ export async function PATCH(request) {
       );
     }
 
-    console.log("✅ Inquiry status updated successfully");
+    console.log("Inquiry status updated successfully");
 
     return NextResponse.json({
       success: true,
@@ -246,7 +246,7 @@ export async function PATCH(request) {
       message: "Inquiry status updated successfully",
     });
   } catch (error) {
-    console.error("❌ Update inquiry error:", error);
+    console.error("Update inquiry error:", error);
     return NextResponse.json(
       {
         success: false,

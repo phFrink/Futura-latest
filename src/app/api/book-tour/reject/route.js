@@ -25,7 +25,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const { appointment_id, rejector_id, rejection_reason } = await request.json();
-    console.log("❌ API: Rejecting appointment:", appointment_id);
+    console.log("API: Rejecting appointment:", appointment_id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -61,7 +61,7 @@ export async function POST(request) {
 
     const rejectorRole = userData.user?.user_metadata?.role?.toLowerCase();
 
-    console.log("❌ Rejector role:", rejectorRole);
+    console.log("Rejector role:", rejectorRole);
 
     // Check if user has permission to reject
     if (!['admin', 'customer service', 'sales representative'].includes(rejectorRole)) {
@@ -90,7 +90,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error("Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -100,7 +100,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Appointment rejected successfully");
+    console.log("Appointment rejected successfully");
 
     return NextResponse.json({
       success: true,
@@ -108,7 +108,7 @@ export async function POST(request) {
       message: 'Appointment has been rejected',
     });
   } catch (error) {
-    console.error("❌ Reject appointment error:", error);
+    console.error("Reject appointment error:", error);
     return NextResponse.json(
       {
         success: false,

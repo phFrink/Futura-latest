@@ -25,7 +25,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const { appointment_id, approver_id, approval_notes } = await request.json();
-    console.log("✅ API: Approving appointment:", appointment_id);
+    console.log("API: Approving appointment:", appointment_id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -50,7 +50,7 @@ export async function POST(request) {
 
     const approverRole = userData.user?.user_metadata?.role?.toLowerCase();
 
-    console.log("✅ Approver role:", approverRole);
+    console.log("Approver role:", approverRole);
 
     // Check if user has permission to approve
     if (!['admin', 'customer service', 'sales representative'].includes(approverRole)) {
@@ -71,7 +71,7 @@ export async function POST(request) {
       .single();
 
     if (fetchError || !currentAppointment) {
-      console.error("❌ Fetch error:", fetchError);
+      console.error("Fetch error:", fetchError);
       return NextResponse.json(
         {
           success: false,
@@ -81,7 +81,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Current appointment status:", currentAppointment.status);
+    console.log("Current appointment status:", currentAppointment.status);
 
     let updateData = {};
     let newStatus = '';
@@ -121,8 +121,8 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Updating appointment with data:", updateData);
-    console.log("✅ Matching status:", newStatus);
+    console.log("Updating appointment with data:", updateData);
+    console.log("Matching status:", newStatus);
 
     // Update appointment
     const { data: appointment, error: updateError } = await supabaseAdmin
@@ -134,7 +134,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error("Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -145,7 +145,7 @@ export async function POST(request) {
     }
 
     if (!appointment) {
-      console.error("❌ No appointment returned after update");
+      console.error("No appointment returned after update");
       return NextResponse.json(
         {
           success: false,
@@ -155,7 +155,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Appointment approved successfully", appointment);
+    console.log("Appointment approved successfully", appointment);
 
     return NextResponse.json({
       success: true,
@@ -163,7 +163,7 @@ export async function POST(request) {
       message: successMessage,
     });
   } catch (error) {
-    console.error("❌ Approve appointment error:", error);
+    console.error("Approve appointment error:", error);
     return NextResponse.json(
       {
         success: false,

@@ -134,17 +134,17 @@ export async function POST(request) {
           .select();
 
       if (notificationError) {
-        console.error("❌ Notification insert error:", notificationError);
+        console.error("Notification insert error:", notificationError);
         console.error(
           "Error details:",
           JSON.stringify(notificationError, null, 2)
         );
       } else {
-        console.log("✅ Notification created successfully for:", fullName);
+        console.log("Notification created successfully for:", fullName);
         console.log("Notification data:", notificationData);
       }
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error("Exception creating notification:", notificationError);
       // Don't fail the signup if notification fails
     }
 

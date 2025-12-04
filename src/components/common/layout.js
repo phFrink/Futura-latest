@@ -508,9 +508,8 @@ export default function MainLayout({ children, currentPageName }) {
   console.log("New item counts:", counts);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100">
           <Sidebar className="border-r border-slate-200 bg-white/90 backdrop-blur-sm shadow-xl">
             <SidebarHeader className="border-b border-slate-200 p-6 bg-gradient-to-r from-red-400 to-red-500">
               <div className="flex items-center gap-3">
@@ -665,8 +664,7 @@ export default function MainLayout({ children, currentPageName }) {
               {children}
             </div>
           </main>
-        </div>
-      </SidebarProvider>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 }

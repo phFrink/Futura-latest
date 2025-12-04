@@ -780,466 +780,458 @@ export default function ReservationDetails() {
             <meta charset="UTF-8">
             <style>
               * { margin: 0; padding: 0; box-sizing: border-box; }
-
               body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                padding: 40px;
-                max-width: 1000px;
+                font-family: 'Times New Roman', Times, serif;
+                padding: 50px 60px;
+                max-width: 900px;
                 margin: 0 auto;
-                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                color: #1a202c;
-                line-height: 1.6;
-                font-size: 14px;
-              }
-
-              .contract-wrapper {
                 background: white;
-                padding: 50px;
-                border-radius: 12px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+                color: #000;
+                line-height: 1.9;
+                font-size: 12pt;
               }
-
               .document-header {
                 text-align: center;
-                padding: 30px;
-                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-                border-radius: 8px;
-                margin-bottom: 40px;
-                color: white;
+                margin-bottom: 35px;
+                border-bottom: 3px double #000;
+                padding-bottom: 20px;
               }
-
-              .company-logo {
-                width: 80px;
-                height: 80px;
-                background: white;
-                border-radius: 50%;
-                margin: 0 auto 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 32px;
-                font-weight: 900;
-                color: #dc2626;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-              }
-
               .company-name {
-                font-size: 32px;
-                font-weight: 800;
-                margin-bottom: 10px;
-                letter-spacing: 3px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+                font-size: 28px;
+                font-weight: bold;
+                margin-bottom: 8px;
+                letter-spacing: 2px;
               }
-
               .company-details {
-                font-size: 13px;
-                opacity: 0.95;
-                line-height: 1.8;
-                font-weight: 300;
+                font-size: 11px;
+                color: #333;
+                line-height: 1.6;
               }
-
               .document-title {
                 text-align: center;
-                font-size: 28px;
-                font-weight: 800;
-                margin: 40px 0 20px;
-                color: #2d3748;
+                font-size: 20px;
+                font-weight: bold;
+                margin: 35px 0 25px 0;
                 text-transform: uppercase;
-                letter-spacing: 2px;
-                position: relative;
-                padding-bottom: 15px;
+                letter-spacing: 1.5px;
               }
-
-              .document-title:after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 100px;
-                height: 4px;
-                background: linear-gradient(90deg, #dc2626, #991b1b);
-                border-radius: 2px;
-              }
-
-              .contract-meta {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 20px 30px;
-                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-                border-radius: 8px;
-                margin-bottom: 40px;
-                border-left: 5px solid #dc2626;
-              }
-
               .contract-number {
-                font-size: 16px;
-                font-weight: 700;
-                color: #dc2626;
+                text-align: center;
+                font-size: 13px;
+                margin-bottom: 35px;
+                font-weight: bold;
               }
-
-              .contract-date {
-                font-size: 14px;
-                color: #64748b;
-                font-weight: 600;
-              }
-
               .section-title {
-                font-size: 18px;
-                font-weight: 700;
-                margin-top: 40px;
-                margin-bottom: 20px;
-                color: #2d3748;
+                font-size: 14px;
+                font-weight: bold;
+                margin-top: 35px;
+                margin-bottom: 18px;
                 text-transform: uppercase;
-                letter-spacing: 1px;
-                padding: 12px 20px;
-                background: linear-gradient(90deg, #fef2f2 0%, #ffffff 100%);
-                border-left: 5px solid #dc2626;
-                border-radius: 4px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 6px;
+                letter-spacing: 0.5px;
               }
-
               .party-info {
-                margin: 25px 0;
-                padding: 30px;
-                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-                border-radius: 8px;
-                border: 2px solid #e2e8f0;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                margin: 20px 0 25px 0;
+                padding: 18px 20px;
+                background: #f9f9f9;
+                border-left: 4px solid #333;
               }
-
               .info-grid {
                 display: grid;
-                grid-template-columns: 180px 1fr;
-                gap: 20px;
-                margin: 15px 0;
+                grid-template-columns: 200px 1fr;
+                gap: 12px 15px;
+                margin: 12px 0;
               }
-
               .info-label {
-                font-weight: 700;
-                color: #4a5568;
-                font-size: 14px;
-                display: flex;
-                align-items: center;
+                font-weight: bold;
+                padding-top: 3px;
               }
-
-              .info-label:before {
-                content: '▪';
-                color: #dc2626;
-                font-size: 20px;
-                margin-right: 8px;
-              }
-
               .info-value {
-                padding: 10px 15px;
-                background: white;
-                border-radius: 4px;
-                border: 1px solid #e2e8f0;
-                font-weight: 600;
-                color: #2d3748;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 3px;
               }
-
-              .intro-text {
+              .terms-list {
+                margin-left: 35px;
+                margin-bottom: 25px;
+              }
+              .terms-list li {
+                margin-bottom: 18px;
                 text-align: justify;
-                margin-bottom: 30px;
-                padding: 25px;
-                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-                border-left: 5px solid #991b1b;
-                border-radius: 4px;
                 line-height: 1.8;
-                font-size: 15px;
               }
-
               .payment-table {
                 width: 100%;
-                border-collapse: separate;
-                border-spacing: 0;
-                margin: 30px 0;
-                border-radius: 8px;
-                overflow: hidden;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                border-collapse: collapse;
+                margin: 25px 0;
               }
-
-              .payment-table th {
-                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-                color: white;
-                padding: 18px;
-                text-align: left;
-                font-weight: 700;
-                font-size: 15px;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
-              }
-
-              .payment-table th:last-child {
-                text-align: right;
-              }
-
+              .payment-table th,
               .payment-table td {
-                padding: 18px;
-                border-bottom: 1px solid #e2e8f0;
-                background: white;
+                border: 1px solid #000;
+                padding: 12px 14px;
+                text-align: left;
               }
-
-              .payment-table tr:last-child td {
-                border-bottom: none;
+              .payment-table th {
+                background: #f0f0f0;
+                font-weight: bold;
               }
-
-              .payment-table tr:nth-child(even) td {
-                background: #fef2f2;
-              }
-
-              .payment-table tr:hover td {
-                background: #fee2e2;
-              }
-
               .amount-highlight {
-                font-weight: 800;
-                font-size: 16px;
-                color: #dc2626;
-              }
-
-              .terms-list {
-                margin-left: 0;
-                margin-bottom: 30px;
-                padding: 0;
-                counter-reset: terms-counter;
-              }
-
-              .terms-list li {
-                margin-bottom: 20px;
-                text-align: justify;
-                padding: 20px;
-                background: white;
-                border-radius: 8px;
-                border-left: 4px solid #dc2626;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                position: relative;
-                padding-left: 60px;
-                list-style: none;
-                counter-increment: terms-counter;
-              }
-
-              .terms-list li:before {
-                content: counter(terms-counter);
-                position: absolute;
-                left: 20px;
-                top: 20px;
-                width: 30px;
-                height: 30px;
-                background: linear-gradient(135deg, #dc2626, #991b1b);
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
+                font-weight: bold;
                 font-size: 14px;
               }
-
               .signature-section {
-                margin-top: 60px;
+                margin-top: 50px;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 50px;
-                padding: 40px 0;
+                gap: 70px;
+                padding-top: 20px;
               }
-
               .signature-box {
                 text-align: center;
-                padding: 30px;
-                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-                border-radius: 8px;
-                border: 2px dashed #cbd5e0;
               }
-
               .signature-line {
-                border-top: 3px solid #2d3748;
-                margin-top: 80px;
-                padding-top: 15px;
+                border-top: 2px solid #000;
+                margin-top: 75px;
+                padding-top: 12px;
               }
-
               .signature-label {
-                font-size: 12px;
-                margin-bottom: 8px;
-                font-weight: 700;
-                color: #64748b;
+                font-size: 11px;
+                margin-bottom: 6px;
+                font-weight: bold;
                 text-transform: uppercase;
-                letter-spacing: 1px;
               }
-
               .signature-name {
-                font-weight: 800;
+                font-weight: bold;
                 margin-bottom: 8px;
-                font-size: 16px;
-                color: #2d3748;
+                font-size: 13px;
               }
-
-              .page-footer {
-                text-align: center;
-                font-size: 12px;
-                color: #64748b;
-                margin-top: 50px;
-                padding: 25px;
-                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-                border-radius: 8px;
-                border-top: 3px solid #dc2626;
+              .witness-section {
+                margin-top: 45px;
+                padding-top: 25px;
+                border-top: 2px solid #000;
               }
-
-              .footer-logo {
-                font-weight: 800;
-                color: #dc2626;
-                margin-bottom: 5px;
+              .page-break {
+                page-break-before: always;
+                break-before: page;
               }
-
+              p {
+                margin-bottom: 12px;
+              }
+              ul {
+                margin-bottom: 20px;
+                line-height: 1.9;
+              }
+              ul li {
+                margin-bottom: 10px;
+              }
+              @page {
+                size: 8.5in 13in;
+                margin: 1in;
+              }
               @media print {
                 body {
-                  background: white;
-                  padding: 20px;
+                  padding: 30px 40px;
+                  font-size: 11pt;
                 }
-                .contract-wrapper {
-                  box-shadow: none;
-                  padding: 20px;
-                }
+                .no-print { display: none; }
               }
             </style>
           </head>
           <body>
-            <div class="contract-wrapper">
-              <!-- Header -->
-              <div class="document-header">
-                <div class="company-logo">FH</div>
-                <div class="company-name">FUTURA HOMES</div>
-                <div class="company-details">
-                  Premium Real Estate Solutions<br>
-                  Office: [Your Complete Address Here] | Contact: (XXX) XXX-XXXX<br>
-                  Email: info@futurahomes.com | Registration No: [Registration Number]
+            <!-- Header -->
+            <div class="document-header">
+              <div class="company-name">FUTURA HOMES</div>
+              <div class="company-details">
+                Office Address: [Your Complete Address Here]<br>
+                Contact: (XXX) XXX-XXXX | Email: info@futurahomes.com<br>
+                Business Registration No: [Registration Number]
+              </div>
+            </div>
+
+            <!-- Document Title -->
+            <div class="document-title">Contract to Sell</div>
+            <div class="contract-number">Contract No: ${contractNumber}</div>
+
+            <!-- Preamble -->
+            <p style="text-align: justify; margin-bottom: 20px;">
+              This <strong>CONTRACT TO SELL</strong> is entered into on this <strong>${currentDate}</strong>, in the Philippines, by and between:
+            </p>
+
+            <!-- Vendor Section -->
+            <div class="section-title">The Vendor</div>
+            <div class="party-info">
+              <p style="margin-bottom: 10px;"><strong>FUTURA HOMES</strong>, a duly registered real estate company organized and existing under Philippine laws, with principal office address at [Complete Address], hereinafter referred to as the <strong>"VENDOR"</strong>.</p>
+            </div>
+
+            <!-- Vendee Section -->
+            <div class="section-title">The Vendee / Buyer</div>
+            <div class="party-info">
+              <div class="info-grid">
+                <div class="info-label">Full Name:</div>
+                <div class="info-value">${contract.client_name}</div>
+
+                <div class="info-label">Residential Address:</div>
+                <div class="info-value">${contract.client_address}</div>
+
+                <div class="info-label">Contact Number:</div>
+                <div class="info-value">${contract.client_phone}</div>
+
+                <div class="info-label">Email Address:</div>
+                <div class="info-value">${contract.client_email}</div>
+              </div>
+              <p style="margin-top: 15px;">Hereinafter referred to as the <strong>"VENDEE"</strong> or <strong>"BUYER"</strong>.</p>
+            </div>
+
+            <!-- Witnesseth -->
+            <p style="text-align: center; font-weight: bold; margin: 30px 0 20px 0; font-size: 13px;">
+              W I T N E S S E T H :
+            </p>
+
+            <p style="text-align: justify; margin-bottom: 20px;">
+              WHEREAS, the VENDOR is the owner and/or authorized developer of certain real estate properties; and
+            </p>
+
+            <p style="text-align: justify; margin-bottom: 30px;">
+              WHEREAS, the VENDEE desires to purchase from the VENDOR, and the VENDOR agrees to sell to the VENDEE, the property described below, subject to the terms and conditions hereinafter set forth.
+            </p>
+
+            <!-- Property Description -->
+            <div class="section-title">Property Description</div>
+            <div class="party-info">
+              <div class="info-grid">
+                <div class="info-label">Property Name:</div>
+                <div class="info-value">${contract.property_title || 'N/A'}</div>
+
+                <div class="info-label">Property ID:</div>
+                <div class="info-value">${contract.property_id?.slice(0, 8).toUpperCase() || 'N/A'}</div>
+
+                <div class="info-label">Tracking Number:</div>
+                <div class="info-value">${trackingNumber}</div>
                 </div>
               </div>
 
-              <!-- Document Title -->
-              <div class="document-title">Contract to Sell</div>
+              <!-- Purchase Price and Payment Terms -->
+              <div class="section-title">Purchase Price and Payment Terms</div>
 
-              <!-- Contract Metadata -->
-              <div class="contract-meta">
-                <div class="contract-number">Contract No: ${contractNumber}</div>
-                <div class="contract-date">Date: ${currentDate}</div>
-              </div>
-
-              <!-- Preamble -->
-              <div class="intro-text">
-                This <strong>CONTRACT TO SELL</strong> is entered into on this <strong>${currentDate}</strong>, in the Philippines, by and between the parties identified below. Both parties acknowledge and agree to the terms and conditions set forth in this agreement.
-              </div>
-
-              <!-- Vendor Section -->
-              <div class="section-title">🏢 The Vendor</div>
-              <div class="party-info">
-                <p style="margin-bottom: 15px; font-size: 15px; line-height: 1.8;">
-                  <strong style="color: #dc2626; font-size: 16px;">FUTURA HOMES</strong>, a duly registered real estate development company organized and existing under Philippine laws, with principal office address at [Complete Address], hereinafter referred to as the <strong>"VENDOR"</strong>.
-                </p>
-              </div>
-
-              <!-- Vendee Section -->
-              <div class="section-title">👤 The Vendee / Buyer</div>
-              <div class="party-info">
-                <div class="info-grid">
-                  <div class="info-label">Full Name</div>
-                  <div class="info-value">${contract.client_name}</div>
-
-                  <div class="info-label">Residential Address</div>
-                  <div class="info-value">${contract.client_address}</div>
-
-                  <div class="info-label">Contact Number</div>
-                  <div class="info-value">${contract.client_phone}</div>
-
-                  <div class="info-label">Email Address</div>
-                  <div class="info-value">${contract.client_email}</div>
-                </div>
-                <p style="margin-top: 20px; padding: 15px; background: white; border-radius: 4px; font-weight: 600; color: #4a5568;">
-                  Hereinafter referred to as the <strong style="color: #dc2626;">"VENDEE"</strong> or <strong style="color: #dc2626;">"BUYER"</strong>
-                </p>
-              </div>
-
-              <!-- Property Section -->
-              <div class="section-title">🏡 Subject Property</div>
-              <div class="party-info">
-                <div class="info-grid">
-                  <div class="info-label">Property Title</div>
-                  <div class="info-value">${contract.property_title}</div>
-
-                  <div class="info-label">Total Contract Price</div>
-                  <div class="info-value amount-highlight">${formatCurrency(propertyPrice)}</div>
-                </div>
-              </div>
-
-              <!-- Payment Terms -->
-              <div class="section-title">💰 Payment Terms</div>
               <table class="payment-table">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th style="text-align: right;">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style="font-weight: 700;">Total Property Price</td>
-                    <td style="text-align: right;" class="amount-highlight">${formatCurrency(propertyPrice)}</td>
-                  </tr>
-                  <tr>
-                    <td>10% Downpayment Total</td>
-                    <td style="text-align: right; font-weight: 700;">${formatCurrency(downpaymentTotal)}</td>
-                  </tr>
-                  <tr>
-                    <td>Payment Plan Duration</td>
-                    <td style="text-align: right; font-weight: 700;">${paymentPlanMonths} months</td>
-                  </tr>
-                  <tr>
-                    <td>Monthly Installment</td>
-                    <td style="text-align: right; font-weight: 700;">${formatCurrency(monthlyInstallment)}</td>
-                  </tr>
-                  <tr>
-                    <td>90% Bank Financing</td>
-                    <td style="text-align: right; font-weight: 700;">${formatCurrency(bankFinancingAmount)}</td>
-                  </tr>
-                </tbody>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align: right;">Amount (PHP)</th>
+                </tr>
+                <tr>
+                  <td><strong>Total Purchase Price</strong></td>
+                  <td style="text-align: right;" class="amount-highlight">${formatCurrency(propertyPrice)}</td>
+                </tr>
+                <tr style="background: #f0f0f0;">
+                  <td colspan="2"><strong>PAYMENT STRUCTURE:</strong></td>
+                </tr>
+                <tr>
+                  <td style="padding-left: 30px;"><strong>A. 10% Downpayment (Buyer's Responsibility)</strong></td>
+                  <td style="text-align: right;" class="amount-highlight">${formatCurrency(downpaymentTotal)}</td>
+                </tr>
+                <tr>
+                  <td style="padding-left: 50px;">Reservation Fee (Paid on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })})</td>
+                  <td style="text-align: right;">${formatCurrency(contract.reservation_fee || 0)}</td>
+                </tr>
+                <tr>
+                  <td style="padding-left: 50px;">Remaining Downpayment (${paymentPlanMonths} monthly installments of ${formatCurrency(monthlyInstallment)})</td>
+                  <td style="text-align: right;">${formatCurrency(downpaymentTotal - (contract.reservation_fee || 0))}</td>
+                </tr>
+                <tr>
+                  <td style="padding-left: 30px;"><strong>B. 90% Bank Financing</strong></td>
+                  <td style="text-align: right;" class="amount-highlight">${formatCurrency(bankFinancingAmount)}</td>
+                </tr>
               </table>
 
+              <p style="text-align: justify; margin: 20px 0;">
+                The VENDEE acknowledges the following payment structure:
+              </p>
+
+              <p style="text-align: justify; margin: 10px 0 10px 20px;">
+                <strong>1. Downpayment (10% of Purchase Price = ${formatCurrency(downpaymentTotal)}):</strong>
+              </p>
+              <ul style="margin-left: 40px; margin-bottom: 15px;">
+                <li>Reservation Fee of <strong>${formatCurrency(contract.reservation_fee || 0)}</strong> has been paid on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} as evidenced by Official Receipt.</li>
+                <li>Remaining Downpayment of <strong>${formatCurrency(downpaymentTotal - (contract.reservation_fee || 0))}</strong> shall be paid in <strong>${paymentPlanMonths} monthly installments</strong> of <strong>${formatCurrency(monthlyInstallment)}</strong> per month.</li>
+                <li>Monthly payments shall commence one (1) month from the date of signing this contract.</li>
+              </ul>
+
+              <p style="text-align: justify; margin: 10px 0 10px 20px;">
+                <strong>2. Bank Financing (90% of Purchase Price = ${formatCurrency(bankFinancingAmount)}):</strong>
+              </p>
+              <ul style="margin-left: 40px; margin-bottom: 15px;">
+                <li>The remaining <strong>90%</strong> of the purchase price shall be financed through bank loan/financing.</li>
+                <li>The VENDEE shall be responsible for securing bank approval and financing.</li>
+                <li>Bank financing terms, interest rates, and payment schedules shall be subject to the lending bank's policies.</li>
+                <li>The VENDEE agrees to process the bank loan application within a reasonable time frame.</li>
+              </ul>
+
               <!-- Terms and Conditions -->
-              <div class="section-title">📋 Terms and Conditions</div>
+              <div class="section-title page-break">Terms and Conditions</div>
+
+              <p style="margin-bottom: 15px;">
+                NOW, THEREFORE, for and in consideration of the foregoing premises, the parties hereby agree as follows:
+              </p>
+
               <ol class="terms-list">
-                <li>The VENDEE agrees to pay the downpayment of <strong>${formatCurrency(downpaymentTotal)}</strong> in <strong>${paymentPlanMonths} monthly installments</strong> of <strong>${formatCurrency(monthlyInstallment)}</strong> each.</li>
-                <li>Upon full payment of the downpayment, the VENDEE shall apply for bank financing to cover the remaining 90% of the property price amounting to <strong>${formatCurrency(bankFinancingAmount)}</strong>.</li>
-                <li>The VENDOR shall provide full assistance to the VENDEE in processing all necessary documents required for bank financing and property transfer.</li>
-                <li>All payments shall be made in Philippine Pesos (PHP) through the designated payment channels provided by the VENDOR.</li>
-                <li>Late payments may be subject to penalties and interest charges as per company policy. The VENDEE shall be notified of any overdue amounts.</li>
-                <li>The property shall remain under the ownership of the VENDOR until full payment of the contract price is received and all obligations are fulfilled.</li>
+                <li>
+                  <strong>RESERVATION FEE:</strong> The VENDEE has paid the reservation fee as stated above to reserve the property. This fee shall form part of the total purchase price and is non-refundable once this contract is executed.
+                </li>
+
+                <li>
+                  <strong>DOWNPAYMENT PAYMENT SCHEDULE:</strong> The VENDEE agrees to pay the remaining downpayment of <strong>${formatCurrency(downpaymentTotal - (contract.reservation_fee || 0))}</strong> in <strong>${paymentPlanMonths} equal monthly installments</strong> of <strong>${formatCurrency(monthlyInstallment)}</strong> per month, commencing one (1) month from the execution of this contract. Failure to comply with this payment schedule may result in the cancellation of this contract and forfeiture of all payments made.
+                </li>
+
+                <li>
+                  <strong>BANK FINANCING:</strong> The VENDEE acknowledges that <strong>90% (${formatCurrency(bankFinancingAmount)})</strong> of the purchase price shall be financed through a bank loan/financing arrangement. The VENDEE shall be solely responsible for securing bank approval, complying with bank requirements, and fulfilling all obligations under the bank financing agreement. The VENDOR shall cooperate in providing necessary documents for the bank financing application.
+                </li>
+
+                <li>
+                  <strong>TRANSFER OF OWNERSHIP:</strong> Ownership and title to the property shall be transferred to the VENDEE only upon: (a) full payment of the 10% downpayment (${formatCurrency(downpaymentTotal)}), (b) approval and release of the 90% bank financing (${formatCurrency(bankFinancingAmount)}), and (c) compliance with all terms and conditions of this contract and bank financing agreement.
+                </li>
+
+                <li>
+                  <strong>DEFAULT:</strong> In case of default by the VENDEE in the payment of any installment or violation of any of the terms and conditions hereof, the VENDOR shall have the right to cancel this contract and forfeit all payments made as liquidated damages.
+                </li>
+
+                <li style="background: #fee2e2; padding: 15px; border-left: 4px solid #dc2626; margin: 15px 0;">
+                  <strong style="color: #991b1b;">⚠️ IMPORTANT NOTICE - NON-PAYMENT POLICY:</strong>
+                  <span style="color: #7f1d1d;"> If the VENDEE fails to pay the monthly installment for THREE (3) consecutive months, this contract shall be automatically voided and the property will be taken back by FUTURA HOMES. All payments made shall be forfeited, and the VENDEE shall have no further claim to the property. The VENDEE acknowledges and agrees to this condition upon signing this contract.</span>
+                </li>
+
+                <li>
+                  <strong>TAXES AND FEES:</strong> All taxes, registration fees, documentary stamp tax, transfer fees, and other charges incidental to the sale and transfer of the property shall be for the account of the VENDEE unless otherwise agreed upon.
+                </li>
+
+                <li>
+                  <strong>WARRANTY:</strong> The VENDOR warrants that the property is free from any liens, encumbrances, or adverse claims, and has the legal right to sell the same.
+                </li>
+
+                <li>
+                  <strong>POSSESSION:</strong> The VENDEE shall be entitled to possession of the property only upon full payment of the purchase price and execution of the Deed of Absolute Sale.
+                </li>
+
+                <li>
+                  <strong>GOVERNING LAW:</strong> This contract shall be governed by and construed in accordance with the laws of the Republic of the Philippines.
+                </li>
+
+                <li>
+                  <strong>ENTIRE AGREEMENT:</strong> This contract constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements, whether written or oral, relating to the subject matter hereof.
+                </li>
               </ol>
 
-              <!-- Signature Section -->
+              <!-- Signatures -->
+              <p style="text-align: justify; margin: 30px 0 20px 0;">
+                IN WITNESS WHEREOF, the parties have hereunto set their hands on the date and place first above written.
+              </p>
+
               <div class="signature-section">
                 <div class="signature-box">
                   <div class="signature-line">
                     <div class="signature-name">${contract.client_name}</div>
-                    <div class="signature-label">Vendee / Buyer</div>
-                    <div style="margin-top: 10px; color: #64748b;">Date: _________________</div>
+                    <div class="signature-label">VENDEE / BUYER</div>
+                    <div style="margin-top: 15px; font-size: 11px;">
+                      Date: _____________________
+                    </div>
                   </div>
                 </div>
+
                 <div class="signature-box">
                   <div class="signature-line">
                     <div class="signature-name">FUTURA HOMES</div>
-                    <div class="signature-label">Vendor</div>
-                    <div style="margin-top: 10px; color: #64748b;">Date: _________________</div>
+                    <div class="signature-label">VENDOR</div>
+                    <div style="margin-top: 5px; font-size: 10px;">
+                      By: _____________________<br>
+                      Authorized Representative
+                    </div>
+                    <div style="margin-top: 10px; font-size: 11px;">
+                      Date: _____________________
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Witnesses -->
+              <div class="witness-section">
+                <p style="font-weight: bold; margin-bottom: 20px;">SIGNED IN THE PRESENCE OF:</p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 40px;">
+                  <div>
+                    <div style="border-top: 2px solid #000; padding-top: 10px; margin-top: 60px;">
+                      <div style="font-weight: bold; text-align: center;">WITNESS #1</div>
+                      <div style="text-align: center; font-size: 11px; margin-top: 10px;">
+                        Signature Over Printed Name<br>
+                        Date: _____________________
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style="border-top: 2px solid #000; padding-top: 10px; margin-top: 60px;">
+                      <div style="font-weight: bold; text-align: center;">WITNESS #2</div>
+                      <div style="text-align: center; font-size: 11px; margin-top: 10px;">
+                        Signature Over Printed Name<br>
+                        Date: _____________________
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acknowledgment Section -->
+              <div class="page-break" style="margin-top: 60px; padding: 20px; border: 2px solid #000;">
+                <p style="text-align: center; font-weight: bold; margin-bottom: 15px;">ACKNOWLEDGMENT</p>
+                <p style="text-align: justify; font-size: 11px;">
+                  REPUBLIC OF THE PHILIPPINES )<br>
+                  <span style="margin-left: 220px;">)</span> S.S.<br>
+                  _________________________________ )<br><br>
+
+                  BEFORE ME, a Notary Public for and in _________________________________, this _____ day of _________________, 20____, personally appeared:
+                </p>
+
+                <table style="width: 100%; margin: 15px 0; font-size: 11px;">
+                  <tr>
+                    <td style="padding: 5px; border-bottom: 1px solid #ccc;"><strong>Name</strong></td>
+                    <td style="padding: 5px; border-bottom: 1px solid #ccc;"><strong>ID Type & Number</strong></td>
+                    <td style="padding: 5px; border-bottom: 1px solid #ccc;"><strong>Date/Place Issued</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px;">${contract.client_name}</td>
+                    <td style="padding: 8px;">_________________________</td>
+                    <td style="padding: 8px;">_________________________</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px;">Authorized Rep. (Futura Homes)</td>
+                    <td style="padding: 8px;">_________________________</td>
+                    <td style="padding: 8px;">_________________________</td>
+                  </tr>
+                </table>
+
+                <p style="text-align: justify; font-size: 11px; margin-top: 15px;">
+                  known to me and to me known to be the same persons who executed the foregoing instrument and acknowledged to me that the same is their free and voluntary act and deed.
+                </p>
+
+                <p style="text-align: justify; font-size: 11px; margin-top: 15px;">
+                  WITNESS MY HAND AND SEAL on the date and place first above written.
+                </p>
+
+                <div style="margin-top: 40px; text-align: center;">
+                  <div style="border-top: 2px solid #000; width: 300px; margin: 0 auto; padding-top: 10px;">
+                    <div style="font-weight: bold;">NOTARY PUBLIC</div>
+                    <div style="font-size: 10px; margin-top: 10px;">
+                      Doc. No. _______<br>
+                      Page No. _______<br>
+                      Book No. _______<br>
+                      Series of 20____
+                    </div>
                   </div>
                 </div>
               </div>
 
               <!-- Footer -->
-              <div class="page-footer">
-                <div class="footer-logo">FUTURA HOMES</div>
+              <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ccc; padding-top: 15px;">
                 Contract No: ${contractNumber} | Generated: ${currentDate}<br>
-                © ${new Date().getFullYear()} Futura Homes. All Rights Reserved.<br>
-                <small style="color: #94a3b8; margin-top: 5px; display: block;">This is a legally binding document. Please read all terms carefully before signing.</small>
+                © ${new Date().getFullYear()} Futura Homes. All Rights Reserved.
               </div>
             </div>
           </body>

@@ -26,7 +26,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const bookingData = await request.json();
-    console.log("📅 API: Creating appointment:", bookingData);
+    console.log("API: Creating appointment:", bookingData);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -73,7 +73,7 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
-      console.error("❌ Insert error:", insertError);
+      console.error("Insert error:", insertError);
       return NextResponse.json(
         {
           success: false,
@@ -85,7 +85,7 @@ export async function POST(request) {
     }
 
     console.log(
-      "✅ Appointment created successfully:",
+      "Appointment created successfully:",
       appointment.appointment_id
     );
 
@@ -111,7 +111,7 @@ export async function POST(request) {
         "Tour booking created successfully! Awaiting approval from our team.",
     });
   } catch (error) {
-    console.error("❌ Book tour error:", error);
+    console.error("Book tour error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -131,7 +131,7 @@ export async function GET(request) {
     const clientEmail = searchParams.get("clientEmail");
 
     console.log(
-      "🔍 API: Fetching appointments for user:",
+      "API: Fetching appointments for user:",
       userId || clientEmail
     );
 
@@ -160,7 +160,7 @@ export async function GET(request) {
     const { data: appointments, error } = await query;
 
     if (error) {
-      console.error("❌ Fetch error:", error);
+      console.error("Fetch error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -171,7 +171,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${appointments.length} appointments`);
+    console.log(`Found ${appointments.length} appointments`);
 
     return NextResponse.json({
       success: true,
@@ -180,7 +180,7 @@ export async function GET(request) {
       message: `Found ${appointments.length} appointments`,
     });
   } catch (error) {
-    console.error("❌ Fetch appointments error:", error);
+    console.error("Fetch appointments error:", error);
     return NextResponse.json(
       {
         success: false,

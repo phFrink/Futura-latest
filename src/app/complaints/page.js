@@ -34,12 +34,14 @@ const ComplaintsPage = () => {
         .limit(1);
 
       if (error) {
+        // eslint-disable-next-line no-console
         console.error('Error checking contracts:', error);
         setHasContract(false);
       } else {
         setHasContract(contracts && contracts.length > 0);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error in checkUserContract:', error);
       setHasContract(false);
     } finally {

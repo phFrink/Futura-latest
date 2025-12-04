@@ -456,24 +456,24 @@ export default function Amenities() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 md:p-8"
+          className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 sm:p-6 md:p-8"
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/30">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/30">
                 <Armchair className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-1">
                   Amenity Borrowing
                 </h1>
-                <p className="text-sm text-slate-600 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-slate-600 flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Manage amenity borrow requests
                 </p>
@@ -481,9 +481,9 @@ export default function Amenities() {
             </div>
             <Button
               onClick={openModal}
-              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:from-purple-600 hover:to-purple-700 transition-all duration-300 rounded-xl px-6"
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/30 md:hover:shadow-xl md:hover:shadow-purple-500/40 md:hover:from-purple-600 md:hover:to-purple-700 transition-all duration-300 rounded-xl px-4 sm:px-6 text-xs sm:text-sm"
             >
-              <Plus className="w-5 h-5 mr-2" /> New Borrow Request
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> New Borrow Request
             </Button>
           </div>
         </motion.div>

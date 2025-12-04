@@ -1074,21 +1074,21 @@ export default function Properties() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 p-4 sm:p-6 md:p-8 w-full">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header with Stats */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-4 sm:space-y-6"
         >
           {/* Title and Action */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 bg-clip-text text-transparent mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 bg-clip-text text-transparent mb-2">
                 Properties Portfolio
               </h1>
-              <p className="text-base md:text-lg text-slate-600 font-medium">
+              <p className="text-sm sm:text-base md:text-lg text-slate-600 font-medium">
                 Comprehensive property management for Futura Homes Koronadal
               </p>
             </div>
@@ -1107,7 +1107,7 @@ export default function Properties() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-xl p-4 sm:p-5 shadow-md md:hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1128,7 +1128,7 @@ export default function Properties() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="bg-white/80 backdrop-blur-sm border border-emerald-200/60 rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/80 backdrop-blur-sm border border-emerald-200/60 rounded-xl p-4 sm:p-5 shadow-md md:hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1153,7 +1153,7 @@ export default function Properties() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white/80 backdrop-blur-sm border border-rose-200/60 rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/80 backdrop-blur-sm border border-rose-200/60 rounded-xl p-4 sm:p-5 shadow-md md:hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1178,7 +1178,7 @@ export default function Properties() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-xl p-4 sm:p-5 shadow-md md:hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <div>

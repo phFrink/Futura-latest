@@ -314,24 +314,24 @@ export default function Dashboard() {
   const todayStats = getTodayStats();
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen p-4 sm:p-6 md:p-8 w-full">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center md:text-left"
         >
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2">
             Futura Homes Koronadal
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm sm:text-base md:text-lg text-slate-600">
             Property Management Dashboard
           </p>
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
           <StatsCard
             title="Total Properties"
             value={stats.properties}
@@ -381,7 +381,7 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="grid lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6"
         >
           {/* Recent Payment Activities */}
           <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-xl">
@@ -413,7 +413,7 @@ export default function Dashboard() {
                   {recentPayments.map((payment, index) => (
                     <div
                       key={`${payment.date}-${index}`}
-                      className="p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors"
+                      className="p-3 rounded-lg bg-slate-50/50 md:hover:bg-slate-100/50 transition-colors"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <p className="font-semibold text-slate-900 text-sm">
@@ -536,18 +536,18 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="grid lg:grid-cols-1 gap-8"
+          className="grid lg:grid-cols-1 gap-3 sm:gap-4 md:gap-8"
         >
           <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Bell className="w-5 h-5 text-red-600" />
+            <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                 Recent Announcements
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               {loading ? (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {Array(4)
                     .fill(0)
                     .map((_, i) => (
@@ -558,19 +558,19 @@ export default function Dashboard() {
                     ))}
                 </div>
               ) : recentAnnouncements.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No recent announcements</p>
+                <div className="text-center py-6 sm:py-8 text-slate-500">
+                  <Bell className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm sm:text-base">No recent announcements</p>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {recentAnnouncements.map((announcement, index) => (
                     <motion.div
                       key={`${announcement.announcement_id}-${index}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-4 p-4 rounded-xl bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200"
+                      className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-slate-50/50 md:hover:bg-slate-100/50 transition-colors duration-200"
                     >
                       <div className="p-2 bg-red-100 rounded-lg">
                         <Bell className="w-5 h-5 text-red-600" />

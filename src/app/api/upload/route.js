@@ -5,6 +5,9 @@ import {
 } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
+// Force dynamic rendering to prevent build-time errors
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -139,4 +142,4 @@ export async function DELETE(request) {
       { status: 500 }
     );
   }
-}s
+}

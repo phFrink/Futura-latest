@@ -1,5 +1,14 @@
-import { supabase } from './supabase';
 import { createClient } from '@supabase/supabase-js';
+
+// Lazy load supabase client
+function getSupabaseClient() {
+  try {
+    const { supabase } = require('./supabase');
+    return supabase;
+  } catch {
+    return null;
+  }
+}
 
 // Create admin client for uploads (bypasses RLS)
 function createAdminClient() {
@@ -36,16 +45,17 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
     const adminClient = createAdminClient();
     if (!adminClient) {
       const error = 'Admin client not initialized - check SUPABASE_SERVICE_ROLE_KEY';
-      console.error('❌', error);
+      console.error('ERROR:', error);
       return { success: false, error };
     }
 
-    console.log('🔑 Using service role key for upload (bypasses RLS)');
+    console.log('Using service role key for upload (bypasses RLS)');
 
-    // Check if regular client is available for public URL generation
+    // Get supabase client for public URL generation
+    const supabase = getSupabaseClient();
     if (!supabase) {
       const error = 'Supabase client not initialized - check environment variables';
-      console.error('❌', error);
+      console.error('ERROR:', error);
       return { success: false, error };
     }
 
@@ -59,14 +69,14 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
 
     // Construct file path
     const filePath = folder ? `${folder}/${filename}` : filename;
-    console.log(' Full file path:', filePath);
+    console.log('Full file path:', filePath);
 
     // Convert file to proper format for Supabase
     const fileBuffer = await file.arrayBuffer();
     console.log('File converted to buffer, size:', fileBuffer.byteLength);
 
     // Upload file to Supabase Storage using admin client
-    console.log(' Uploading to Supabase Storage with admin privileges...');
+    console.log('Uploading to Supabase Storage with admin privileges...');
     const { data, error } = await adminClient.storage
       .from(bucket)
       .upload(filePath, fileBuffer, {
@@ -85,14 +95,14 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
       return { success: false, error: `Storage error: ${error.message}` };
     }
 
-    console.log(' Upload successful:', data);
+    console.log('Upload successful:', data);
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
 
-    console.log(' Public URL generated:', publicUrl);
+    console.log('Public URL generated:', publicUrl);
 
     return {
       success: true,
@@ -105,7 +115,7 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
     };
 
   } catch (error) {
-    console.error(' Storage upload error:', error);
+    console.error('Storage upload error:', error);
     console.error('Error stack:', error.stack);
     return { success: false, error: `Upload failed: ${error.message}` };
   }
@@ -151,6 +161,7 @@ export async function deleteFileFromStorage(bucket, filePath) {
  * @returns {string} Public URL
  */
 export function getFilePublicUrl(bucket, filePath) {
+  const supabase = getSupabaseClient();
   if (!supabase) {
     return null;
   }

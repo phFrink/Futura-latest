@@ -1,13 +1,45 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+// Function to create Supabase admin client safely
+// function createSupabaseAdmin() {
+//   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+//   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+//   if (!url || !key) {
+//     return null;
+//   }
+
+//   return createClient(url, key, {
+//     auth: {
+//       autoRefreshToken: false,
+//       persistSession: false,
+//     },
+//   });
+// }
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
 );
 
 export async function GET() {
   try {
+    // Create Supabase admin client
+
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     // Check for triggers on notifications_tbl
     const { data: triggers, error: triggerError } = await supabaseAdmin.rpc(
       "get_triggers"

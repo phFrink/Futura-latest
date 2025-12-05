@@ -24,26 +24,33 @@ const AdminNotificationBell = () => {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      console.log("Loading notifications from /api/notifications/admin");
 
       const response = await fetch("/api/notifications/admin?limit=50");
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`Failed to load notifications: HTTP ${response.status}`);
+        // Don't throw error, just set empty state
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
       }
 
       const result = await response.json();
 
       if (!result.success) {
         console.error("API returned error:", result.error);
+        setNotifications([]);
+        setUnreadCount(0);
         return;
       }
 
-      console.log("Loaded", result.notifications?.length || 0, "notifications");
       setNotifications(result.notifications || []);
       setUnreadCount(result.unreadCount || 0);
     } catch (error) {
-      console.error("Error loading notifications:", error);
+      console.error("Error loading notifications:", error.message);
+      // Fail silently and set empty state
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }

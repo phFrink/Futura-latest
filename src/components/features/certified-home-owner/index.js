@@ -526,7 +526,7 @@ export default function CertifiedHomeOwner() {
                             size="sm"
                             onClick={() => handleTransferContract(contract)}
                             className="w-full sm:w-auto bg-blue-600 md:hover:bg-blue-700 text-white shadow-sm text-xs sm:text-sm"
-                            disabled={contract.contract_status === 'cancelled' || contract.contract_status === 'completed'}
+                            disabled={contract.contract_status === 'cancelled'}
                           >
                             <ArrowRightLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                             Transfer

@@ -99,15 +99,13 @@ export async function POST(request) {
       );
     }
 
-    // Validate contract status - cannot transfer cancelled or completed contracts
-    if (
-      currentContract.contract_status === "cancelled" ||
-      currentContract.contract_status === "completed"
-    ) {
+    // Validate contract status - cannot transfer cancelled contracts
+    // Note: Completed contracts CAN be transferred (ownership can change even after completion)
+    if (currentContract.contract_status === "cancelled") {
       return NextResponse.json(
         {
           success: false,
-          message: `Cannot transfer a ${currentContract.contract_status} contract`,
+          message: `Cannot transfer a cancelled contract`,
         },
         { status: 400 }
       );

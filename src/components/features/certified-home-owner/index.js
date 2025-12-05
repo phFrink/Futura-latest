@@ -346,7 +346,7 @@ export default function CertifiedHomeOwner() {
       {/* Header */}
       <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-          Certified Property Reservations
+          Certified Homeowners
         </h1>
         <p className="text-sm sm:text-base text-gray-600">
           View and manage your property reservations

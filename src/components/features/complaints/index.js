@@ -526,30 +526,30 @@ export default function Complaints() {
   };
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="w-full h-full p-4 sm:p-6 lg:p-8">
+      <div className="max-w-full mx-auto space-y-6">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Complaints</h1>
-            <p className="text-lg text-slate-600">Address and resolve homeowner complaints</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">Complaints</h1>
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600">Address and resolve homeowner complaints</p>
           </div>
-          <Button 
+          <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg"
+            className="bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg w-full sm:w-auto"
           >
-            <Plus className="w-5 h-5 mr-2" /> File Complaint
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> File Complaint
           </Button>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 shadow-lg">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="relative flex-1 max-w-md">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 items-stretch lg:items-center">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input placeholder="Search complaints..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10"/>
+              <Input placeholder="Search complaints..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full"/>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-3">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40"><SelectValue placeholder="All Status" /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-36 lg:w-40"><SelectValue placeholder="All Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
@@ -558,7 +558,7 @@ export default function Complaints() {
                 </SelectContent>
               </Select>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger className="w-40"><SelectValue placeholder="All Severity" /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-36 lg:w-40"><SelectValue placeholder="All Severity" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Severity</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -582,19 +582,19 @@ export default function Complaints() {
               <p className="text-slate-600">No complaints match the current filters.</p>
             </div>
           ) : (
-            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[800px]">
                   <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Subject</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Filed By</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Property</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Severity</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Filed Date</th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Subject</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Filed By</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Property</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Severity</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Filed Date</th>
+                      <th className="px-3 sm:px-4 lg:px-6 py-3 text-center text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -606,42 +606,42 @@ export default function Complaints() {
                         transition={{ delay: index * 0.02 }}
                         className="hover:bg-slate-50 transition-colors"
                       >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div>
-                              <div className="font-medium text-slate-900">{complaint.subject}</div>
+                        <td className="px-3 sm:px-4 lg:px-6 py-3">
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-slate-900 text-sm">{complaint.subject}</div>
                               <div className="text-xs text-slate-500 mt-1 line-clamp-1">{complaint.description}</div>
                             </div>
                             {isNewItem(complaint.created_date) && (
-                              <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0 shadow-md animate-pulse text-xs">
+                              <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0 shadow-md animate-pulse text-xs flex-shrink-0">
                                 <Sparkles className="w-3 h-3 mr-1" />
                                 New
                               </Badge>
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <Badge variant="outline" className="capitalize text-xs">
+                        <td className="px-3 sm:px-4 lg:px-6 py-3">
+                          <Badge variant="outline" className="capitalize text-xs whitespace-nowrap">
                             {complaint.complaint_type}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{getHomeownerName(complaint)}</td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{getPropertyName(complaint)}</td>
-                        <td className="px-6 py-4">
-                          <Badge variant="secondary" className={`${getSeverityColor(complaint.severity)} capitalize text-xs`}>
+                        <td className="px-3 sm:px-4 lg:px-6 py-3 text-sm text-slate-700">{getHomeownerName(complaint)}</td>
+                        <td className="px-3 sm:px-4 lg:px-6 py-3 text-sm text-slate-700">{getPropertyName(complaint)}</td>
+                        <td className="px-3 sm:px-4 lg:px-6 py-3">
+                          <Badge variant="secondary" className={`${getSeverityColor(complaint.severity)} capitalize text-xs whitespace-nowrap`}>
                             {complaint.severity}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4">
-                          <Badge className={`${getStatusColor(complaint.status)} border text-xs`}>
+                        <td className="px-3 sm:px-4 lg:px-6 py-3">
+                          <Badge className={`${getStatusColor(complaint.status)} border text-xs whitespace-nowrap`}>
                             {getStatusLabel(complaint.status)}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">
+                        <td className="px-3 sm:px-4 lg:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">
                           {formattedDate(new Date(complaint.created_date), "MMM d, yyyy")}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="px-3 sm:px-4 lg:px-6 py-3">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
                             <Button
                               size="sm"
                               variant="ghost"
@@ -704,32 +704,32 @@ export default function Complaints() {
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-hidden"
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6 text-white">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6" />
+            <div className="bg-gradient-to-r from-red-500 to-red-600 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 text-white">
+              <div className="flex justify-between items-start sm:items-center gap-3">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">File New Complaint</h3>
-                    <p className="text-red-100 text-sm mt-1">Submit a new homeowner complaint</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">File New Complaint</h3>
+                    <p className="text-red-100 text-xs sm:text-sm mt-0.5 sm:mt-1">Submit a new homeowner complaint</p>
                   </div>
                 </div>
                 <button
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   onClick={() => setIsModalOpen(false)}
                   disabled={formSubmitting}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Modal Body */}
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -921,22 +921,22 @@ export default function Complaints() {
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-hidden"
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-8 py-6 text-white">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <Edit className="w-6 h-6" />
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 text-white">
+              <div className="flex justify-between items-start sm:items-center gap-3">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Edit className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">Edit Complaint</h3>
-                    <p className="text-blue-100 text-sm mt-1">Update complaint information</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">Edit Complaint</h3>
+                    <p className="text-blue-100 text-xs sm:text-sm mt-0.5 sm:mt-1">Update complaint information</p>
                   </div>
                 </div>
                 <button
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setEditingComplaint(null);
@@ -944,13 +944,13 @@ export default function Complaints() {
                   }}
                   disabled={formSubmitting}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Modal Body */}
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -1256,34 +1256,34 @@ export default function Complaints() {
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-hidden"
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-8 py-6 text-white">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <Eye className="w-6 h-6" />
+            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 text-white">
+              <div className="flex justify-between items-start sm:items-center gap-3">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">View Complaint Details</h3>
-                    <p className="text-indigo-100 text-sm mt-1">Complete complaint information</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">View Complaint Details</h3>
+                    <p className="text-indigo-100 text-xs sm:text-sm mt-0.5 sm:mt-1">Complete complaint information</p>
                   </div>
                 </div>
                 <button
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   onClick={() => {
                     setIsViewModalOpen(false);
                     setViewingComplaint(null);
                   }}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Modal Body */}
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
               <div className="space-y-6">
                 <div className="flex gap-3">
                   <Badge className={`${getStatusColor(viewingComplaint.status)} border capitalize`}>

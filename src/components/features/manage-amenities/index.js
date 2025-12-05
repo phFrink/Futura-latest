@@ -96,7 +96,34 @@ export default function ManageAmenities() {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value };
+
+      // If changing total_quantity, ensure it doesn't exceed available_quantity
+      if (field === 'total_quantity') {
+        const totalQty = parseInt(value) || 0;
+        const availableQty = parseInt(prev.available_quantity) || 0;
+
+        if (totalQty > availableQty) {
+          toast.warn(`Total quantity cannot exceed available quantity (${availableQty})`);
+          return prev; // Don't update if it exceeds
+        }
+      }
+
+      // If changing available_quantity, ensure total_quantity doesn't exceed it
+      if (field === 'available_quantity') {
+        const availableQty = parseInt(value) || 0;
+        const totalQty = parseInt(prev.total_quantity) || 0;
+
+        // If new available quantity is less than current total, adjust total
+        if (totalQty > availableQty) {
+          newData.total_quantity = availableQty;
+          toast.info(`Total quantity adjusted to match available quantity (${availableQty})`);
+        }
+      }
+
+      return newData;
+    });
   };
 
   const resetForm = () => {
@@ -170,12 +197,23 @@ export default function ManageAmenities() {
         return;
       }
 
+      // Parse quantities
+      const totalQty = parseInt(formData.total_quantity);
+      const availableQty = parseInt(formData.available_quantity);
+
+      // Validate that total quantity doesn't exceed available quantity
+      if (totalQty > availableQty) {
+        toast.error(`Total quantity (${totalQty}) cannot exceed available quantity (${availableQty})`);
+        setSubmitting(false);
+        return;
+      }
+
       const submitData = {
         name: formData.name,
         category: formData.category,
         description: formData.description,
-        total_quantity: parseInt(formData.total_quantity),
-        available_quantity: parseInt(formData.available_quantity),
+        total_quantity: totalQty,
+        available_quantity: availableQty,
         status: formData.status,
       };
 

@@ -710,8 +710,16 @@ export default function Properties() {
         });
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          throw new Error(errorData.error || "Failed to upload photo");
+          let errorMessage = "Failed to upload photo";
+          try {
+            const errorData = await uploadResponse.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (e) {
+            // If response is not JSON, use default error message
+            errorMessage = `Failed to upload photo: ${uploadResponse.statusText}`;
+          }
+          setPhotoUploading(false);
+          throw new Error(errorMessage);
         }
 
         const uploadResult = await uploadResponse.json();

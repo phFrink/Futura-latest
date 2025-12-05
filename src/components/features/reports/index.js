@@ -99,10 +99,10 @@ export default function Reports() {
 
   useEffect(() => {
     if (activeReport) {
-      console.log('Trigger: Report generation started for', activeReport);
       generateReport();
     }
-  }, [activeReport, startDate, endDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeReport]);
 
   useEffect(() => {
     // Filter data based on search term
@@ -131,6 +131,7 @@ export default function Reports() {
 
   const generateReport = async () => {
     setLoading(true);
+    toast.info('Generating report, please wait...');
     try {
       // Determine table name based on active report
       const tableName = activeReport === 'service_requests' ? 'request_tbl' :
@@ -142,70 +143,16 @@ export default function Reports() {
                   activeReport === 'reservations' ? 'property_reservations' :
                     'announcement_tbl';
 
-      console.log('Generating fresh report for table:', tableName);
-      console.log('Date filters:', { startDate, endDate });
-      console.log('Timestamp:', new Date().toISOString());
-
       // Fetch ALL records from the table without any limits or pagination
       // No .limit() is applied - all data will be loaded and displayed
-      let query = supabase.from(tableName).select('*');
-
-      // Apply date filters ONLY if both startDate and endDate are provided
-      // If no dates are set, ALL records are returned (no filtering)
-      if (startDate && endDate) {
-        const dateField = activeReport === 'homeowners' ? 'contract_date' :
-          activeReport === 'service_requests' ? 'created_at' :
-            activeReport === 'properties' ? 'created_date' :
-              activeReport === 'complaints' ? 'created_at' :
-                activeReport === 'billings' ? 'due_date' :
-                  activeReport === 'announcements' ? 'created_date' :
-                    activeReport === 'reservations' ? 'created_at' :
-                      'created_at';
-
-        console.log('Applying date filter on field:', dateField);
-        console.log('   From:', startDate, 'To:', endDate);
-        query = query.gte(dateField, startDate).lte(dateField, endDate);
-      } else {
-        console.log('Loading ALL records without date filtering');
-      }
-
-      // Execute query - returns ALL matching records without any limits
-      const { data, error } = await query;
+      const { data, error } = await supabase.from(tableName).select('*');
 
       if (error) {
-        console.error('Supabase error:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        console.error('Error details:', error.details);
-        console.error('Error hint:', error.hint);
-
-        // If date filter caused error, try again without date filter
-        if (startDate && endDate && error.code) {
-          console.log('Retrying query without date filter...');
-          const { data: retryData, error: retryError } = await supabase.from(tableName).select('*');
-
-          if (!retryError && retryData) {
-            console.log('Retry successful! Retrieved', retryData.length, 'records');
-            let sortedData = retryData && retryData.length > 0 ? JSON.parse(JSON.stringify(retryData)) : [];
-            setReportData(sortedData);
-            setFilteredData(sortedData);
-            toast.warning('Date filter not available for this report type. Showing all records.');
-            setLoading(false);
-            return;
-          }
-        }
-
         // Set empty data to show "No data" message
         setReportData([]);
         setFilteredData([]);
         toast.error('Failed to load report data. Please try again.');
         return;
-      }
-
-      console.log('Report data retrieved:', data?.length, 'records');
-      console.log('Data sample:', data?.slice(0, 2));
-      if (data && data.length > 0) {
-        console.log('Data integrity - First record keys:', Object.keys(data[0]));
       }
 
       // Ensure data is fresh (force deep copy to avoid stale references)
@@ -223,23 +170,73 @@ export default function Reports() {
           }
           return 0;
         });
-        console.log('Data sorted, showing first record:', sortedData[0]);
+
+        // Apply client-side date filtering if dates are provided
+        if (startDate && endDate) {
+          // Define multiple possible date fields to check for each report type
+          const possibleDateFields = activeReport === 'homeowners'
+            ? ['contract_date', 'created_at', 'updated_at', 'move_in_date'] :
+            activeReport === 'service_requests'
+            ? ['created_at', 'request_date', 'updated_at'] :
+            activeReport === 'properties'
+            ? ['created_date', 'created_at', 'updated_at', 'date_added'] :
+            activeReport === 'complaints'
+            ? ['created_at', 'complaint_date', 'updated_at'] :
+            activeReport === 'billings'
+            ? ['due_date', 'created_at', 'payment_date', 'updated_at'] :
+            activeReport === 'announcements'
+            ? ['created_date', 'created_at', 'updated_at', 'publish_date'] :
+            activeReport === 'reservations'
+            ? ['created_at', 'reservation_date', 'check_in_date', 'updated_at'] :
+            ['created_at', 'updated_at'];
+
+          const originalLength = sortedData.length;
+
+          sortedData = sortedData.filter(item => {
+            // Try each possible date field
+            for (const dateField of possibleDateFields) {
+              const itemDate = item[dateField];
+              if (!itemDate) continue;
+
+              try {
+                const date = new Date(itemDate);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                // Set time to start of day for proper comparison
+                start.setHours(0, 0, 0, 0);
+                end.setHours(23, 59, 59, 999);
+
+                if (date >= start && date <= end) {
+                  return true; // Record matches date range
+                }
+              } catch {
+                continue;
+              }
+            }
+            return false; // No date field matched
+          });
+
+          if (sortedData.length === 0 && originalLength > 0) {
+            toast.info('No records found for the selected date range.');
+          }
+        }
       }
 
       // Force state update with fresh data
       setReportData(sortedData);
       setFilteredData(sortedData);
-      console.log('✨ State updated with', sortedData.length, 'records');
-    } catch (error) {
-      console.error('Exception in generateReport:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error name:', error?.name);
-      console.error('Error message:', error?.message);
-      console.error('Error stack:', error?.stack);
 
+      if (sortedData.length > 0) {
+        toast.success(`Report generated successfully! ${sortedData.length} records found.`);
+      } else {
+        toast.warning('Report generated but no records found.');
+      }
+    } catch (error) {
       // Set empty data on error
       setReportData([]);
       setFilteredData([]);
+      toast.error('Failed to generate report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -248,9 +245,6 @@ export default function Reports() {
   const downloadPDF = async () => {
     try {
       setPdfLoading(true);
-      console.log('Starting PDF generation...');
-      console.log('Filtered data:', filteredData.length, 'records');
-      console.log('Active report:', activeReport);
 
       if (!activeReport) {
         toast.info('Please select a report type first.');
@@ -268,8 +262,6 @@ export default function Reports() {
           monthly_dues: 5000
         }];
 
-        console.log('No filtered data found, using sample data for PDF testing');
-
         // Use sample data temporarily for PDF generation
         const tempFilteredData = sampleData;
 
@@ -281,8 +273,7 @@ export default function Reports() {
       // Generate PDF with actual data
       generatePDFWithData(filteredData);
     } catch (error) {
-      console.error('Detailed PDF generation error:', error);
-      toast.info(`Error generating PDF: ${error.message || 'Unknown error'}. Please check the console for details.`);
+      toast.info(`Error generating PDF: ${error.message || 'Unknown error'}.`);
     } finally {
       setPdfLoading(false);
     }
@@ -295,30 +286,30 @@ export default function Reports() {
       const { jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
 
-      const doc = new jsPDF();
+      // Use landscape orientation to fit more columns
+      const doc = new jsPDF('landscape', 'mm', 'a4');
       const reportType = reportTypes.find(r => r.id === activeReport);
 
-      // Add title
-      doc.setFontSize(18);
+      // Add title - very compact
+      doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.text(reportType?.title || 'Report', 20, 30);
+      doc.text(reportType?.title || 'Report', 10, 15);
 
-      // Add date range if applied
-      let yPos = 45;
+      // Add date range if applied - very compact
+      let yPos = 22;
+      doc.setFontSize(7);
       if (startDate && endDate) {
-        doc.setFontSize(12);
-        doc.text(`Date Range: ${startDate} to ${endDate}`, 20, yPos);
-        yPos += 15;
+        doc.text(`Date Range: ${startDate} to ${endDate}`, 10, yPos);
+        yPos += 5;
       }
 
       // Add generation date
-      doc.setFontSize(10);
-      doc.text(`Generated: ${format(new Date(), 'PPP')}`, 20, yPos);
-      yPos += 10;
+      doc.text(`Generated: ${format(new Date(), 'PPP')}`, 10, yPos);
+      yPos += 5;
 
       // Add record count
-      doc.text(`Total Records: ${data.length}`, 20, yPos);
-      yPos += 15;
+      doc.text(`Total Records: ${data.length}`, 10, yPos);
+      yPos += 8;
 
       // Prepare table data
       let columns = [];
@@ -326,14 +317,27 @@ export default function Reports() {
 
       if (data.length > 0) {
         // Get column headers from first item
-        columns = Object.keys(data[0]).filter(key =>
+        let allColumns = Object.keys(data[0]).filter(key =>
           !key.includes('id') &&
           !key.includes('password') &&
           key !== 'created_at' &&
           key !== 'updated_at'
         );
 
-        console.log('PDF Columns:', columns);
+        // Special filtering for Homeowners Report in PDF
+        if (activeReport === 'homeowners') {
+          const allowedColumns = [
+            'contract_number',
+            'property_title',
+            'property_price',
+            'client_name',
+            'client_email',
+            'client_phone'
+          ];
+          columns = allColumns.filter(key => allowedColumns.includes(key));
+        } else {
+          columns = allColumns;
+        }
 
         // Prepare rows with better data formatting
         rows = data.map((item, index) => {
@@ -356,41 +360,60 @@ export default function Reports() {
               }
             }
 
-            // Truncate long strings for PDF
+            // Handle long text fields with very aggressive truncation to fit page
             const str = value.toString();
-            return str.length > 50 ? str.substring(0, 47) + '...' : str;
+
+            // Very short text to fit everything on one page
+            if (col.includes('content') || col.includes('description') || col.includes('message')) {
+              return str.length > 30 ? str.substring(0, 27) + '...' : str;
+            }
+
+            // For most fields, use extremely short truncation
+            return str.length > 20 ? str.substring(0, 17) + '...' : str;
           });
         });
 
-        console.log('PDF Rows prepared:', rows.length);
-
-        // Add table to PDF using autoTable
+        // Add table to PDF using autoTable with very compact settings
         autoTable(doc, {
           head: [columns.map(col => col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))],
           body: rows,
-          startY: yPos + 5,
+          startY: yPos + 3,
           theme: 'striped',
           headStyles: {
             fillColor: [239, 68, 68], // Red color to match theme
             textColor: 255,
-            fontSize: 9,
-            fontStyle: 'bold'
+            fontSize: 6,
+            fontStyle: 'bold',
+            halign: 'left',
+            cellPadding: 1.5
           },
           bodyStyles: {
-            fontSize: 8,
-            textColor: [40, 40, 40]
+            fontSize: 5,
+            textColor: [40, 40, 40],
+            halign: 'left',
+            cellPadding: 1.5,
+            overflow: 'linebreak',
+            cellWidth: 'wrap'
           },
           alternateRowStyles: {
             fillColor: [249, 250, 251]
           },
-          margin: { top: 20, left: 10, right: 10, bottom: 20 },
+          margin: { top: 15, left: 5, right: 5, bottom: 15 },
           tableWidth: 'auto',
+          styles: {
+            overflow: 'linebreak',
+            cellWidth: 'wrap',
+            minCellHeight: 6,
+            fontSize: 5
+          },
+          // Auto-calculate column widths to fit page
           columnStyles: {},
           didDrawPage: function (data) {
             // Add page numbers
             const pageCount = doc.internal.getNumberOfPages();
             const pageSize = doc.internal.pageSize;
             const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+            doc.setFontSize(8);
             doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, pageHeight - 10);
           }
         });
@@ -402,14 +425,11 @@ export default function Reports() {
       const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
       const filename = `${(reportType?.title || 'report').toLowerCase().replace(/ /g, '_')}_${timestamp}.pdf`;
 
-      console.log('Saving PDF as:', filename);
-
       // Save the PDF
       doc.save(filename);
 
-      console.log('PDF generated successfully!');
+      toast.success('PDF generated and downloaded successfully!');
     } catch (error) {
-      console.error('Error in generatePDFWithData:', error);
       throw error;
     }
   };
@@ -445,16 +465,19 @@ export default function Reports() {
               width: 100%;
               border-collapse: collapse;
               margin-top: 20px;
+              font-size: 9px;
             }
             th, td {
               border: 1px solid #d1d5db;
-              padding: 8px;
+              padding: 6px;
               text-align: left;
+              word-wrap: break-word;
             }
             th {
               background-color: #ef4444;
               color: white;
               font-weight: bold;
+              font-size: 9px;
             }
             tr:nth-child(even) {
               background-color: #f9fafb;
@@ -465,8 +488,10 @@ export default function Reports() {
               color: #6b7280;
             }
             @media print {
-              body { margin: 0; }
+              body { margin: 10px; }
               .no-print { display: none; }
+              table { font-size: 8px; }
+              th, td { padding: 4px; }
             }
           </style>
         </head>
@@ -499,6 +524,34 @@ export default function Reports() {
       indigo: 'bg-indigo-500 hover:bg-indigo-600'
     };
     return colors[color] || colors.blue;
+  };
+
+  // Filter columns for table display
+  const getFilteredColumns = (allKeys) => {
+    // Only filter out sensitive/system fields for table display
+    let filteredKeys = allKeys.filter(key =>
+      !key.includes('password') &&
+      key !== 'created_at' &&
+      key !== 'updated_at'
+    );
+
+    // Special filtering for Homeowners Report
+    if (activeReport === 'homeowners') {
+      const allowedColumns = [
+        'contract_number',
+        'property_title',
+        'property_price',
+        'client_name',
+        'client_email',
+        'client_phone'
+      ];
+      filteredKeys = filteredKeys.filter(key => allowedColumns.includes(key));
+    } else {
+      // For other reports, exclude id fields for cleaner display
+      filteredKeys = filteredKeys.filter(key => !key.includes('id'));
+    }
+
+    return filteredKeys;
   };
 
   return (
@@ -821,13 +874,7 @@ export default function Reports() {
                                   <table className="min-w-full divide-y divide-slate-200">
                                     <thead>
                                       <tr className="bg-gradient-to-r from-red-500 to-red-600">
-                                        {Object.keys(filteredData[0])
-                                          .filter(key =>
-                                            !key.includes('id') &&
-                                            !key.includes('password') &&
-                                            key !== 'created_at' &&
-                                            key !== 'updated_at'
-                                          )
+                                        {getFilteredColumns(Object.keys(filteredData[0]))
                                           .map((key, index) => {
                                             // Define responsive column width classes based on content type
                                             let widthClass = 'min-w-[100px] md:min-w-[120px]'; // default
@@ -860,13 +907,7 @@ export default function Reports() {
                                           className={`transition-colors duration-200 hover:bg-red-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
                                             }`}
                                         >
-                                          {Object.keys(item)
-                                            .filter(key =>
-                                              !key.includes('id') &&
-                                              !key.includes('password') &&
-                                              key !== 'created_at' &&
-                                              key !== 'updated_at'
-                                            )
+                                          {getFilteredColumns(Object.keys(item))
                                             .map((key, cellIndex) => {
                                               // Match the same responsive width classes as headers
                                               let widthClass = 'min-w-[100px] md:min-w-[120px]'; // default
@@ -1070,13 +1111,7 @@ export default function Reports() {
                                   className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow"
                                 >
                                   <div className="space-y-3">
-                                    {Object.keys(item)
-                                      .filter(key =>
-                                        !key.includes('id') &&
-                                        !key.includes('password') &&
-                                        key !== 'created_at' &&
-                                        key !== 'updated_at'
-                                      )
+                                    {getFilteredColumns(Object.keys(item))
                                       .map((key, keyIndex) => {
                                         let value = item[key];
                                         if (value === null || value === undefined) value = '-';

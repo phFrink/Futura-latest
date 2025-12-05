@@ -43,7 +43,7 @@ const ClientNotificationBell = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setCurrentUserId(user.id);
-          console.log("🔔 ClientNotificationBell - Current User ID:", user.id);
+          console.log(" ClientNotificationBell - Current User ID:", user.id);
         }
       } catch (error) {
         console.error("Error getting current user:", error);
@@ -62,7 +62,7 @@ const ClientNotificationBell = () => {
       const isMatch = notification.recipient_id === currentUserId;
 
       if (!isMatch) {
-        console.warn(`🚨 ClientNotificationBell BLOCKED notification: "${notification.title}"`);
+        console.warn(`ClientNotificationBell BLOCKED notification: "${notification.title}"`);
         console.warn(`   - recipient_id: ${notification.recipient_id || 'NULL'}`);
         console.warn(`   - expected: ${currentUserId}`);
       }
@@ -70,7 +70,7 @@ const ClientNotificationBell = () => {
       return isMatch;
     });
 
-    console.log(`🔔 ClientNotificationBell - Component-level filter: ${notifications.length} → ${filtered.length} notifications`);
+    console.log(`ClientNotificationBell - Component-level filter: ${notifications.length} → ${filtered.length} notifications`);
     return filtered;
   }, [notifications, currentUserId]);
 
@@ -81,9 +81,9 @@ const ClientNotificationBell = () => {
 
   // Debug logging
   React.useEffect(() => {
-    console.log("🔔 ClientNotificationBell - Notifications:", filteredNotifications);
-    console.log("🔔 ClientNotificationBell - Unread count:", filteredUnreadCount);
-    console.log("🔔 ClientNotificationBell - Loading:", loading);
+    console.log("ClientNotificationBell - Notifications:", filteredNotifications);
+    console.log("ClientNotificationBell - Unread count:", filteredUnreadCount);
+    console.log("ClientNotificationBell - Loading:", loading);
   }, [filteredNotifications, filteredUnreadCount, loading]);
 
   const getNotificationDescription = (notification) => {
@@ -137,11 +137,11 @@ const ClientNotificationBell = () => {
                       notification.data?.action_url ||
                       notification.action_url;
 
-    console.log(`🔗 Client accessing notification URL: ${actionUrl}`);
+    console.log(`Client accessing notification URL: ${actionUrl}`);
 
     // Clients should only navigate to client-specific routes
     if (actionUrl && !actionUrl.startsWith('/client-')) {
-      console.warn(`🚫 Client attempted to access non-client route: ${actionUrl}`);
+      console.warn(`Client attempted to access non-client route: ${actionUrl}`);
       alert(`This notification is not accessible from your account.`);
       return;
     }

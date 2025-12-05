@@ -33,9 +33,9 @@ const RealNotificationBell = () => {
 
   // Debug logging
   React.useEffect(() => {
-    console.log("🔔 RealNotificationBell - Notifications:", notifications);
-    console.log("🔔 RealNotificationBell - Unread count:", unreadCount);
-    console.log("🔔 RealNotificationBell - Loading:", loading);
+    console.log("RealNotificationBell - Notifications:", notifications);
+    console.log("RealNotificationBell - Unread count:", unreadCount);
+    console.log("RealNotificationBell - Loading:", loading);
   }, [notifications, unreadCount, loading]);
 
   const getNotificationDescription = (notification) => {

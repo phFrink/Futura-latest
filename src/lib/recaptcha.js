@@ -16,7 +16,7 @@ export async function verifyRecaptcha(token, remoteIp = null) {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!secretKey) {
-    console.error('❌ RECAPTCHA_SECRET_KEY is not configured in environment variables');
+    console.error(' RECAPTCHA_SECRET_KEY is not configured in environment variables');
     throw new Error('reCAPTCHA is not configured on the server');
   }
 
@@ -46,7 +46,7 @@ export async function verifyRecaptcha(token, remoteIp = null) {
 
     const data = await response.json();
 
-    console.log('🔐 reCAPTCHA verification result:', {
+    console.log('reCAPTCHA verification result:', {
       success: data.success,
       score: data.score,
       action: data.action,
@@ -56,7 +56,7 @@ export async function verifyRecaptcha(token, remoteIp = null) {
 
     return data;
   } catch (error) {
-    console.error('❌ Error verifying reCAPTCHA:', error);
+    console.error('Error verifying reCAPTCHA:', error);
     return {
       success: false,
       error: 'Failed to verify reCAPTCHA token',

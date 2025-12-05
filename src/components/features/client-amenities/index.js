@@ -80,8 +80,8 @@ export default function ClientAmenities() {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log("🔄 CLIENT - Starting to load data...");
-      console.log("👤 CLIENT - Current user ID:", user?.id);
+      console.log(" CLIENT - Starting to load data...");
+      console.log(" CLIENT - Current user ID:", user?.id);
 
       // Get user's contract
       const { data: contractData, error: contractError } = await supabase
@@ -91,13 +91,13 @@ export default function ClientAmenities() {
         .single();
 
       if (contractError || !contractData) {
-        console.error("❌ CLIENT - No contract found for user");
-        console.error("❌ CLIENT - Contract error:", contractError);
+        console.error(" CLIENT - No contract found for user");
+        console.error(" CLIENT - Contract error:", contractError);
         setLoading(false);
         return;
       }
 
-      console.log("✅ CLIENT - Found contract:", contractData);
+      console.log(" CLIENT - Found contract:", contractData);
 
       // Load user's borrow requests
       const { data: requestsData, error: requestsError } = await supabase
@@ -111,39 +111,39 @@ export default function ClientAmenities() {
         .order("created_at", { ascending: false });
 
       if (requestsError) {
-        console.error("❌ CLIENT - Error loading borrow requests:", requestsError);
+        console.error(" CLIENT - Error loading borrow requests:", requestsError);
       } else {
-        console.log("✅ CLIENT - Loaded borrow requests:", requestsData?.length || 0);
+        console.log(" CLIENT - Loaded borrow requests:", requestsData?.length || 0);
       }
 
       // Load available amenities (load ALL first to debug)
-      console.log("🔍 CLIENT - Attempting to load amenities from database...");
+      console.log(" CLIENT - Attempting to load amenities from database...");
       const { data: amenitiesData, error: amenitiesError } = await supabase
         .from("amenities")
         .select("*")
         .order("name");
 
-      console.log("📡 CLIENT - Amenities query response:", {
+      console.log(" CLIENT - Amenities query response:", {
         data: amenitiesData,
         error: amenitiesError,
         count: amenitiesData?.length || 0
       });
 
       if (amenitiesError) {
-        console.error("❌ CLIENT - Error loading amenities:", amenitiesError);
-        console.error("❌ CLIENT - Error code:", amenitiesError.code);
-        console.error("❌ CLIENT - Error message:", amenitiesError.message);
-        console.error("❌ CLIENT - Error details:", amenitiesError.details);
-        console.error("❌ CLIENT - Error hint:", amenitiesError.hint);
+        console.error(" CLIENT - Error loading amenities:", amenitiesError);
+        console.error(" CLIENT - Error code:", amenitiesError.code);
+        console.error(" CLIENT - Error message:", amenitiesError.message);
+        console.error(" CLIENT - Error details:", amenitiesError.details);
+        console.error(" CLIENT - Error hint:", amenitiesError.hint);
         toast.error("Failed to load amenities: " + amenitiesError.message);
       } else {
-        console.log("✅ CLIENT - Loaded amenities successfully!");
-        console.log("📊 CLIENT - Amenities count:", amenitiesData?.length || 0);
-        console.log("🔍 CLIENT - All amenities:", amenitiesData);
-        console.log("🎯 CLIENT - First amenity:", amenitiesData?.[0]);
+        console.log(" CLIENT - Loaded amenities successfully!");
+        console.log(" CLIENT - Amenities count:", amenitiesData?.length || 0);
+        console.log(" CLIENT - All amenities:", amenitiesData);
+        console.log(" CLIENT - First amenity:", amenitiesData?.[0]);
 
         if (amenitiesData && amenitiesData.length === 0) {
-          console.warn("⚠️ CLIENT - Amenities table is EMPTY! Please add amenities first.");
+          console.warn(" CLIENT - Amenities table is EMPTY! Please add amenities first.");
           toast.warning("No amenities available. Please contact the administrator.");
         }
       }
@@ -151,15 +151,15 @@ export default function ClientAmenities() {
       setMyRequests(requestsData || []);
       setAmenitiesList(amenitiesData || []);
 
-      console.log("🎉 CLIENT - Data loading complete!");
-      console.log("📋 CLIENT - Final amenitiesList state will be:", amenitiesData?.length || 0, "items");
+      console.log(" CLIENT - Data loading complete!");
+      console.log(" CLIENT - Final amenitiesList state will be:", amenitiesData?.length || 0, "items");
     } catch (error) {
-      console.error("❌ CLIENT - Catch error:", error);
-      console.error("❌ CLIENT - Error stack:", error.stack);
+      console.error(" CLIENT - Catch error:", error);
+      console.error(" CLIENT - Error stack:", error.stack);
       toast.error("Failed to load amenities data: " + error.message);
     } finally {
       setLoading(false);
-      console.log("✅ CLIENT - Loading finished, loading state set to false");
+      console.log(" CLIENT - Loading finished, loading state set to false");
     }
   };
 
@@ -335,13 +335,13 @@ export default function ClientAmenities() {
   };
 
   const openModal = () => {
-    console.log("🎬 CLIENT - Opening modal...");
-    console.log("📋 CLIENT - Current amenitiesList state:", amenitiesList);
-    console.log("📊 CLIENT - amenitiesList length:", amenitiesList.length);
+    console.log("CLIENT - Opening modal...");
+    console.log(" CLIENT - Current amenitiesList state:", amenitiesList);
+    console.log(" CLIENT - amenitiesList length:", amenitiesList.length);
     if (amenitiesList.length > 0) {
-      console.log("✅ CLIENT - Amenities available for dropdown:", amenitiesList.map(a => a.name));
+      console.log(" CLIENT - Amenities available for dropdown:", amenitiesList.map(a => a.name));
     } else {
-      console.error("❌ CLIENT - NO AMENITIES IN STATE! Dropdown will be empty!");
+      console.error(" CLIENT - NO AMENITIES IN STATE! Dropdown will be empty!");
     }
     resetForm();
     setIsModalOpen(true);

@@ -226,14 +226,14 @@ export default function PropertyMap() {
     }
 
     const lotPaths = svgDoc.querySelectorAll('[id^="lot"][id*="block"]');
-    console.log(`✅ Found ${lotPaths.length} lots in the SVG`);
+    console.log(`Found ${lotPaths.length} lots in the SVG`);
 
     // Debug: Find all block 6 lots in SVG
     const block6LotsInSvg = Array.from(lotPaths).filter(p => p.id.includes("block6"));
-    console.log("🔍 Block 6 lots found in SVG:", block6LotsInSvg.map(p => p.id));
+    console.log("Block 6 lots found in SVG:", block6LotsInSvg.map(p => p.id));
 
     if (lotPaths.length === 0) {
-      console.log("⚠️ No lots found, retrying...");
+      console.log("No lots found, retrying...");
       setTimeout(initializeSvg, 100);
       return;
     }
@@ -249,7 +249,7 @@ export default function PropertyMap() {
         const color = getStatusColor(status);
 
         if (block === "6" && lotNumber === "10") {
-          console.log(`🔍 Block 6 Lot 10 Debug:`, {
+          console.log(`Block 6 Lot 10 Debug:`, {
             status,
             color,
             expectedColor: status === "vacant" ? "#a855f7 (purple for vacant)" : "#22c55e (green for available)"
@@ -294,7 +294,7 @@ export default function PropertyMap() {
 
       // Add click handler
       path.addEventListener("click", (e) => {
-        console.log(`🖱️ Clicked on lot: ${lotId}`);
+        console.log(`Clicked on lot: ${lotId}`);
         if (lotId === "lot10block6") {
           console.log("Block 6 Lot 10 clicked! Path element:", path);
         }
@@ -303,13 +303,13 @@ export default function PropertyMap() {
 
       // Debug: verify click handler was added
       if (lotId === "lot10block6") {
-        console.log("✅ Click handler added to Block 6 Lot 10");
+        console.log("Click handler added to Block 6 Lot 10");
         console.log("Path style:", path.style.cursor);
         console.log("Path fill:", path.getAttribute("fill"));
       }
     });
 
-    console.log("✅ SVG initialization complete - all lots are clickable");
+    console.log("SVG initialization complete - all lots are clickable");
     setSvgLoaded(true);
   };
 
@@ -558,7 +558,7 @@ export default function PropertyMap() {
                         style={{ pointerEvents: "auto" }}
                         onLoad={(e) => {
                           console.log(
-                            "🎨 SVG object loaded, initializing..."
+                            "SVG object loaded, initializing..."
                           );
                           setTimeout(() => {
                             initializeSvg();

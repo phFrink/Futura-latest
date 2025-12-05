@@ -62,7 +62,7 @@ export default function Signup() {
   const uploadProfilePhoto = async () => {
     if (!profilePhoto) return null
 
-    console.log('🚀 Starting photo upload...')
+    console.log(' Starting photo upload...')
     console.log('File details:', {
       name: profilePhoto.name,
       size: profilePhoto.size,
@@ -74,7 +74,7 @@ export default function Signup() {
       const formData = new FormData()
       formData.append('profile', profilePhoto)
 
-      console.log('📤 Sending request to /api/upload...')
+      console.log('Sending request to /api/upload...')
 
       let response
       try {
@@ -82,14 +82,14 @@ export default function Signup() {
           method: 'POST',
           body: formData,
         })
-        console.log('📥 Response received:', {
+        console.log(' Response received:', {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok,
           headers: Object.fromEntries(response.headers.entries())
         })
       } catch (fetchError) {
-        console.error('💥 Fetch request failed:', fetchError)
+        console.error(' Fetch request failed:', fetchError)
         throw new Error('Network request failed: ' + fetchError.message)
       }
 
@@ -101,32 +101,32 @@ export default function Signup() {
       try {
         if (contentType && contentType.includes('application/json')) {
           result = await response.json()
-          console.log('📄 JSON Response:', JSON.stringify(result, null, 2))
+          console.log('JSON Response:', JSON.stringify(result, null, 2))
         } else {
           const text = await response.text()
-          console.log('📄 Text Response:', text)
+          console.log(' Text Response:', text)
           result = { error: 'Non-JSON response: ' + text }
         }
       } catch (parseError) {
-        console.error('💥 Failed to parse response:', parseError)
+        console.error('Failed to parse response:', parseError)
         result = { error: 'Failed to parse response: ' + parseError.message }
       }
 
       if (!response.ok) {
-        console.error('❌ Upload API error:', JSON.stringify(result, null, 2))
-        console.error('❌ Response status:', response.status, response.statusText)
-        console.error('❌ Full response headers:', Object.fromEntries(response.headers.entries()))
+        console.error('Upload API error:', JSON.stringify(result, null, 2))
+        console.error('Response status:', response.status, response.statusText)
+        console.error('Full response headers:', Object.fromEntries(response.headers.entries()))
 
         const errorMessage = result?.error || result?.details || result?.message || `HTTP ${response.status}: ${response.statusText}`
-        console.error('❌ Error message to show:', errorMessage)
+        console.error('Error message to show:', errorMessage)
 
         throw new Error(errorMessage)
       }
 
-      console.log('✅ Upload successful:', result)
+      console.log('Upload successful:', result)
       return result.url
     } catch (error) {
-      console.error('💥 Photo upload error:', error)
+      console.error(' Photo upload error:', error)
       toast.error('Failed to upload profile photo: ' + error.message)
       return null
     } finally {

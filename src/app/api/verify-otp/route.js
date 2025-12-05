@@ -41,7 +41,7 @@ export async function POST(request) {
     // Debug: Log what we're searching for
     const searchEmail = email.toLowerCase().trim();
     const searchCode = otp_code.trim();
-    console.log("🔍 Searching for OTP:");
+    console.log("   Searching for OTP:");
     console.log("   Email:", searchEmail);
     console.log("   Code:", searchCode);
 
@@ -51,7 +51,7 @@ export async function POST(request) {
       .select("*")
       .eq("email", searchEmail);
 
-    console.log("📊 All OTPs for this email:", allOtps);
+    console.log("All OTPs for this email:", allOtps);
 
     // Find matching OTP that is not verified and not expired
     const { data: otpRecord, error } = await supabaseAdmin
@@ -64,7 +64,7 @@ export async function POST(request) {
       .single();
 
     if (error || !otpRecord) {
-      console.error("❌ OTP verification failed:", error);
+      console.error("OTP verification failed:", error);
 
       // Provide more specific error messages
       if (allOtps && allOtps.length > 0) {
@@ -107,10 +107,10 @@ export async function POST(request) {
       .eq("otp_id", otpRecord.otp_id);
 
     if (deleteError) {
-      console.error("❌ Delete OTP error:", deleteError);
+      console.error("Delete OTP error:", deleteError);
     }
 
-    console.log(`✅ OTP verified successfully for ${email}`);
+    console.log(`OTP verified successfully for ${email}`);
 
     return NextResponse.json({
       success: true,
@@ -118,7 +118,7 @@ export async function POST(request) {
       email: otpRecord.email,
     });
   } catch (error) {
-    console.error("❌ Verify OTP error:", error);
+    console.error("Verify OTP error:", error);
     return NextResponse.json(
       {
         success: false,

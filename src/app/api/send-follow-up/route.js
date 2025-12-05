@@ -120,7 +120,7 @@ export async function POST(request) {
 
     try {
       const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Follow-up email sent successfully:', info.messageId);
+      console.log('Follow-up email sent successfully:', info.messageId);
 
       return NextResponse.json({
         success: true,
@@ -128,7 +128,7 @@ export async function POST(request) {
         message: 'Follow-up email sent successfully',
       });
     } catch (emailError) {
-      console.error('❌ Email sending error:', emailError);
+      console.error(' Email sending error:', emailError);
       return NextResponse.json(
         {
           success: false,
@@ -138,7 +138,7 @@ export async function POST(request) {
       );
     }
   } catch (error) {
-    console.error('❌ Send follow-up error:', error);
+    console.error('Send follow-up error:', error);
     return NextResponse.json(
       {
         success: false,

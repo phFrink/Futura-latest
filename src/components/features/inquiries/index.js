@@ -801,10 +801,10 @@ export default function Inquiries() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="general">📋 General</SelectItem>
-                        <SelectItem value="billing">💰 Billing</SelectItem>
-                        <SelectItem value="services">🛠️ Services</SelectItem>
-                        <SelectItem value="property_info">🏠 Property Info</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="billing">Billing</SelectItem>
+                        <SelectItem value="services">Services</SelectItem>
+                        <SelectItem value="property_info">Property Info</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

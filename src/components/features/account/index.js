@@ -65,8 +65,8 @@ export default function Account() {
 
       if (session?.user) {
         const user = session.user;
-        console.log("👤 [Account] Loading user data for:", user.id);
-        console.log("📋 [Account] Current user_metadata:", user.user_metadata);
+        console.log(" [Account] Loading user data for:", user.id);
+        console.log(" [Account] Current user_metadata:", user.user_metadata);
 
         const data = {
           id: user.id,
@@ -80,7 +80,7 @@ export default function Account() {
           profile_photo: user.user_metadata?.profile_photo || "",
         };
 
-        console.log("✅ [Account] Loaded user data:", data);
+        console.log(" [Account] Loaded user data:", data);
         setUserData(data);
 
         // Parse address into separate fields
@@ -101,7 +101,7 @@ export default function Account() {
         setPhotoPreview(data.profile_photo);
       }
     } catch (error) {
-      console.error("❌ [Account] Error loading user data:", error);
+      console.error("[Account] Error loading user data:", error);
       toast.error("Failed to load user data");
     } finally {
       setLoading(false);
@@ -219,7 +219,7 @@ export default function Account() {
         setUploadingPhoto(true);
         try {
           photoUrl = await uploadPhoto(selectedPhotoFile);
-          console.log("✅ Photo uploaded:", photoUrl);
+          console.log(" Photo uploaded:", photoUrl);
         } catch (uploadError) {
           toast.error("Failed to upload photo: " + uploadError.message);
           setIsSubmitting(false);
@@ -251,8 +251,8 @@ export default function Account() {
         role: userData.role, // Keep existing role
       };
 
-      console.log("📤 [Account] Sending update to API:", updatePayload);
-      console.log("📍 [Account] Updating user ID:", userData.id);
+      console.log(" [Account] Sending update to API:", updatePayload);
+      console.log(" [Account] Updating user ID:", userData.id);
 
       const response = await fetch("/api/users", {
         method: "PUT",
@@ -263,21 +263,21 @@ export default function Account() {
       });
 
       const result = await response.json();
-      console.log("📥 [Account] API Response:", result);
+      console.log(" [Account] API Response:", result);
 
       if (result.success) {
-        console.log("✅ [Account] Profile updated successfully!");
-        console.log("🔄 [Account] Updated user data:", result.data);
+        console.log(" [Account] Profile updated successfully!");
+        console.log(" [Account] Updated user data:", result.data);
 
         // Refresh the session to get updated user_metadata
-        console.log("🔄 [Account] Refreshing session to get latest user_metadata...");
+        console.log(" [Account] Refreshing session to get latest user_metadata...");
         const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
 
         if (refreshError) {
-          console.error("❌ [Account] Session refresh error:", refreshError);
+          console.error("[Account] Session refresh error:", refreshError);
         } else {
-          console.log("✅ [Account] Session refreshed successfully!");
-          console.log("📋 [Account] New user_metadata:", session?.user?.user_metadata);
+          console.log("[Account] Session refreshed successfully!");
+          console.log("[Account] New user_metadata:", session?.user?.user_metadata);
         }
 
         toast.success("Profile updated successfully!");
@@ -290,7 +290,7 @@ export default function Account() {
         // Reload the page to update the header and other components
         window.location.reload();
       } else {
-        console.error("❌ [Account] Update failed:", result.message);
+        console.error("[Account] Update failed:", result.message);
         toast.error(result.message || "Failed to update profile");
       }
     } catch (error) {

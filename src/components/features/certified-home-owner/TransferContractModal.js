@@ -124,7 +124,7 @@ export default function TransferContractModal({
         );
 
         console.log(
-          `✅ Loaded ${filteredHomeowners.length} homeowners (excluded current owner)`
+          `Loaded ${filteredHomeowners.length} homeowners (excluded current owner)`
         );
       } else {
         console.error("Failed to load homeowners:", result.message);
@@ -221,7 +221,7 @@ export default function TransferContractModal({
         ...formData,
       };
 
-      console.log("🔄 Submitting transfer with data:", transferData);
+      console.log("Submitting transfer with data:", transferData);
 
       const response = await fetch("/api/contracts/transfer", {
         method: "POST",
@@ -233,20 +233,20 @@ export default function TransferContractModal({
 
       const result = await response.json();
 
-      console.log("📥 Transfer API response:", result);
+      console.log("Transfer API response:", result);
 
       if (result.success) {
         toast.success("Contract transferred successfully!");
-        console.log("✅ Transfer completed:", result.data);
+        console.log(" Transfer completed:", result.data);
         onTransferSuccess(result.data);
         resetForm();
         onClose();
       } else {
-        console.error("❌ Transfer failed:", result.message);
+        console.error(" Transfer failed:", result.message);
         toast.error(result.message || "Failed to transfer contract");
       }
     } catch (error) {
-      console.error("❌ Error transferring contract:", error);
+      console.error(" Error transferring contract:", error);
       toast.error("Error transferring contract. Please try again.");
     } finally {
       setLoading(false);

@@ -166,7 +166,7 @@ export default function Homeowners() {
         .order("full_name", { ascending: true });
 
       if (error) {
-        console.error("❌ First attempt failed, trying alternative query...");
+        console.error("First attempt failed, trying alternative query...");
         console.error("Error:", error.message);
 
         // Fallback: Try without nested relationships
@@ -179,7 +179,7 @@ export default function Homeowners() {
         error = result.error;
 
         if (error) {
-          console.error("❌ Supabase error:", error);
+          console.error(" Supabase error:", error);
           console.error("Error details:", {
             message: error.message,
             code: error.code,
@@ -191,8 +191,8 @@ export default function Homeowners() {
 
         // If we got data without relationships, fetch properties separately
         if (data && data.length > 0) {
-          console.log("⚠️ Loading homeowners without property relationships");
-          console.log("📊 Fetching property info separately...");
+          console.log(" Loading homeowners without property relationships");
+          console.log(" Fetching property info separately...");
 
           // Fetch all properties
           const { data: properties } = await supabase
@@ -214,8 +214,8 @@ export default function Homeowners() {
         }
       }
 
-      console.log("✅ Loaded homeowners:", data);
-      console.log("📊 Total homeowners:", data?.length || 0);
+      console.log(" Loaded homeowners:", data);
+      console.log(" Total homeowners:", data?.length || 0);
 
       // Normalize the property_info field name
       const normalizedData = data?.map(homeowner => ({
@@ -225,8 +225,8 @@ export default function Homeowners() {
 
       // Log sample to check property_info structure
       if (normalizedData && normalizedData.length > 0) {
-        console.log("📋 Sample homeowner data:", normalizedData[0]);
-        console.log("🏠 Sample property_info:", normalizedData[0]?.property_info);
+        console.log(" Sample homeowner data:", normalizedData[0]);
+        console.log(" Sample property_info:", normalizedData[0]?.property_info);
       }
 
       return normalizedData || [];
@@ -244,7 +244,7 @@ export default function Homeowners() {
   // Load all properties from property_info_tbl with related data
   const loadProperties = async () => {
     try {
-      console.log("🔍 Loading properties from property_info_tbl...");
+      console.log("Loading properties from property_info_tbl...");
 
       // Load properties with lot information
       const { data: propertiesData, error: propertiesError } = await supabase
@@ -253,7 +253,7 @@ export default function Homeowners() {
         .order("property_title", { ascending: true });
 
       if (propertiesError) {
-        console.error("❌ Error loading properties:", propertiesError);
+        console.error("Error loading properties:", propertiesError);
         throw propertiesError;
       }
 
@@ -263,7 +263,7 @@ export default function Homeowners() {
         .select("lot_id, lot_number, is_occupied");
 
       if (lotsError) {
-        console.warn("⚠️ Error loading lots:", lotsError);
+        console.warn(" Error loading lots:", lotsError);
       }
 
       // Load all property details
@@ -272,7 +272,7 @@ export default function Homeowners() {
         .select("*");
 
       if (detailsError) {
-        console.warn("⚠️ Error loading property details:", detailsError);
+        console.warn(" Error loading property details:", detailsError);
       }
 
       // Create lookup maps
@@ -295,12 +295,12 @@ export default function Homeowners() {
         },
       }));
 
-      console.log("✅ Properties loaded successfully:", enrichedProperties);
-      console.log("📋 Total properties:", enrichedProperties.length);
+      console.log(" Properties loaded successfully:", enrichedProperties);
+      console.log(" Total properties:", enrichedProperties.length);
 
       return enrichedProperties;
     } catch (error) {
-      console.error("❌ Error loading properties:", error);
+      console.error(" Error loading properties:", error);
       return [];
     }
   };
@@ -312,14 +312,14 @@ export default function Homeowners() {
       const result = await response.json();
 
       if (result.success) {
-        console.log("✅ Homeowner users loaded:", result.data);
+        console.log(" Homeowner users loaded:", result.data);
         return result.data;
       } else {
-        console.error("❌ Error loading homeowner users:", result.error);
+        console.error(" Error loading homeowner users:", result.error);
         return [];
       }
     } catch (error) {
-      console.error("❌ Error fetching homeowner users:", error);
+      console.error(" Error fetching homeowner users:", error);
       return [];
     }
   };
@@ -336,9 +336,9 @@ export default function Homeowners() {
 
       setProperties(propertiesData);
       setHomeownerUsers(usersData);
-      console.log("📋 Loaded properties:", propertiesData);
-      console.log("📋 Properties count:", propertiesData?.length || 0);
-      console.log("👥 Loaded homeowner users:", usersData?.length || 0);
+      console.log(" Loaded properties:", propertiesData);
+      console.log(" Properties count:", propertiesData?.length || 0);
+      console.log(" Loaded homeowner users:", usersData?.length || 0);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -610,9 +610,9 @@ export default function Homeowners() {
       unit_number: selectedProperty?.lot_tbl?.lot_number || "",
     };
 
-    console.log("🏠 Property selected:", selectedProperty?.property_title);
+    console.log(" Property selected:", selectedProperty?.property_title);
     console.log(
-      "🏠 Auto-filled lot number:",
+      " Auto-filled lot number:",
       selectedProperty?.lot_tbl?.lot_number
     );
 
@@ -643,7 +643,7 @@ export default function Homeowners() {
       if (selectedProperty && selectedProperty.lot_tbl) {
         newFormData.unit_number = selectedProperty.lot_tbl.lot_number || "";
         console.log(
-          "🏠 Auto-filled lot number:",
+          " Auto-filled lot number:",
           selectedProperty.lot_tbl.lot_number
         );
       }
@@ -949,7 +949,7 @@ export default function Homeowners() {
 
       if (editingHomeowner) {
         // Update existing homeowner
-        console.log("📝 Updating homeowner:", editingHomeowner.id);
+        console.log(" Updating homeowner:", editingHomeowner.id);
         const data = await updateHomeowner(editingHomeowner.id, homeownerData);
         toast.success("Homeowner updated successfully!");
         setIsEditModalOpen(false);
@@ -957,10 +957,10 @@ export default function Homeowners() {
       } else {
         // Create new homeowner with selected user_id
         homeownerData.created_at = new Date().toISOString();
-        console.log("👤 Creating homeowner for user:", formData.user_id);
-        console.log("📋 Homeowner data to insert:", homeownerData);
-        console.log("📧 Email:", homeownerData.email);
-        console.log("🏠 Property ID:", homeownerData.property_id);
+        console.log("Creating homeowner for user:", formData.user_id);
+        console.log(" Homeowner data to insert:", homeownerData);
+        console.log("Email:", homeownerData.email);
+        console.log("Property ID:", homeownerData.property_id);
 
         const { data, error } = await supabase
           .from("buyer_home_owner_tbl")
@@ -985,11 +985,11 @@ export default function Homeowners() {
           `);
 
         if (error) {
-          console.error("❌ Insert error:", error);
+          console.error(" Insert error:", error);
           throw error;
         }
 
-        console.log("✅ Insert successful:", data);
+        console.log(" Insert successful:", data);
 
         // Success - close modal and refresh data
         setIsModalOpen(false);
@@ -2213,9 +2213,9 @@ export default function Homeowners() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-slate-900 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="active">✅ Active</option>
-                        <option value="pending">⏳ Pending</option>
-                        <option value="inactive">❌ Inactive</option>
+                        <option value="active"> Active</option>
+                        <option value="pending">Pending</option>
+                        <option value="inactive">Inactive</option>
                       </select>
                     </div>
                   </div>
@@ -2292,7 +2292,7 @@ export default function Homeowners() {
                           })),
                         {
                           value: '__create_new__',
-                          label: '➕ Create New Property',
+                          label: ' Create New Property',
                           isCreateNew: true
                         }
                       ]}

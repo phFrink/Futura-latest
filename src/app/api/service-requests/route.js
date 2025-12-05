@@ -35,7 +35,7 @@ export async function GET(request) {
         .single();
 
       if (homeownerError) {
-        console.error("❌ Error fetching homeowner:", homeownerError);
+        console.error("Error fetching homeowner:", homeownerError);
         return NextResponse.json({
           success: true,
           data: [],
@@ -60,7 +60,7 @@ export async function GET(request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("❌ Error fetching requests:", error);
+      console.error(" Error fetching requests:", error);
       return NextResponse.json(
         {
           success: false,
@@ -70,7 +70,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${data?.length || 0} service requests`);
+    console.log(` Found ${data?.length || 0} service requests`);
 
     return NextResponse.json({
       success: true,
@@ -78,7 +78,7 @@ export async function GET(request) {
       message: "Service requests fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Service requests API error:", error);
+    console.error("Service requests API error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -98,7 +98,7 @@ export async function POST(request) {
     const body = await request.json();
     const { title, description, request_type, priority, user_id } = body;
 
-    console.log("📝 Creating service request:", {
+    console.log("Creating service request:", {
       title,
       request_type,
       priority,
@@ -171,7 +171,7 @@ export async function POST(request) {
       .single();
 
     if (error) {
-      console.error("❌ Error creating request:", error);
+      console.error("Error creating request:", error);
       return NextResponse.json(
         {
           success: false,
@@ -181,7 +181,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Service request created:", data.id);
+    console.log("Service request created:", data.id);
 
     // Send notification to admins
     try {
@@ -202,7 +202,7 @@ export async function POST(request) {
         });
       }
     } catch (notifError) {
-      console.error("⚠️ Failed to send notification:", notifError);
+      console.error("Failed to send notification:", notifError);
       // Don't fail the request if notification fails
     }
 
@@ -212,7 +212,7 @@ export async function POST(request) {
       message: "Service request created successfully",
     });
   } catch (error) {
-    console.error("❌ Service request creation error:", error);
+    console.error("Service request creation error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -255,7 +255,7 @@ export async function PATCH(request) {
 
     if (error) throw error;
 
-    console.log("✅ Service request updated:", data.id);
+    console.log("Service request updated:", data.id);
 
     // Send notification to homeowner based on status change
     try {
@@ -292,14 +292,14 @@ export async function PATCH(request) {
               recipientId: userId,
             });
 
-            console.log("✅ Service request notification sent to homeowner");
+            console.log("Service request notification sent to homeowner");
           }
         } else {
-          console.log("ℹ️ Homeowner is not certified - skipping notification");
+          console.log("Homeowner is not certified - skipping notification");
         }
       }
     } catch (notifError) {
-      console.error("⚠️ Failed to send notification:", notifError);
+      console.error("Failed to send notification:", notifError);
       // Don't fail the request if notification fails
     }
 
@@ -309,7 +309,7 @@ export async function PATCH(request) {
       message: "Service request updated successfully",
     });
   } catch (error) {
-    console.error("❌ Service request update error:", error);
+    console.error("Service request update error:", error);
     return NextResponse.json(
       {
         success: false,

@@ -27,7 +27,7 @@ export async function POST(request) {
     const body = await request.json();
     const { contract_id, transfer_id } = body;
 
-    console.log("🔄 API: Reverting contract transfer:", {
+    console.log("API: Reverting contract transfer:", {
       contract_id,
       transfer_id,
     });
@@ -60,7 +60,7 @@ export async function POST(request) {
       .single();
 
     if (transferError || !transferRecord) {
-      console.error("❌ Transfer record fetch error:", transferError);
+      console.error("Transfer record fetch error:", transferError);
       return NextResponse.json(
         {
           success: false,
@@ -80,7 +80,7 @@ export async function POST(request) {
         .single();
 
     if (contractError || !currentContract) {
-      console.error("❌ Contract fetch error:", contractError);
+      console.error("Contract fetch error:", contractError);
       return NextResponse.json(
         {
           success: false,
@@ -106,7 +106,7 @@ export async function POST(request) {
       .single();
 
     if (revertError) {
-      console.error("❌ Contract revert error:", revertError);
+      console.error("Contract revert error:", revertError);
       return NextResponse.json(
         {
           success: false,
@@ -140,13 +140,13 @@ export async function POST(request) {
           .eq("reservation_id", currentContract.reservation_id);
 
         if (reservationError) {
-          console.error("❌ Reservation revert error:", reservationError);
-          console.warn("⚠️ Failed to revert reservation, but contract revert succeeded");
+          console.error("Reservation revert error:", reservationError);
+          console.warn("Failed to revert reservation, but contract revert succeeded");
         } else {
-          console.log("✅ Reservation reverted successfully");
+          console.log("Reservation reverted successfully");
         }
       } else {
-        console.warn("⚠️ Original user not found in auth, skipping reservation revert");
+        console.warn("Original user not found in auth, skipping reservation revert");
       }
     }
 
@@ -157,10 +157,10 @@ export async function POST(request) {
       .eq("transfer_id", transfer_id);
 
     if (deleteError) {
-      console.error("❌ Transfer history delete error:", deleteError);
-      console.warn("⚠️ Failed to delete transfer history, but contract reverted successfully");
+      console.error("Transfer history delete error:", deleteError);
+      console.warn("Failed to delete transfer history, but contract reverted successfully");
     } else {
-      console.log("✅ Transfer history record deleted");
+      console.log("Transfer history record deleted");
     }
 
     // Create notifications for current owner and original owner
@@ -199,7 +199,7 @@ export async function POST(request) {
           action_url: "/certified-homeowner",
         };
 
-        console.log("📤 Attempting to create notification for current owner:", currentOwnerNotification);
+        console.log("Attempting to create notification for current owner:", currentOwnerNotification);
 
         const { data: currentOwnerNotifData, error: currentOwnerNotifError } = await supabaseAdmin
           .from("notifications_tbl")
@@ -207,18 +207,18 @@ export async function POST(request) {
           .select();
 
         if (currentOwnerNotifError) {
-          console.error("❌ Could not create notification for current owner:", currentOwnerNotifError);
-          console.error("❌ Full error details:", {
+          console.error(" Could not create notification for current owner:", currentOwnerNotifError);
+          console.error(" Full error details:", {
             message: currentOwnerNotifError.message,
             details: currentOwnerNotifError.details,
             hint: currentOwnerNotifError.hint,
             code: currentOwnerNotifError.code,
           });
         } else {
-          console.log("✅ Notification sent to current owner (losing contract):", transferRecord.new_client_email, "Notification ID:", currentOwnerNotifData?.[0]?.id);
+          console.log("Notification sent to current owner (losing contract):", transferRecord.new_client_email, "Notification ID:", currentOwnerNotifData?.[0]?.id);
         }
       } else {
-        console.warn("⚠️ Could not find current owner user account:", transferRecord.new_client_email, "Error:", authError?.message);
+        console.warn("Could not find current owner user account:", transferRecord.new_client_email, "Error:", authError?.message);
       }
 
       // Find the original owner's user ID by email (the person getting the contract back)
@@ -252,7 +252,7 @@ export async function POST(request) {
           action_url: "/certified-homeowner",
         };
 
-        console.log("📤 Attempting to create notification for original owner:", originalOwnerNotification);
+        console.log(" Attempting to create notification for original owner:", originalOwnerNotification);
 
         const { data: originalOwnerNotifData, error: originalOwnerNotifError } = await supabaseAdmin
           .from("notifications_tbl")
@@ -260,25 +260,25 @@ export async function POST(request) {
           .select();
 
         if (originalOwnerNotifError) {
-          console.error("❌ Could not create notification for original owner:", originalOwnerNotifError);
-          console.error("❌ Full error details:", {
+          console.error("Could not create notification for original owner:", originalOwnerNotifError);
+          console.error("Full error details:", {
             message: originalOwnerNotifError.message,
             details: originalOwnerNotifError.details,
             hint: originalOwnerNotifError.hint,
             code: originalOwnerNotifError.code,
           });
         } else {
-          console.log("✅ Notification sent to original owner (getting contract back):", transferRecord.original_client_email, "Notification ID:", originalOwnerNotifData?.[0]?.id);
+          console.log("Notification sent to original owner (getting contract back):", transferRecord.original_client_email, "Notification ID:", originalOwnerNotifData?.[0]?.id);
         }
       } else {
-        console.warn("⚠️ Could not find original owner user account:", transferRecord.original_client_email);
+        console.warn("Could not find original owner user account:", transferRecord.original_client_email);
       }
     } catch (notificationError) {
-      console.warn("⚠️ Error creating revert notifications:", notificationError.message);
+      console.warn("Error creating revert notifications:", notificationError.message);
       // Don't fail the revert if notifications fail
     }
 
-    console.log("✅ Contract transfer reverted successfully");
+    console.log("Contract transfer reverted successfully");
 
     return NextResponse.json({
       success: true,
@@ -292,7 +292,7 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("❌ Revert transfer error:", error);
+    console.error("Revert transfer error:", error);
     return NextResponse.json(
       {
         success: false,

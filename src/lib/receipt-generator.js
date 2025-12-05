@@ -45,7 +45,7 @@ export function generateTransactionReceipt(transaction) {
 
   // Draw background for transaction info
   doc.setFillColor(248, 250, 252);
-  doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, 42, "F");
+  doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, 49, "F");
 
   // Transaction details in two columns
   doc.setFontSize(9);
@@ -120,8 +120,15 @@ export function generateTransactionReceipt(transaction) {
     yPos
   );
 
+  yPos += 7;
+  doc.setFont("helvetica", "bold");
+  doc.text("Reference Number:", rightColX, yPos);
+  doc.setFont("helvetica", "normal");
+  const refNum = transaction.reference_number || "N/A";
+  doc.text(refNum, rightColValueX, yPos);
+
   // Client Information Section
-  yPos += 20;
+  yPos += 23;
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(220, 38, 38);
@@ -475,7 +482,7 @@ export function generateDateRangeReceipt(transactions, startDate, endDate) {
     t.transaction_id?.toString().substring(0, 8) + "..." || "N/A",
     format(new Date(t.transaction_date), "MM/dd/yyyy"),
     t.property_contracts?.client_name || "N/A",
-    t.contract_id?.toString() || "N/A",
+    t.reference_number || "N/A",
     `₱${parseFloat(t.total_amount || 0).toLocaleString("en-PH", {
       minimumFractionDigits: 2,
     })}`,
@@ -484,7 +491,7 @@ export function generateDateRangeReceipt(transactions, startDate, endDate) {
 
   autoTable(doc, {
     startY: yPos,
-    head: [["Trans. ID", "Date", "Client Name", "Contract", "Amount", "Status"]],
+    head: [["Trans. ID", "Date", "Client Name", "Ref. Number", "Amount", "Status"]],
     body: tableData,
     theme: "striped",
     headStyles: {
@@ -500,11 +507,11 @@ export function generateDateRangeReceipt(transactions, startDate, endDate) {
       halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: 28, halign: "left" },
-      1: { cellWidth: 24, halign: "center" },
-      2: { cellWidth: 48, halign: "left" },
-      3: { cellWidth: 20, halign: "center" },
-      4: { cellWidth: 32, halign: "right" },
+      0: { cellWidth: 24, halign: "left" },
+      1: { cellWidth: 22, halign: "center" },
+      2: { cellWidth: 42, halign: "left" },
+      3: { cellWidth: 28, halign: "center" },
+      4: { cellWidth: 30, halign: "right" },
       5: { cellWidth: 24, halign: "center", fontStyle: "bold" },
     },
     margin: { left: leftMargin, right: leftMargin },

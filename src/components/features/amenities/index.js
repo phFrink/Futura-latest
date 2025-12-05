@@ -111,12 +111,12 @@ export default function Amenities() {
         .order("name");
 
       if (amenitiesError) {
-        console.error("❌ Error loading amenities:", amenitiesError);
+        console.error("Error loading amenities:", amenitiesError);
         toast.error("Failed to load amenities: " + amenitiesError.message);
       } else {
-        console.log("✅ Admin - Loaded amenities:", amenitiesData);
-        console.log("📊 Admin - Amenities count:", amenitiesData?.length || 0);
-        console.log("🔍 Admin - First amenity:", amenitiesData?.[0]);
+        console.log("Admin - Loaded amenities:", amenitiesData);
+        console.log("Admin - Amenities count:", amenitiesData?.length || 0);
+        console.log("Admin - First amenity:", amenitiesData?.[0]);
       }
 
       // Load contracts for homeowner dropdown

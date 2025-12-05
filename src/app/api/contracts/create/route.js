@@ -32,10 +32,10 @@ export async function POST(request) {
       allow_partial_payments = false // NEW: allow flexible payments (default: false)
     } = body;
 
-    console.log("📝 API: Creating contract for reservation:", reservation_id);
-    console.log("📅 Payment plan months:", payment_plan_months);
-    console.log("🔄 Payment frequency:", payment_frequency);
-    console.log("💰 Allow partial payments:", allow_partial_payments);
+    console.log("API: Creating contract for reservation:", reservation_id);
+    console.log("Payment plan months:", payment_plan_months);
+    console.log("Payment frequency:", payment_frequency);
+    console.log("Allow partial payments:", allow_partial_payments);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -154,7 +154,7 @@ export async function POST(request) {
 
     const monthlyInstallment = remainingDownpayment / payment_plan_months; // Keep for backward compatibility
 
-    console.log("💰 Calculations:", {
+    console.log("Calculations:", {
       propertyPrice,
       downpaymentTotal,
       reservationFeePaid,
@@ -216,7 +216,7 @@ export async function POST(request) {
       .single();
 
     if (contractError) {
-      console.error("❌ Contract creation error:", contractError);
+      console.error("Contract creation error:", contractError);
       return NextResponse.json(
         {
           success: false,
@@ -227,7 +227,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Contract created:", contract.contract_id);
+    console.log("Contract created:", contract.contract_id);
 
     // Generate payment schedules
     const paymentSchedules = [];
@@ -283,7 +283,7 @@ export async function POST(request) {
       .select();
 
     if (schedulesError) {
-      console.error("❌ Payment schedules error:", schedulesError);
+      console.error(" Payment schedules error:", schedulesError);
 
       // Rollback: Delete the contract
       await supabaseAdmin
@@ -301,7 +301,7 @@ export async function POST(request) {
       );
     }
 
-    console.log(`✅ Created ${schedules.length} payment schedules`);
+    console.log(`Created ${schedules.length} payment schedules`);
 
     // Return contract with payment schedules
     return NextResponse.json({
@@ -314,7 +314,7 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error("❌ Create contract error:", error);
+    console.error("Create contract error:", error);
     return NextResponse.json(
       {
         success: false,

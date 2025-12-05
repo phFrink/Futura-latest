@@ -67,7 +67,7 @@ export async function middleware(req) {
   // Get the pathname
   const pathname = req.nextUrl.pathname;
 
-  console.log("🔍 Middleware checking path:", pathname, "Is public?", publicRoutes.includes(pathname));
+  console.log("Middleware checking path:", pathname, "Is public?", publicRoutes.includes(pathname));
 
   // Allow public routes (including all client-* routes)
   if (publicRoutes.includes(pathname) || pathname.startsWith('/client-')) {
@@ -84,11 +84,11 @@ export async function middleware(req) {
   if (!session || error) {
     // Redirect to homepage for dashboard, login for other routes
     if (pathname === "/dashboard") {
-      console.log("🔒 No session found on dashboard, redirecting to homepage");
+      console.log("No session found on dashboard, redirecting to homepage");
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    console.log("🔒 No session found, redirecting to login");
+    console.log("No session found, redirecting to login");
     const redirectUrl = new URL("/login", req.url);
     redirectUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(redirectUrl);
@@ -97,7 +97,7 @@ export async function middleware(req) {
   // Get user role from user metadata
   const userRole = session.user?.user_metadata?.role?.toLowerCase();
 
-  console.log("🔐 Middleware check:", {
+  console.log(" Middleware check:", {
     pathname,
     userRole,
     userId: session.user.id,
@@ -111,7 +111,7 @@ export async function middleware(req) {
       const normalizedRoles = allowedRoles.map((r) => r.toLowerCase());
 
       if (!userRole || !normalizedRoles.includes(userRole)) {
-        console.log("❌ Access denied:", { route, userRole, allowedRoles });
+        console.log(" Access denied:", { route, userRole, allowedRoles });
 
         // Redirect to dashboard with error message
         const redirectUrl = new URL("/dashboard", req.url);
@@ -119,7 +119,7 @@ export async function middleware(req) {
         return NextResponse.redirect(redirectUrl);
       }
 
-      console.log("✅ Access granted:", { route, userRole });
+      console.log("Access granted:", { route, userRole });
       break;
     }
   }

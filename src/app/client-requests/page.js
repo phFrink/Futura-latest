@@ -582,13 +582,13 @@ export default function ClientServiceRequestsPage() {
                       <option value="general_maintenance">
                         🔨 General Maintenance
                       </option>
-                      <option value="cleaning">🧹 Cleaning</option>
-                      <option value="appliance">🏠 Appliance</option>
-                      <option value="electrical">⚡ Electrical</option>
-                      <option value="security">🔒 Security</option>
-                      <option value="landscaping">🌳 Landscaping</option>
-                      <option value="hvac">❄️ HVAC</option>
-                      <option value="other">📋 Other</option>
+                      <option value="cleaning"> Cleaning</option>
+                      <option value="appliance"> Appliance</option>
+                      <option value="electrical"> Electrical</option>
+                      <option value="security">Security</option>
+                      <option value="landscaping"> Landscaping</option>
+                      <option value="hvac"> HVAC</option>
+                      <option value="other"> Other</option>
                     </select>
                   </div>
 

@@ -49,18 +49,18 @@ const getActiveSupabaseClient = async () => {
   // Check client session first (homeowner)
   const { data: { session: clientSession } } = await supabaseClient.auth.getSession();
   if (clientSession) {
-    console.log("✅ Using CLIENT Supabase client (futura-client-auth)");
+    console.log(" Using CLIENT Supabase client (futura-client-auth)");
     return { client: supabaseClient, userType: 'client' };
   }
 
   // Check admin session (default storage)
   const { data: { session: adminSession } } = await supabaseAdmin.auth.getSession();
   if (adminSession) {
-    console.log("✅ Using ADMIN Supabase client (default storage)");
+    console.log(" Using ADMIN Supabase client (default storage)");
     return { client: supabaseAdmin, userType: 'admin' };
   }
 
-  console.warn("⚠️ No active session found in either client");
+  console.warn("No active session found in either client");
   return { client: null, userType: null };
 };
 
@@ -88,13 +88,13 @@ export const RealNotificationProvider = ({ children }) => {
   // Load notifications from API
   const loadNotifications = async () => {
     try {
-      console.log("🔍 Loading notifications from API...");
+      console.log("Loading notifications from API...");
 
       // Get the active Supabase client (admin or client)
       const { client: activeClient, userType } = await getActiveSupabaseClient();
 
       if (!activeClient) {
-        console.warn("⚠️ No active session found - user not logged in");
+        console.warn(" No active session found - user not logged in");
         setNotifications([]);
         setUnreadCount(0);
         setLoading(false);
@@ -105,13 +105,13 @@ export const RealNotificationProvider = ({ children }) => {
       const { data: { session }, error: sessionError } = await activeClient.auth.getSession();
 
       if (sessionError) {
-        console.error("❌ Error getting session:", sessionError);
+        console.error(" Error getting session:", sessionError);
         setLoading(false);
         return;
       }
 
       if (!session) {
-        console.warn("⚠️ No active session found");
+        console.warn("No active session found");
         setNotifications([]);
         setUnreadCount(0);
         setLoading(false);
@@ -123,7 +123,7 @@ export const RealNotificationProvider = ({ children }) => {
       const userId = user?.id;
       const userRole = user?.user_metadata?.role?.toLowerCase();
 
-      console.log("👤 Current User Info (from session):");
+      console.log("Current User Info (from session):");
       console.log("  - User Type:", userType);
       console.log("  - User ID:", userId);
       console.log("  - User Email:", user?.email);
@@ -131,7 +131,7 @@ export const RealNotificationProvider = ({ children }) => {
       console.log("  - Full user_metadata:", user?.user_metadata);
 
       if (!userId) {
-        console.error("❌ No user ID found in session!");
+        console.error(" No user ID found in session!");
         setLoading(false);
         return;
       }
@@ -147,8 +147,8 @@ export const RealNotificationProvider = ({ children }) => {
         ? '/api/notifications/client'  // Client API for homeowners
         : '/api/notifications/admin';   // Admin API for staff/admin
 
-      console.log("📤 Using API endpoint:", apiEndpoint);
-      console.log("📤 Fetching notifications with params:", params.toString());
+      console.log("Using API endpoint:", apiEndpoint);
+      console.log("Fetching notifications with params:", params.toString());
       const response = await fetch(`${apiEndpoint}?${params.toString()}`);
 
       if (!response.ok) {
@@ -158,18 +158,18 @@ export const RealNotificationProvider = ({ children }) => {
       const result = await response.json();
 
       if (!result.success) {
-        console.error("❌ API returned error:", result.error);
+        console.error("API returned error:", result.error);
         return;
       }
 
       const data = result.notifications;
 
-      console.log("✅ Loaded notifications from API:", data);
-      console.log("✅ Loaded notifications from API:", data?.length || 0);
+      console.log("Loaded notifications from API:", data);
+      console.log("Loaded notifications from API:", data?.length || 0);
 
       // Debug: Show what notifications were returned and for which roles
       if (data && data.length > 0) {
-        console.log("📋 Notifications received:");
+        console.log("Notifications received:");
         data.forEach((notif, index) => {
           console.log(`  ${index + 1}. "${notif.title}"`);
           console.log(`     - recipient_role: "${notif.recipient_role}"`);
@@ -201,23 +201,23 @@ export const RealNotificationProvider = ({ children }) => {
         recipient_role: notification.recipient_role,
       }));
 
-      // ✅ NO client-side filtering needed - APIs handle it!
+      //  NO client-side filtering needed - APIs handle it!
       // - Admin API already excludes homeowner notifications
       // - Client API already filters by recipient_id
-      console.log(`✅ Received ${transformedNotifications.length} notifications from ${apiEndpoint}`);
-      console.log("📦 Final notifications (from API):", transformedNotifications);
+      console.log(`Received ${transformedNotifications.length} notifications from ${apiEndpoint}`);
+      console.log("Final notifications (from API):", transformedNotifications);
 
       setNotifications(transformedNotifications);
 
       // Count unread notifications
       const unread = transformedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unread);
-      console.log("🔔 Unread count:", unread);
+      console.log("Unread count:", unread);
     } catch (error) {
-      console.error("❌ Exception in loadNotifications:", error);
+      console.error("Exception in loadNotifications:", error);
     } finally {
       setLoading(false);
-      console.log("✅ Loading complete");
+      console.log("Loading complete");
     }
   };
 
@@ -244,7 +244,7 @@ export const RealNotificationProvider = ({ children }) => {
   // Check if notification is for current user
   const isNotificationForCurrentUser = (notification, userInfo = currentUser) => {
     if (!userInfo) {
-      console.warn("⚠️ No current user set, skipping notification");
+      console.warn("No current user set, skipping notification");
       return false;
     }
 
@@ -254,7 +254,7 @@ export const RealNotificationProvider = ({ children }) => {
     const userRole = userInfo.role?.toLowerCase();
     const normalizedRole = userRole?.replace(/\s+/g, '');
 
-    console.log("🔍 Checking notification visibility:");
+    console.log("Checking notification visibility:");
     console.log("  - Notification recipient_role:", recipientRole);
     console.log("  - Notification recipient_id:", recipientId);
     console.log("  - Current user ID:", userId);
@@ -263,14 +263,14 @@ export const RealNotificationProvider = ({ children }) => {
 
     // STRICT FILTER for Homeowners: ONLY notifications with exact recipient_id match
     if (normalizedRole === 'homeowner') {
-      console.log("🔒 STRICT Homeowner filter applied in real-time");
+      console.log("STRICT Homeowner filter applied in real-time");
       // Homeowners ONLY see notifications where recipient_id EXACTLY matches
       // NO broadcast (recipient_role="all"), NO role-based notifications
       if (recipientId === userId) {
-        console.log("  ✅ Notification is for specific homeowner (ID match)");
+        console.log("  Notification is for specific homeowner (ID match)");
         return true;
       } else {
-        console.log("  ❌ Notification is NOT for this homeowner (recipient_id mismatch or null)");
+        console.log("   Notification is NOT for this homeowner (recipient_id mismatch or null)");
         return false;
       }
     }
@@ -283,7 +283,7 @@ export const RealNotificationProvider = ({ children }) => {
 
     // If recipient_role is "all", staff/admin users should see it
     if (recipientRole === "all") {
-      console.log("  ✅ Notification is for ALL staff users");
+      console.log("  Notification is for ALL staff users");
       return true;
     }
 
@@ -291,26 +291,26 @@ export const RealNotificationProvider = ({ children }) => {
     if (recipientRole && recipientRole === userRole) {
       // If no specific recipient_id is set (role-based notification), show it
       if (!recipientId) {
-        console.log("  ✅ Notification is role-based (no recipient_id) and matches user's role");
+        console.log("   Notification is role-based (no recipient_id) and matches user's role");
         return true;
       }
       // If recipient_id is set, it must match the current user
       if (recipientId === userId) {
-        console.log("  ✅ Notification is for specific user in matching role");
+        console.log("   Notification is for specific user in matching role");
         return true;
       } else {
-        console.log("  ❌ Notification has recipient_id for different user in same role");
+        console.log("   Notification has recipient_id for different user in same role");
         return false;
       }
     }
 
     // If specific user ID is set but role doesn't match, check if it's for this user
     if (recipientId === userId) {
-      console.log("  ✅ Notification is specifically for this user (ID match)");
+      console.log("   Notification is specifically for this user (ID match)");
       return true;
     }
 
-    console.log("  ❌ Notification is NOT for current user");
+    console.log("  Notification is NOT for current user");
     console.log("     - recipient_role:", recipientRole, "!== user role:", userRole);
     console.log("     - recipient_id:", recipientId, "!== user ID:", userId);
     return false;
@@ -318,7 +318,7 @@ export const RealNotificationProvider = ({ children }) => {
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log("🚀 RealNotificationProvider mounted - Setting up...");
+    console.log(" RealNotificationProvider mounted - Setting up...");
 
     let notificationSubscription = null;
     let reconnectTimeout = null;
@@ -333,7 +333,7 @@ export const RealNotificationProvider = ({ children }) => {
         activeSupabaseClient = activeClient; // Store for cleanup
 
         if (!activeClient) {
-          console.warn("⚠️ No session found for real-time subscription");
+          console.warn("No session found for real-time subscription");
           await loadNotifications();
           return;
         }
@@ -348,14 +348,14 @@ export const RealNotificationProvider = ({ children }) => {
             userType: userType, // 'admin' or 'client'
           };
           setCurrentUser(userInfo);
-          console.log("👤 Current user set for real-time subscription:", userInfo);
+          console.log("Current user set for real-time subscription:", userInfo);
         }
 
         // Initial load
         await loadNotifications();
 
         // Set up real-time listener for new notifications
-        console.log("📡 Setting up real-time subscription using", userType, "client...");
+        console.log("Setting up real-time subscription using", userType, "client...");
         notificationSubscription = activeClient
           .channel("notifications_realtime", {
             config: {
@@ -370,11 +370,11 @@ export const RealNotificationProvider = ({ children }) => {
               table: "notifications_tbl",
             },
             (payload) => {
-              console.log("🆕 New notification received via realtime:", payload);
+              console.log(" New notification received via realtime:", payload);
 
               // Check if notification is for current user BEFORE adding to state
               if (!isNotificationForCurrentUser(payload.new, userInfo)) {
-                console.log("⏭️ Skipping notification - not for current user");
+                console.log("Skipping notification - not for current user");
                 return;
               }
 
@@ -396,7 +396,7 @@ export const RealNotificationProvider = ({ children }) => {
                 recipient_role: payload.new.recipient_role,
               };
 
-              console.log("✅ Adding notification to state:", newNotification.title);
+              console.log("Adding notification to state:", newNotification.title);
 
               // Add to notifications list
               setNotifications((prev) => [newNotification, ...prev.slice(0, 49)]);
@@ -430,24 +430,24 @@ export const RealNotificationProvider = ({ children }) => {
             }
           )
           .subscribe((statusUpdate) => {
-            console.log("📡 Subscription status:", statusUpdate);
+            console.log("Subscription status:", statusUpdate);
             setSubscriptionStatus(statusUpdate);
 
             if (statusUpdate === "SUBSCRIBED") {
-              console.log("✅ Real-time subscription active!");
+              console.log(" Real-time subscription active!");
               // Clear any reconnect timeout
               if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
                 reconnectTimeout = null;
               }
             } else if (statusUpdate === "CHANNEL_ERROR" || statusUpdate === "TIMED_OUT" || statusUpdate === "CLOSED") {
-              console.error("❌ Real-time subscription error! Status:", statusUpdate);
+              console.error("Real-time subscription error! Status:", statusUpdate);
               // Attempt to reconnect after 5 seconds
               if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
               }
               reconnectTimeout = setTimeout(() => {
-                console.log("🔄 Attempting to reconnect...");
+                console.log("Attempting to reconnect...");
                 if (notificationSubscription && activeSupabaseClient) {
                   try {
                     activeSupabaseClient.removeChannel(notificationSubscription);
@@ -467,7 +467,7 @@ export const RealNotificationProvider = ({ children }) => {
           Notification.requestPermission();
         }
       } catch (error) {
-        console.error("❌ Error setting up realtime subscription:", error);
+        console.error("Error setting up realtime subscription:", error);
         setSubscriptionStatus("error");
       }
     };
@@ -477,7 +477,7 @@ export const RealNotificationProvider = ({ children }) => {
 
     // Set up polling as fallback (every 30 seconds)
     pollingInterval = setInterval(() => {
-      console.log("🔄 Polling for new notifications (fallback)...");
+      console.log("Polling for new notifications (fallback)...");
       loadNotifications();
     }, 30000);
 
@@ -624,7 +624,7 @@ export const RealNotificationProvider = ({ children }) => {
       if (error) {
         console.error("Error creating test notification:", error);
       } else {
-        console.log("✅ Test notification created:", result);
+        console.log("Test notification created:", result);
       }
     } catch (error) {
       console.error("Error creating test notification:", error);

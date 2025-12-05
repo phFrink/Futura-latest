@@ -80,7 +80,7 @@ export async function POST(request) {
     }
 
     // CRITICAL VALIDATION: Check if requested quantity is available
-    console.log(`📦 Borrow Request Validation:`, {
+    console.log(`Borrow Request Validation:`, {
       amenity_name: amenity.name,
       requested_quantity: requestedQuantity,
       available_quantity: amenity.available_quantity,
@@ -88,7 +88,7 @@ export async function POST(request) {
     });
 
     if (requestedQuantity > amenity.available_quantity) {
-      console.error(`❌ Borrow request DENIED: Requested ${requestedQuantity} but only ${amenity.available_quantity} available`);
+      console.error(` Borrow request DENIED: Requested ${requestedQuantity} but only ${amenity.available_quantity} available`);
       return NextResponse.json(
         {
           success: false,
@@ -129,7 +129,7 @@ export async function POST(request) {
       );
     }
 
-    console.log(`✅ Borrow request created successfully:`, {
+    console.log(`Borrow request created successfully:`, {
       request_id: data.id,
       amenity_id,
       quantity: requestedQuantity,

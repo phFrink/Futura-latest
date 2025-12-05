@@ -70,7 +70,7 @@ export default function ManageAmenities() {
         throw new Error(result.error || "Failed to load amenities");
       }
 
-      console.log("✅ Loaded amenities:", result.data);
+      console.log(" Loaded amenities:", result.data);
       setAmenities(result.data || []);
     } catch (error) {
       console.error("Error loading amenities:", error);

@@ -95,7 +95,7 @@ export default function Dashboard() {
 
         // Show toast notification
         toast.success(
-          `🎉 New User Registered!\n${full_name} (${email})`,
+          ` New User Registered!\n${full_name} (${email})`,
           {
             position: "top-right",
             autoClose: 5000,

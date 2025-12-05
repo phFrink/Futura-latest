@@ -65,24 +65,24 @@ const SmartNotificationBell = () => {
 
     const getUserRole = async () => {
       try {
-        console.log("🔔 SmartNotificationBell - Attempting to get user role (attempt", retryCount + 1, ")");
+        console.log("SmartNotificationBell - Attempting to get user role (attempt", retryCount + 1, ")");
 
         // Check client session first (homeowner)
         const { data: { session: clientSession }, error: clientError } = await supabaseClient.auth.getSession();
 
         if (clientError) {
-          console.warn("⚠️ SmartNotificationBell - Client session error:", clientError);
+          console.warn("SmartNotificationBell - Client session error:", clientError);
         }
 
         if (clientSession?.user) {
-          console.log("✅ SmartNotificationBell - Client session found");
+          console.log("SmartNotificationBell - Client session found");
           console.log("   - User ID:", clientSession.user.id);
           console.log("   - User Email:", clientSession.user.email);
           console.log("   - User Metadata:", clientSession.user.user_metadata);
 
           setUserRole('homeowner');
           setRoleLoading(false);
-          console.log("🔔 SmartNotificationBell - User is CLIENT/HOMEOWNER");
+          console.log("SmartNotificationBell - User is CLIENT/HOMEOWNER");
           return true;
         }
 
@@ -90,11 +90,11 @@ const SmartNotificationBell = () => {
         const { data: { session: adminSession }, error: adminError } = await supabaseAdmin.auth.getSession();
 
         if (adminError) {
-          console.warn("⚠️ SmartNotificationBell - Admin session error:", adminError);
+          console.warn("SmartNotificationBell - Admin session error:", adminError);
         }
 
         if (adminSession?.user) {
-          console.log("✅ SmartNotificationBell - Admin session found");
+          console.log("SmartNotificationBell - Admin session found");
           console.log("   - User ID:", adminSession.user.id);
           console.log("   - User Email:", adminSession.user.email);
           console.log("   - User Metadata:", adminSession.user.user_metadata);
@@ -102,17 +102,17 @@ const SmartNotificationBell = () => {
           const role = adminSession.user.user_metadata?.role?.toLowerCase();
 
           if (!role) {
-            console.warn("⚠️ SmartNotificationBell - No role found in user_metadata");
+            console.warn("SmartNotificationBell - No role found in user_metadata");
             console.log("   - Full user object:", adminSession.user);
 
             // Retry if no role found and we haven't exceeded max retries
             if (retryCount < maxRetries) {
               retryCount++;
-              console.log(`🔄 SmartNotificationBell - Retrying in 1 second... (${retryCount}/${maxRetries})`);
+              console.log(`SmartNotificationBell - Retrying in 1 second... (${retryCount}/${maxRetries})`);
               retryTimeout = setTimeout(getUserRole, 1000);
               return false;
             } else {
-              console.error("❌ SmartNotificationBell - Max retries reached, role still not found");
+              console.error("SmartNotificationBell - Max retries reached, role still not found");
               // Set a default role for admin users without explicit role
               setUserRole('admin');
               setRoleLoading(false);
@@ -122,28 +122,28 @@ const SmartNotificationBell = () => {
 
           setUserRole(role);
           setRoleLoading(false);
-          console.log("🔔 SmartNotificationBell - User role:", role);
+          console.log("SmartNotificationBell - User role:", role);
           return true;
         }
 
         // No session found - retry if we haven't exceeded max retries
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`⚠️ SmartNotificationBell - No active session found, retrying in 1 second... (${retryCount}/${maxRetries})`);
+          console.log(`SmartNotificationBell - No active session found, retrying in 1 second... (${retryCount}/${maxRetries})`);
           retryTimeout = setTimeout(getUserRole, 1000);
           return false;
         } else {
-          console.warn("⚠️ SmartNotificationBell - Max retries reached, no session found");
+          console.warn("SmartNotificationBell - Max retries reached, no session found");
           setRoleLoading(false);
           return false;
         }
       } catch (error) {
-        console.error("❌ SmartNotificationBell - Error getting user role:", error);
+        console.error("SmartNotificationBell - Error getting user role:", error);
 
         // Retry on error if we haven't exceeded max retries
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`🔄 SmartNotificationBell - Retrying after error in 1 second... (${retryCount}/${maxRetries})`);
+          console.log(`SmartNotificationBell - Retrying after error in 1 second... (${retryCount}/${maxRetries})`);
           retryTimeout = setTimeout(getUserRole, 1000);
           return false;
         }
@@ -180,7 +180,7 @@ const SmartNotificationBell = () => {
 
   // If context is not available after loading, show nothing
   if (!context || !userRole) {
-    console.warn("⚠️ SmartNotificationBell - No context or user role available");
+    console.warn("SmartNotificationBell - No context or user role available");
     console.log("   - User Role:", userRole);
     console.log("   - Context:", context ? "Available" : "Not Available");
     return null;
@@ -198,10 +198,10 @@ const SmartNotificationBell = () => {
 
   // Debug logging
   React.useEffect(() => {
-    console.log("🔔 SmartNotificationBell - User Role:", userRole);
-    console.log("🔔 SmartNotificationBell - Is Homeowner:", isHomeowner);
-    console.log("🔔 SmartNotificationBell - Notifications:", notifications);
-    console.log("🔔 SmartNotificationBell - Unread count:", unreadCount);
+    console.log("SmartNotificationBell - User Role:", userRole);
+    console.log("SmartNotificationBell - Is Homeowner:", isHomeowner);
+    console.log("SmartNotificationBell - Notifications:", notifications);
+    console.log("SmartNotificationBell - Unread count:", unreadCount);
   }, [userRole, isHomeowner, notifications, unreadCount]);
 
   const getNotificationDescription = (notification) => {

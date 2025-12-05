@@ -24,7 +24,7 @@ const supabaseAdmin = createSupabaseAdmin();
 // GET endpoint to fetch homeowner users
 export async function GET(request) {
   try {
-    console.log("🔍 API: Fetching homeowner users");
+    console.log("API: Fetching homeowner users");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -54,9 +54,9 @@ export async function GET(request) {
         user_metadata: user.user_metadata,
       }));
 
-      console.log(`✅ Found ${homeowners.length} homeowner users from auth`);
+      console.log(`Found ${homeowners.length} homeowner users from auth`);
     } else {
-      console.log("⚠️ Could not fetch from auth, trying buyer_home_owner_tbl");
+      console.log("Could not fetch from auth, trying buyer_home_owner_tbl");
     }
 
     // Fallback: Also fetch from buyer_home_owner_tbl and merge
@@ -82,10 +82,10 @@ export async function GET(request) {
         }));
 
       homeowners = [...homeowners, ...tableHomeowners];
-      console.log(`✅ Added ${tableHomeowners.length} homeowners from buyer_home_owner_tbl`);
+      console.log(`Added ${tableHomeowners.length} homeowners from buyer_home_owner_tbl`);
     }
 
-    console.log(`✅ Total homeowners: ${homeowners.length}`);
+    console.log(`Total homeowners: ${homeowners.length}`);
 
     return NextResponse.json({
       success: true,
@@ -93,7 +93,7 @@ export async function GET(request) {
       total: homeowners.length,
     });
   } catch (error) {
-    console.error("❌ Fetch homeowner users error:", error);
+    console.error("Fetch homeowner users error:", error);
     return NextResponse.json(
       {
         success: false,

@@ -37,7 +37,7 @@ export async function POST(request) {
     const filename = `property-${timestamp}-${randomSuffix}.${extension}`;
 
     // Upload to Supabase Storage
-    console.log("🚀 Attempting upload to Supabase Storage...");
+    console.log("Attempting upload to Supabase Storage...");
     const uploadResult = await uploadFileToStorage(
       file,
       "futura",
@@ -46,7 +46,7 @@ export async function POST(request) {
     );
 
     if (!uploadResult.success) {
-      console.error("❌ Upload to storage failed:", uploadResult.error);
+      console.error("Upload to storage failed:", uploadResult.error);
       return NextResponse.json(
         {
           error: "Failed to upload file to storage",
@@ -56,7 +56,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Upload successful!");
+    console.log("Upload successful!");
 
     // Return success response with file info
     return NextResponse.json(
@@ -126,7 +126,7 @@ export async function DELETE(request) {
       );
     }
 
-    console.log(`🗑️ Deleted property image: ${storageFilePath}`);
+    console.log(`Deleted property image: ${storageFilePath}`);
 
     return NextResponse.json(
       {

@@ -18,7 +18,7 @@ export async function POST(request) {
     const body = await request.json();
     const { schedule_id } = body;
 
-    console.log("🔄 Reverting payment for schedule:", schedule_id);
+    console.log("Reverting payment for schedule:", schedule_id);
 
     if (!schedule_id) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function POST(request) {
       .single();
 
     if (scheduleError || !schedule) {
-      console.error("❌ Schedule not found:", scheduleError);
+      console.error("Schedule not found:", scheduleError);
       return NextResponse.json(
         { success: false, message: "Payment schedule not found" },
         { status: 404 }
@@ -62,7 +62,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("📋 Schedule details:", {
+    console.log("Schedule details:", {
       schedule_id: schedule.schedule_id,
       current_status: schedule.payment_status,
       paid_amount: schedule.paid_amount,
@@ -78,14 +78,14 @@ export async function POST(request) {
       .order("transaction_date", { ascending: false });
 
     if (transactionsError) {
-      console.error("❌ Error fetching transactions:", transactionsError);
+      console.error(" Error fetching transactions:", transactionsError);
       return NextResponse.json(
         { success: false, message: "Failed to fetch payment transactions" },
         { status: 500 }
       );
     }
 
-    console.log(`📦 Found ${transactions?.length || 0} transactions to revert`);
+    console.log(` Found ${transactions?.length || 0} transactions to revert`);
 
     // Calculate the new contract balance BEFORE updating the schedule
     // Save the old paid amount to calculate the balance change
@@ -111,7 +111,7 @@ export async function POST(request) {
     const totalScheduled = schedule.contract.downpayment_total || 0;
     const newRemainingBalance = Math.max(0, totalScheduled - totalPaidAfterRevert);
 
-    console.log("📊 Remaining Balance Calculation:", {
+    console.log("Remaining Balance Calculation:", {
       totalScheduled,
       revertedAmount,
       totalPaidAfterRevert,
@@ -137,7 +137,7 @@ export async function POST(request) {
       .eq("schedule_id", schedule_id);
 
     if (updateScheduleError) {
-      console.error("❌ Failed to update schedule:", updateScheduleError);
+      console.error("Failed to update schedule:", updateScheduleError);
       return NextResponse.json(
         {
           success: false,
@@ -164,7 +164,7 @@ export async function POST(request) {
 
       if (updateTransactionsError) {
         console.error(
-          "⚠️ Warning: Failed to update transactions:",
+          "Warning: Failed to update transactions:",
           updateTransactionsError
         );
         // Don't fail the entire operation if transaction update fails
@@ -186,15 +186,15 @@ export async function POST(request) {
 
       if (updateContractError) {
         console.error(
-          "⚠️ Warning: Failed to update contract:",
+          "Warning: Failed to update contract:",
           updateContractError
         );
       }
     } else {
-      console.error("⚠️ Warning: Contract data not found in schedule");
+      console.error(" Warning: Contract data not found in schedule");
     }
 
-    console.log("✅ Payment reverted successfully", {
+    console.log(" Payment reverted successfully", {
       paid_amount_reverted: revertedAmount,
       penalty_amount_reverted: revertedPenalty,
       transactions_reverted: transactions?.length || 0,
@@ -215,7 +215,7 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("❌ Error reverting payment:", error);
+    console.error("Error reverting payment:", error);
     return NextResponse.json(
       {
         success: false,

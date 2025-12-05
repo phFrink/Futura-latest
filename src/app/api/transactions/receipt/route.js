@@ -6,14 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-/**
- * GET /api/transactions/receipt
- * Generate receipt data for a single transaction or date range
- * Query params:
- * - transaction_id: Single transaction ID (optional)
- * - start_date: Start date for range (optional)
- * - end_date: End date for range (optional)
- */
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

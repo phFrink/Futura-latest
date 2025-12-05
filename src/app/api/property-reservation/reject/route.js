@@ -26,7 +26,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const { reservation_id, rejected_by, reason } = await request.json();
-    console.log("❌ API: Rejecting reservation:", reservation_id);
+    console.log("API: Rejecting reservation:", reservation_id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -60,7 +60,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error(" Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -71,7 +71,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Reservation rejected successfully:", reservation_id);
+    console.log("Reservation rejected successfully:", reservation_id);
 
     // Send rejection notification to the client if they are certified
     try {
@@ -93,12 +93,12 @@ export async function POST(request) {
           recipientId: reservation.user_id, // Send to specific client
           recipientRole: null, // Override role-based targeting
         });
-        console.log(`✅ Rejection notification sent to certified homeowner: ${reservation.user_id}`);
+        console.log(`Rejection notification sent to certified homeowner: ${reservation.user_id}`);
       } else {
-        console.log(`ℹ️ User is not a certified homeowner - skipping notification: ${reservation.user_id}`);
+        console.log(`User is not a certified homeowner - skipping notification: ${reservation.user_id}`);
       }
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error("Exception creating notification:", notificationError);
       // Don't fail the rejection if notification fails
     }
 
@@ -108,7 +108,7 @@ export async function POST(request) {
       message: "Reservation rejected successfully!",
     });
   } catch (error) {
-    console.error("❌ Reject reservation error:", error);
+    console.error("Reject reservation error:", error);
     return NextResponse.json(
       {
         success: false,

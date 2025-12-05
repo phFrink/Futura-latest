@@ -62,7 +62,7 @@ function checkRateLimit(email) {
 export async function POST(request) {
   try {
     const inquiryData = await request.json();
-    console.log("💬 API: Creating inquiry:", inquiryData);
+    console.log("API: Creating inquiry:", inquiryData);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -99,7 +99,7 @@ export async function POST(request) {
       );
 
       if (!recaptchaResult.valid) {
-        console.log("❌ reCAPTCHA verification failed:", {
+        console.log("reCAPTCHA verification failed:", {
           score: recaptchaResult.score,
           message: recaptchaResult.message,
         });
@@ -115,12 +115,12 @@ export async function POST(request) {
         );
       }
 
-      console.log("✅ reCAPTCHA verified successfully:", {
+      console.log("reCAPTCHA verified successfully:", {
         score: recaptchaResult.score,
       });
     } else {
       console.warn(
-        "⚠️ No reCAPTCHA token provided - proceeding without verification"
+        " No reCAPTCHA token provided - proceeding without verification"
       );
     }
 
@@ -137,7 +137,7 @@ export async function POST(request) {
       );
     }
 
-    console.log(`📊 Rate limit: ${rateLimit.remaining} requests remaining`);
+    console.log(` Rate limit: ${rateLimit.remaining} requests remaining`);
 
     // Check for duplicate inquiry (same email + property in last 24 hours)
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -180,7 +180,7 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
-      console.error("❌ Insert error:", insertError);
+      console.error(" Insert error:", insertError);
       return NextResponse.json(
         {
           success: false,
@@ -191,7 +191,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Inquiry created successfully:", inquiry.inquiry_id);
+    console.log("Inquiry created successfully:", inquiry.inquiry_id);
 
     // Create notification for new inquiry
     try {
@@ -229,12 +229,12 @@ export async function POST(request) {
           .select();
 
       if (notificationError) {
-        console.error("❌ Notification insert error:", notificationError);
+        console.error(" Notification insert error:", notificationError);
       } else {
-        console.log("✅ Notification created for inquiry:", inquiry.inquiry_id);
+        console.log("Notification created for inquiry:", inquiry.inquiry_id);
       }
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error(" Exception creating notification:", notificationError);
       // Don't fail the inquiry if notification fails
     }
 
@@ -244,7 +244,7 @@ export async function POST(request) {
       message: "Inquiry sent successfully! Our team will contact you soon.",
     });
   } catch (error) {
-    console.error("❌ Send inquiry error:", error);
+    console.error("Send inquiry error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -263,7 +263,7 @@ export async function GET(request) {
     const userId = searchParams.get("userId");
     const clientEmail = searchParams.get("clientEmail");
 
-    console.log("🔍 API: Fetching inquiries for user:", userId || clientEmail);
+    console.log("API: Fetching inquiries for user:", userId || clientEmail);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -290,7 +290,7 @@ export async function GET(request) {
     const { data: inquiries, error } = await query;
 
     if (error) {
-      console.error("❌ Fetch error:", error);
+      console.error(" Fetch error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -301,7 +301,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${inquiries.length} inquiries`);
+    console.log(` Found ${inquiries.length} inquiries`);
 
     return NextResponse.json({
       success: true,
@@ -310,7 +310,7 @@ export async function GET(request) {
       message: `Found ${inquiries.length} inquiries`,
     });
   } catch (error) {
-    console.error("❌ Fetch inquiries error:", error);
+    console.error(" Fetch inquiries error:", error);
     return NextResponse.json(
       {
         success: false,

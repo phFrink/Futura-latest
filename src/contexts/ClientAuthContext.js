@@ -39,7 +39,7 @@ export const ClientAuthProvider = ({ children }) => {
       try {
         // Set a timeout to prevent loading from staying true indefinitely
         timeout = setTimeout(() => {
-          console.warn('⚠️ Auth initialization timeout, enabling form');
+          console.warn(' Auth initialization timeout, enabling form');
           setLoading(false);
         }, 5000); // 5 second timeout
 
@@ -51,13 +51,13 @@ export const ClientAuthProvider = ({ children }) => {
           setUser(null);
         } else if (session?.user) {
           // Check if user's account is still active
-          console.log('🔍 Checking if restored session user is still active...');
+          console.log('Checking if restored session user is still active...');
 
           // First check user_metadata.status (undefined = active)
           const userMetadataStatus = session.user?.user_metadata?.status;
 
           if (userMetadataStatus === "inactive") {
-            console.log("❌ Session user status is inactive - signing out");
+            console.log("Session user status is inactive - signing out");
             await supabase.auth.signOut();
             setUser(null);
           } else {
@@ -71,7 +71,7 @@ export const ClientAuthProvider = ({ children }) => {
             const profileStatus = profileData?.status;
 
             if (profileStatus === "inactive") {
-              console.log("❌ Session user profile is inactive, signing out");
+              console.log(" Session user profile is inactive, signing out");
               await supabase.auth.signOut();
               setUser(null);
             } else {
@@ -101,13 +101,13 @@ export const ClientAuthProvider = ({ children }) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             // Check if user is active when session is restored
-            console.log('🔍 Verifying user status on token refresh...');
+            console.log('Verifying user status on token refresh...');
 
             // First check user_metadata.status (undefined = active)
             const userMetadataStatus = session.user?.user_metadata?.status;
 
             if (userMetadataStatus === "inactive") {
-              console.log("❌ User status is inactive - signing out");
+              console.log("User status is inactive - signing out");
               await supabase.auth.signOut();
               setUser(null);
               toast.error('Your account has been deactivated');
@@ -122,7 +122,7 @@ export const ClientAuthProvider = ({ children }) => {
               const profileStatus = profileData?.status;
 
               if (profileStatus === "inactive") {
-                console.log("❌ User profile became inactive, signing out");
+                console.log(" User profile became inactive, signing out");
                 await supabase.auth.signOut();
                 setUser(null);
                 toast.error('Your account has been deactivated');
@@ -208,11 +208,11 @@ export const ClientAuthProvider = ({ children }) => {
       // First, check user_metadata.status - HIGHEST PRIORITY CHECK
       const userMetadataStatus = data.user?.user_metadata?.status;
 
-      console.log("🔍 Checking user_metadata.status:", userMetadataStatus);
+      console.log("Checking user_metadata.status:", userMetadataStatus);
 
       // Only block login if status is explicitly "inactive" (undefined = active)
       if (userMetadataStatus === "inactive") {
-        console.log("❌ Login denied: User status is inactive");
+        console.log("Login denied: User status is inactive");
         await supabase.auth.signOut();
 
         const errorMessage = 'Your account has been deactivated. Please contact the administrator.';
@@ -222,7 +222,7 @@ export const ClientAuthProvider = ({ children }) => {
       }
 
       // Second, check if user's account is active/inactive in profiles table (fallback)
-      console.log("🔍 Checking user status in profiles table...");
+      console.log("Checking user status in profiles table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("status")
@@ -232,7 +232,7 @@ export const ClientAuthProvider = ({ children }) => {
       // Check user status from profiles table
       const profileStatus = profileData?.status;
 
-      console.log("📊 User status check:", {
+      console.log("User status check:", {
         userId: data.user.id,
         email: data.user.email,
         userMetadataStatus: userMetadataStatus,
@@ -242,7 +242,7 @@ export const ClientAuthProvider = ({ children }) => {
 
       // If profile status is inactive, deny login immediately
       if (profileStatus === "inactive") {
-        console.log("❌ Login denied: Profile status is inactive");
+        console.log("Login denied: Profile status is inactive");
         await supabase.auth.signOut();
         toast.error('Your account has been deactivated. Please contact the administrator.');
         return { error: 'Your account has been deactivated. Please contact the administrator.' };

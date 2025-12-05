@@ -643,8 +643,6 @@ export default function ClientBookingsPage() {
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
                   </div>
@@ -742,7 +740,11 @@ export default function ClientBookingsPage() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="hover:bg-slate-50 cursor-pointer transition-colors"
+                          className={`cursor-pointer transition-colors ${
+                            reservation.contract?.contract_status === 'completed'
+                              ? 'bg-slate-100 hover:bg-slate-200 opacity-60'
+                              : 'hover:bg-slate-50'
+                          }`}
                           onClick={() => setExpandedId(expandedId === reservation.reservation_id ? null : reservation.reservation_id)}
                         >
                           <td className="px-6 py-4">
@@ -769,9 +771,17 @@ export default function ClientBookingsPage() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm font-mono text-slate-600">
-                              {reservation.contract?.contract_number || 'N/A'}
-                            </span>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-sm font-mono text-slate-600">
+                                {reservation.contract?.contract_number || 'N/A'}
+                              </span>
+                              {reservation.contract?.contract_status === 'completed' && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 w-fit">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Completed
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600">
                             {formatDate(reservation.created_at)}
@@ -953,15 +963,27 @@ export default function ClientBookingsPage() {
                                       </div>
 
                                       {/* Payment Instructions */}
-                                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
-                                          <MapPin className="w-4 h-4" />
-                                          Payment Instructions
-                                        </p>
-                                        <p className="text-sm text-blue-800">
-                                          To pay your monthly installment, please visit the <strong>Main Futura Homes Office</strong>. Bring your contract number and a valid ID for verification.
-                                        </p>
-                                      </div>
+                                      {reservation.contract?.contract_status === 'completed' ? (
+                                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                          <p className="text-sm font-semibold text-green-900 mb-1 flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Contract Completed
+                                          </p>
+                                          <p className="text-sm text-green-800">
+                                            This contract has been marked as completed. All payments have been fulfilled. Thank you for choosing Futura Homes!
+                                          </p>
+                                        </div>
+                                      ) : (
+                                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                          <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            Payment Instructions
+                                          </p>
+                                          <p className="text-sm text-blue-800">
+                                            To pay your monthly installment, please visit the <strong>Main Futura Homes Office</strong>. Bring your contract number and a valid ID for verification.
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 
@@ -1097,7 +1119,14 @@ export default function ClientBookingsPage() {
               {/* Mobile Card View */}
               <div className="md:hidden divide-y divide-slate-200">
                 {filteredReservations.map((reservation, index) => (
-                  <div key={reservation.reservation_id} className="p-4">
+                  <div
+                    key={reservation.reservation_id}
+                    className={`p-4 ${
+                      reservation.contract?.contract_status === 'completed'
+                        ? 'bg-slate-100 opacity-60'
+                        : ''
+                    }`}
+                  >
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -1122,6 +1151,12 @@ export default function ClientBookingsPage() {
                       <div className="text-sm">
                         <span className="text-slate-500">Contract:</span>
                         <span className="ml-2 font-mono">{reservation.contract?.contract_number || 'N/A'}</span>
+                        {reservation.contract?.contract_status === 'completed' && (
+                          <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            <CheckCircle className="w-3 h-3" />
+                            Completed
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm font-semibold text-red-600">
                         {formatCurrency(reservation.reservation_fee)}

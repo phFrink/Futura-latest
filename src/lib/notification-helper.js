@@ -110,18 +110,18 @@ export async function createNotification(supabaseAdmin, notificationData) {
       .select();
 
     if (error) {
-      console.error("❌ Notification error:", error);
+      console.error("Notification error:", error);
       return { success: false, error };
     }
 
     console.log(
-      `✅ Notification created: "${title}" (${notifications.length} recipient${
+      `Notification created: "${title}" (${notifications.length} recipient${
         notifications.length > 1 ? "s" : ""
       })`
     );
     return { success: true, data: notifications };
   } catch (error) {
-    console.error("❌ Notification exception:", error);
+    console.error("Notification exception:", error);
     return { success: false, error };
   }
 }
@@ -137,7 +137,7 @@ export async function getUserIdsByRole(supabaseAdmin, role) {
     const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
 
     if (error) {
-      console.error("❌ Error fetching users:", error);
+      console.error("Error fetching users:", error);
       return [];
     }
 
@@ -149,10 +149,10 @@ export async function getUserIdsByRole(supabaseAdmin, role) {
       })
       .map((user) => user.id);
 
-    console.log(`📋 Found ${userIds.length} users with role "${role}"`);
+    console.log(`Found ${userIds.length} users with role "${role}"`);
     return userIds;
   } catch (error) {
-    console.error("❌ Exception fetching users by role:", error);
+    console.error(" Exception fetching users by role:", error);
     return [];
   }
 }
@@ -243,7 +243,7 @@ export const NotificationTemplates = {
 
   RESERVATION_REVERTED: (reservationData) => ({
     type: "reservation_reverted",
-    title: "🔄 Reservation Status Updated",
+    title: "Reservation Status Updated",
     message: `Your reservation (${reservationData.trackingNumber}) for ${reservationData.propertyTitle} has been reverted back to pending status. Our team will review it again and contact you shortly.`,
     icon: "🔄",
     priority: "high",
@@ -515,7 +515,7 @@ export const NotificationTemplates = {
   // Payments - Homeowner Notifications
   PAYMENT_RECEIVED: (paymentData) => ({
     type: "payment_received",
-    title: "✅ Payment Received",
+    title: "Payment Received",
     message: `We received your payment of ${paymentData.currencySymbol || "₱"}${parseFloat(paymentData.amount || 0).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})} for ${paymentData.installmentDescription || "Installment " + (paymentData.installmentNumber || "1")}. Receipt #: ${paymentData.receiptNumber || "Pending"}`,
     icon: "💳",
     priority: "normal",
@@ -530,7 +530,7 @@ export const NotificationTemplates = {
   // Amenity Borrow Requests - Homeowner Notifications
   AMENITY_REQUEST_APPROVED: (amenityData) => ({
     type: "amenity_request_approved",
-    title: "✅ Amenity Request Approved",
+    title: "Amenity Request Approved",
     message: `Your request to borrow "${amenityData.amenityName}" has been approved. Borrow period: ${amenityData.borrowDate} to ${amenityData.returnDate}. Please visit the amenities office to pick up the item.`,
     icon: "🏠",
     priority: "normal",
@@ -544,7 +544,7 @@ export const NotificationTemplates = {
 
   AMENITY_REQUEST_DECLINED: (amenityData) => ({
     type: "amenity_request_declined",
-    title: "❌ Amenity Request Declined",
+    title: "Amenity Request Declined",
     message: `Your request to borrow "${amenityData.amenityName}" has been declined. ${amenityData.reason ? "Reason: " + amenityData.reason : "Please contact the amenities office for more information."}`,
     icon: "📋",
     priority: "normal",

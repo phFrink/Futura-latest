@@ -768,12 +768,12 @@ export default function WalkInPaymentModal({
                   </div>
                 )}
 
-                {["bank_transfer", "gcash", "paymaya", "online_banking"].includes(
+                {["bank_transfer", "gcash", "paymaya", "online_banking", "credit_card", "debit_card"].includes(
                   paymentData.payment_method
                 ) && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Reference Number
+                      Reference Number <span className="text-red-500">*</span>
                     </label>
                     <Input
                       type="text"
@@ -782,6 +782,7 @@ export default function WalkInPaymentModal({
                         handleInputChange("reference_number", e.target.value)
                       }
                       placeholder="Enter reference number"
+                      required
                     />
                   </div>
                 )}

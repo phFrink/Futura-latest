@@ -35,7 +35,7 @@ export async function GET(request) {
         .single();
 
       if (contractError) {
-        console.error("❌ Error fetching contract:", contractError);
+        console.error("Error fetching contract:", contractError);
         return NextResponse.json({
           success: true,
           data: [],
@@ -64,7 +64,7 @@ export async function GET(request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("❌ Error fetching complaints:", error);
+      console.error(" Error fetching complaints:", error);
       return NextResponse.json(
         {
           success: false,
@@ -74,7 +74,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${data?.length || 0} complaints`);
+    console.log(`Found ${data?.length || 0} complaints`);
 
     return NextResponse.json({
       success: true,
@@ -82,7 +82,7 @@ export async function GET(request) {
       message: "Complaints fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Complaints API error:", error);
+    console.error("Complaints API error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -102,7 +102,7 @@ export async function POST(request) {
     const body = await request.json();
     const { subject, description, complaint_type, severity, user_id } = body;
 
-    console.log("📝 Creating complaint:", {
+    console.log("Creating complaint:", {
       subject,
       complaint_type,
       severity,
@@ -178,7 +178,7 @@ export async function POST(request) {
       .single();
 
     if (error) {
-      console.error("❌ Error creating complaint:", error);
+      console.error("Error creating complaint:", error);
       return NextResponse.json(
         {
           success: false,
@@ -188,7 +188,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Complaint created:", data.id);
+    console.log(" Complaint created:", data.id);
 
     // Send notification to admins
     try {
@@ -209,7 +209,7 @@ export async function POST(request) {
         });
       }
     } catch (notifError) {
-      console.error("⚠️ Failed to send notification:", notifError);
+      console.error("Failed to send notification:", notifError);
       // Don't fail the request if notification fails
     }
 
@@ -219,7 +219,7 @@ export async function POST(request) {
       message: "Complaint filed successfully",
     });
   } catch (error) {
-    console.error("❌ Complaint creation error:", error);
+    console.error(" Complaint creation error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -262,7 +262,7 @@ export async function PATCH(request) {
 
     if (error) throw error;
 
-    console.log("✅ Complaint updated:", data.id);
+    console.log("Complaint updated:", data.id);
 
     // Send notification to homeowner based on status change
     try {
@@ -303,14 +303,14 @@ export async function PATCH(request) {
               recipientId: userId,
             });
 
-            console.log("✅ Complaint notification sent to homeowner");
+            console.log(" Complaint notification sent to homeowner");
           }
         } else {
-          console.log("ℹ️ Homeowner is not certified - skipping notification");
+          console.log("Homeowner is not certified - skipping notification");
         }
       }
     } catch (notifError) {
-      console.error("⚠️ Failed to send notification:", notifError);
+      console.error(" Failed to send notification:", notifError);
       // Don't fail the request if notification fails
     }
 
@@ -320,7 +320,7 @@ export async function PATCH(request) {
       message: "Complaint updated successfully",
     });
   } catch (error) {
-    console.error("❌ Complaint update error:", error);
+    console.error(" Complaint update error:", error);
     return NextResponse.json(
       {
         success: false,

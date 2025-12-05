@@ -24,6 +24,8 @@ import {
   XCircle,
   AlertCircle,
   Trash2,
+  RotateCcw,
+  Play,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
@@ -47,9 +49,15 @@ export default function ContractToSell() {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [showVoidModal, setShowVoidModal] = useState(false);
-  const [voidingContract, setVoidingContract] = useState(null);
-  const [isVoiding, setIsVoiding] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [completingContract, setCompletingContract] = useState(null);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [showRevertModal, setShowRevertModal] = useState(false);
+  const [revertingContract, setRevertingContract] = useState(null);
+  const [isReverting, setIsReverting] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const [activatingContract, setActivatingContract] = useState(null);
+  const [isActivating, setIsActivating] = useState(false);
 
   useEffect(() => {
     // Get current user
@@ -890,42 +898,118 @@ export default function ContractToSell() {
     toast.success("Payment processed successfully!");
   };
 
-  const handleVoidContract = (contract) => {
-    setVoidingContract(contract);
-    setShowVoidModal(true);
+
+  const handleMarkAsCompleted = (contract) => {
+    setCompletingContract(contract);
+    setShowCompleteModal(true);
   };
 
-  const confirmVoidContract = async () => {
-    if (!voidingContract) return;
+  const confirmMarkAsCompleted = async () => {
+    if (!completingContract) return;
 
-    setIsVoiding(true);
+    setIsCompleting(true);
     try {
-      const response = await fetch("/api/contracts/void", {
-        method: "POST",
+      const response = await fetch(`/api/contracts/${completingContract.contract_id}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contract_id: voidingContract.contract_id,
-          reason: "Non-payment for 3 consecutive months",
+          contract_status: "completed",
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success("Contract voided successfully! Billing records deleted.");
-        setShowVoidModal(false);
-        setVoidingContract(null);
+        toast.success("Contract marked as completed successfully!");
+        setShowCompleteModal(false);
+        setCompletingContract(null);
         loadContracts(currentUserId); // Reload contracts
       } else {
-        toast.error(result.message || "Failed to void contract");
+        toast.error(result.message || "Failed to mark contract as completed");
       }
     } catch (error) {
-      console.error("Error voiding contract:", error);
-      toast.error("Error voiding contract: " + error.message);
+      console.error("Error marking contract as completed:", error);
+      toast.error("Error marking contract as completed: " + error.message);
     } finally {
-      setIsVoiding(false);
+      setIsCompleting(false);
+    }
+  };
+
+  const handleRevertCompleted = (contract) => {
+    setRevertingContract(contract);
+    setShowRevertModal(true);
+  };
+
+  const confirmRevertCompleted = async () => {
+    if (!revertingContract) return;
+
+    setIsReverting(true);
+    try {
+      const response = await fetch(`/api/contracts/${revertingContract.contract_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contract_status: "active",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Contract reverted to active successfully!");
+        setShowRevertModal(false);
+        setRevertingContract(null);
+        loadContracts(currentUserId); // Reload contracts
+      } else {
+        toast.error(result.message || "Failed to revert contract");
+      }
+    } catch (error) {
+      console.error("Error reverting contract:", error);
+      toast.error("Error reverting contract: " + error.message);
+    } finally {
+      setIsReverting(false);
+    }
+  };
+
+  const handleActivatePending = (contract) => {
+    setActivatingContract(contract);
+    setShowActivateModal(true);
+  };
+
+  const confirmActivatePending = async () => {
+    if (!activatingContract) return;
+
+    setIsActivating(true);
+    try {
+      const response = await fetch(`/api/contracts/${activatingContract.contract_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contract_status: "active",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Contract activated successfully!");
+        setShowActivateModal(false);
+        setActivatingContract(null);
+        loadContracts(currentUserId); // Reload contracts
+      } else {
+        toast.error(result.message || "Failed to activate contract");
+      }
+    } catch (error) {
+      console.error("Error activating contract:", error);
+      toast.error("Error activating contract: " + error.message);
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -1002,6 +1086,9 @@ export default function ContractToSell() {
                     contracts.filter((c) => c.contract_status === "pending")
                       .length
                   }
+                </p>
+                <p className="text-xs text-yellow-600 mt-1">
+                  Awaiting activation
                 </p>
               </div>
               <Clock className="h-8 w-8 text-yellow-600" />
@@ -1099,7 +1186,11 @@ export default function ContractToSell() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-slate-50 transition-colors"
+                    className={`transition-colors ${
+                      contract.contract_status === "completed"
+                        ? "bg-slate-100 opacity-60"
+                        : "hover:bg-slate-50"
+                    }`}
                   >
                     {/* Contract Number */}
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1156,14 +1247,47 @@ export default function ContractToSell() {
                           <Printer className="h-3 w-3" /> /{" "}
                           <Download className="h-3 w-3" />
                         </Button>
+
+                        {/* Pending Status - Needs Activation */}
+                        {contract.contract_status === "pending" && (
+                          <>
+                            <Button
+                              onClick={() => handleActivatePending(contract)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                              title="Activate Contract"
+                            >
+                              <Play className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Active Status - Can Complete */}
                         {contract.contract_status === "active" && (
-                          <Button
-                            onClick={() => handleVoidContract(contract)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
-                            title="Void Contract (3 months non-payment)"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => handleMarkAsCompleted(contract)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs"
+                              title="Mark as Completed"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Completed Status - Can Revert */}
+                        {contract.contract_status === "completed" && (
+                          <>
+                            <Button
+                              onClick={() => handleRevertCompleted(contract)}
+                              className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 text-xs"
+                              title="Revert to Active"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                            </Button>
+                            <span className="text-xs text-slate-500 font-medium">
+                              Completed
+                            </span>
+                          </>
                         )}
                       </div>
                     </td>
@@ -1449,16 +1573,22 @@ export default function ContractToSell() {
                                   </td>
                                   <td className="p-3 text-center">
                                     {schedule.payment_status !== "paid" && (
-                                      <Button
-                                        onClick={() => {
-                                          setSelectedSchedule(schedule);
-                                          setShowPaymentModal(true);
-                                        }}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
-                                      >
-                                        <DollarSign className="h-3 w-3 mr-1" />
-                                        Pay
-                                      </Button>
+                                      selectedContract.contract_status === "completed" ? (
+                                        <span className="text-xs text-slate-400">
+                                          Completed
+                                        </span>
+                                      ) : (
+                                        <Button
+                                          onClick={() => {
+                                            setSelectedSchedule(schedule);
+                                            setShowPaymentModal(true);
+                                          }}
+                                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                                        >
+                                          <DollarSign className="h-3 w-3 mr-1" />
+                                          Pay
+                                        </Button>
+                                      )
                                     )}
                                   </td>
                                 </tr>
@@ -1527,15 +1657,15 @@ export default function ContractToSell() {
         />
       )}
 
-      {/* Void Contract Confirmation Modal */}
+      {/* Mark as Completed Confirmation Modal */}
       <AnimatePresence>
-        {showVoidModal && voidingContract && (
+        {showCompleteModal && completingContract && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => !isVoiding && setShowVoidModal(false)}
+            onClick={() => !isCompleting && setShowCompleteModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1545,15 +1675,15 @@ export default function ContractToSell() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="bg-red-600 text-white p-6 rounded-t-lg">
+              <div className="bg-green-600 text-white p-6 rounded-t-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6" />
+                    <CheckCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">Void Contract</h3>
-                    <p className="text-red-100 text-sm">
-                      This action cannot be undone
+                    <h3 className="text-xl font-bold">Mark Contract as Completed</h3>
+                    <p className="text-green-100 text-sm">
+                      Confirm contract completion
                     </p>
                   </div>
                 </div>
@@ -1562,14 +1692,12 @@ export default function ContractToSell() {
               {/* Modal Body */}
               <div className="p-6">
                 <div className="mb-6">
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-red-900 font-medium mb-2">
-                      ⚠️ Warning: You are about to void this contract
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-green-900 font-medium mb-2">
+                      ✓ Confirm Contract Completion
                     </p>
-                    <p className="text-xs text-red-700">
-                      This will void the contract and delete all associated
-                      billing records. The property will be returned to
-                      available status.
+                    <p className="text-xs text-green-700">
+                      This will mark the contract as completed. The contract will become inactive and no further actions can be taken.
                     </p>
                   </div>
 
@@ -1579,62 +1707,288 @@ export default function ContractToSell() {
                         Contract Number:
                       </span>
                       <span className="font-mono font-bold text-slate-900">
-                        {voidingContract.contract_number}
+                        {completingContract.contract_number}
                       </span>
                     </div>
                     <div className="flex items-center justify-between border-b pb-2">
                       <span className="text-sm text-slate-600">Client:</span>
                       <span className="font-medium text-slate-900">
-                        {voidingContract.client_name}
+                        {completingContract.client_name}
                       </span>
                     </div>
                     <div className="flex items-center justify-between border-b pb-2">
                       <span className="text-sm text-slate-600">Property:</span>
                       <span className="font-medium text-slate-900">
-                        {voidingContract.property?.property_title || "-"}
+                        {completingContract.property?.property_title || "-"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Reason:</span>
-                      <span className="font-medium text-red-600">
-                        3 Months Non-Payment
+                      <span className="text-sm text-slate-600">Current Status:</span>
+                      <span className="font-medium text-slate-900">
+                        {completingContract.contract_status}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                  <p className="text-xs text-amber-900">
-                    <strong>Note:</strong> All payments made by the client will
-                    be forfeited as per the contract terms. The client will have
-                    no further claim to the property.
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-xs text-blue-900">
+                    <strong>Note:</strong> Once marked as completed, this contract will be set to inactive status and will no longer allow modifications.
                   </p>
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => setShowVoidModal(false)}
-                    disabled={isVoiding}
+                    onClick={() => setShowCompleteModal(false)}
+                    disabled={isCompleting}
                     variant="outline"
                     className="flex-1"
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={confirmVoidContract}
-                    disabled={isVoiding}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={confirmMarkAsCompleted}
+                    disabled={isCompleting}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {isVoiding ? (
+                    {isCompleting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Voiding...
+                        Completing...
                       </>
                     ) : (
                       <>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Void Contract
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Mark as Completed
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Revert Completed Contract Confirmation Modal */}
+      <AnimatePresence>
+        {showRevertModal && revertingContract && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => !isReverting && setShowRevertModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-orange-600 text-white p-6 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <RotateCcw className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Revert Contract to Active</h3>
+                    <p className="text-orange-100 text-sm">
+                      Undo completion status
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <div className="mb-6">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-orange-900 font-medium mb-2">
+                      ↩️ Revert Completion
+                    </p>
+                    <p className="text-xs text-orange-700">
+                      This will change the contract status from "completed" back to "active". The contract will become editable again and homeowners can make payments.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">
+                        Contract Number:
+                      </span>
+                      <span className="font-mono font-bold text-slate-900">
+                        {revertingContract.contract_number}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Client:</span>
+                      <span className="font-medium text-slate-900">
+                        {revertingContract.client_name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Property:</span>
+                      <span className="font-medium text-slate-900">
+                        {revertingContract.property?.property_title || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Current Status:</span>
+                      <span className="font-medium text-blue-600">
+                        {revertingContract.contract_status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-xs text-blue-900">
+                    <strong>Note:</strong> Use this if the contract was marked as completed by mistake. The contract will be reactivated.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowRevertModal(false)}
+                    disabled={isReverting}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmRevertCompleted}
+                    disabled={isReverting}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    {isReverting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Reverting...
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Revert to Active
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Activate Pending Contract Confirmation Modal */}
+      <AnimatePresence>
+        {showActivateModal && activatingContract && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => !isActivating && setShowActivateModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-blue-600 text-white p-6 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Play className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Activate Pending Contract</h3>
+                    <p className="text-blue-100 text-sm">
+                      Start this contract
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <div className="mb-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-900 font-medium mb-2">
+                      ▶️ Activate Contract
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      This will change the contract status from "pending" to "active". Once activated, homeowners can start making payments and the contract becomes fully operational.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">
+                        Contract Number:
+                      </span>
+                      <span className="font-mono font-bold text-slate-900">
+                        {activatingContract.contract_number}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Client:</span>
+                      <span className="font-medium text-slate-900">
+                        {activatingContract.client_name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm text-slate-600">Property:</span>
+                      <span className="font-medium text-slate-900">
+                        {activatingContract.property?.property_title || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Current Status:</span>
+                      <span className="font-medium text-yellow-600">
+                        {activatingContract.contract_status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <p className="text-xs text-green-900">
+                    <strong>What is "Pending" status?</strong> Pending contracts are awaiting approval or activation. They are not yet active for payments. Use this button to activate the contract and allow homeowners to proceed with payments.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowActivateModal(false)}
+                    disabled={isActivating}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmActivatePending}
+                    disabled={isActivating}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isActivating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Activating...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-2 h-4 w-4" />
+                        Activate Contract
                       </>
                     )}
                   </Button>

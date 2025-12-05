@@ -65,7 +65,7 @@ export async function POST(request) {
       .single();
 
     if (dbError) {
-      console.error("❌ Database error:", dbError);
+      console.error(" Database error:", dbError);
       return NextResponse.json(
         {
           success: false,
@@ -78,9 +78,9 @@ export async function POST(request) {
     // Send OTP via email
     try {
       await sendOTPEmail(email, otp, purpose);
-      console.log(`✅ OTP sent to ${email}: ${otp}`);
+      console.log(`OTP sent to ${email}: ${otp}`);
     } catch (emailError) {
-      console.error("❌ Email sending error:", emailError);
+      console.error(" Email sending error:", emailError);
       // Delete the OTP record if email fails
       await supabaseAdmin
         .from("otp_verifications")
@@ -104,7 +104,7 @@ export async function POST(request) {
       // otp: process.env.NODE_ENV === 'development' ? otp : undefined,
     });
   } catch (error) {
-    console.error("❌ Send OTP error:", error);
+    console.error("Send OTP error:", error);
     return NextResponse.json(
       {
         success: false,

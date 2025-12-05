@@ -100,7 +100,7 @@ export default function Users() {
 
   const loadRoles = async () => {
     try {
-      console.log("🔍 Loading roles from /api/roles...");
+      console.log("Loading roles from /api/roles...");
       const response = await fetch("/api/roles");
 
       if (!response.ok) {
@@ -108,7 +108,7 @@ export default function Users() {
       }
 
       const result = await response.json();
-      console.log("📋 Roles API response:", result);
+      console.log("Roles API response:", result);
 
       if (result.success && result.data && Array.isArray(result.data)) {
         // Clean up role names (remove whitespace/newlines)
@@ -118,14 +118,14 @@ export default function Users() {
         }));
 
         setRoles(cleanedRoles);
-        console.log("✅ Roles loaded successfully:", cleanedRoles);
-        console.log("✅ Total roles:", cleanedRoles.length);
+        console.log("Roles loaded successfully:", cleanedRoles);
+        console.log("Total roles:", cleanedRoles.length);
       } else {
-        console.error("❌ Invalid roles response:", result);
+        console.error(" Invalid roles response:", result);
         toast.error("Failed to load roles: Invalid response format");
       }
     } catch (error) {
-      console.error("❌ Error loading roles:", error);
+      console.error(" Error loading roles:", error);
       toast.error("Error loading roles: " + error.message);
     }
   };
@@ -387,7 +387,7 @@ export default function Users() {
         setUploadingPhoto(true);
         try {
           photoUrl = await uploadPhoto(selectedPhotoFile);
-          console.log("✅ Photo uploaded:", photoUrl);
+          console.log("Photo uploaded:", photoUrl);
         } catch (uploadError) {
           toast.error("Failed to upload photo: " + uploadError.message);
           setIsSubmitting(false);

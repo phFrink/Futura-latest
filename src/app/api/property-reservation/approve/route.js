@@ -26,7 +26,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const { reservation_id, approved_by, notes } = await request.json();
-    console.log("✅ API: Approving reservation:", reservation_id);
+    console.log(" API: Approving reservation:", reservation_id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -60,7 +60,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error(" Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -71,7 +71,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Reservation approved successfully:", reservation_id);
+    console.log("Reservation approved successfully:", reservation_id);
 
     // Send approval notification to the client if they are certified
     try {
@@ -93,12 +93,12 @@ export async function POST(request) {
           recipientId: reservation.user_id, // Send to specific client
           recipientRole: null, // Override role-based targeting
         });
-        console.log(`✅ Approval notification sent to certified homeowner: ${reservation.user_id}`);
+        console.log(` Approval notification sent to certified homeowner: ${reservation.user_id}`);
       } else {
-        console.log(`ℹ️ User is not a certified homeowner - skipping notification: ${reservation.user_id}`);
+        console.log(`User is not a certified homeowner - skipping notification: ${reservation.user_id}`);
       }
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error(" Exception creating notification:", notificationError);
       // Don't fail the approval if notification fails
     }
 
@@ -121,11 +121,11 @@ export async function POST(request) {
       .single();
 
     if (transactionError) {
-      console.error("⚠️ Transaction creation error:", transactionError);
+      console.error("Transaction creation error:", transactionError);
       // Don't fail the approval if transaction creation fails
       // Just log the error
     } else {
-      console.log("✅ Transaction created successfully:", transaction.transaction_id);
+      console.log("Transaction created successfully:", transaction.transaction_id);
     }
 
     return NextResponse.json({
@@ -137,7 +137,7 @@ export async function POST(request) {
       message: "Reservation approved successfully! Payment transaction created.",
     });
   } catch (error) {
-    console.error("❌ Approve reservation error:", error);
+    console.error("Approve reservation error:", error);
     return NextResponse.json(
       {
         success: false,

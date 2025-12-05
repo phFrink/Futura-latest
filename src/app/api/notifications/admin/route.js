@@ -7,7 +7,7 @@ function createSupabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    console.error("❌ Missing Supabase credentials");
+    console.error("Missing Supabase credentials");
     return null;
   }
 
@@ -25,7 +25,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function GET(request) {
   try {
     if (!supabaseAdmin) {
-      console.error("❌ Supabase admin client not initialized");
+      console.error("Supabase admin client not initialized");
       return NextResponse.json(
         {
           success: true,
@@ -42,9 +42,9 @@ export async function GET(request) {
     const limit = searchParams.get("limit") || "50";
     const status = searchParams.get("status"); // optional: filter by status (unread, read)
 
-    console.log("📥 [ADMIN API] Fetching admin notifications...");
-    console.log("🔍 Limit:", limit);
-    console.log("🔍 Status filter:", status || "all (except archived)");
+    console.log("[ADMIN API] Fetching admin notifications...");
+    console.log("Limit:", limit);
+    console.log("Status filter:", status || "all (except archived)");
 
     // Simple query: Get all non-archived, non-homeowner notifications
     let query = supabaseAdmin
@@ -56,19 +56,19 @@ export async function GET(request) {
 
     // CRITICAL: Exclude all homeowner notifications
     // This excludes any notification where recipient_role contains "home" and "owner"
-    console.log("🚫 Excluding all homeowner notifications");
+    console.log("Excluding all homeowner notifications");
     query = query.not('recipient_role', 'ilike', '%home%owner%');
 
     // Optional: Filter by status (unread, read)
     if (status) {
-      console.log(`🔍 Filtering by status: ${status}`);
+      console.log(`Filtering by status: ${status}`);
       query = query.eq("status", status);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error("❌ Error fetching admin notifications:", error);
+      console.error("Error fetching admin notifications:", error);
       return NextResponse.json(
         {
           success: false,
@@ -78,11 +78,11 @@ export async function GET(request) {
       );
     }
 
-    console.log("✅ [ADMIN API] Fetched notifications:", data?.length || 0);
+    console.log("[ADMIN API] Fetched notifications:", data?.length || 0);
 
     // Debug: Show what notifications were returned
     if (data && data.length > 0) {
-      console.log("📋 Admin Notifications:");
+      console.log(" Admin Notifications:");
       data.slice(0, 5).forEach((notif, index) => {
         console.log(`  ${index + 1}. "${notif.title}"`);
         console.log(`     - recipient_role: "${notif.recipient_role}"`);
@@ -107,7 +107,7 @@ export async function GET(request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Exception in admin notifications API:", error);
+    console.error(" Exception in admin notifications API:", error);
     return NextResponse.json(
       {
         success: false,

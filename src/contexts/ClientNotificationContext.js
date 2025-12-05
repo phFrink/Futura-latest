@@ -42,19 +42,19 @@ export const ClientNotificationProvider = ({ children }) => {
   // Load notifications from Client API
   const loadNotifications = async () => {
     try {
-      console.log("🔍 [CLIENT CONTEXT] Loading notifications from API...");
+      console.log(" [CLIENT CONTEXT] Loading notifications from API...");
 
       // Get session from client
       const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
 
       if (sessionError) {
-        console.error("❌ [CLIENT CONTEXT] Error getting session:", sessionError);
+        console.error(" [CLIENT CONTEXT] Error getting session:", sessionError);
         setLoading(false);
         return;
       }
 
       if (!session) {
-        console.warn("⚠️ [CLIENT CONTEXT] No active session found");
+        console.warn(" [CLIENT CONTEXT] No active session found");
         setNotifications([]);
         setUnreadCount(0);
         setLoading(false);
@@ -64,12 +64,12 @@ export const ClientNotificationProvider = ({ children }) => {
       // Get current user ID from session
       const userId = session.user?.id;
 
-      console.log("👤 [CLIENT CONTEXT] Current User Info:");
+      console.log(" [CLIENT CONTEXT] Current User Info:");
       console.log("  - User ID:", userId);
       console.log("  - User Email:", session.user?.email);
 
       if (!userId) {
-        console.error("❌ [CLIENT CONTEXT] No user ID found in session!");
+        console.error(" [CLIENT CONTEXT] No user ID found in session!");
         setLoading(false);
         return;
       }
@@ -78,8 +78,8 @@ export const ClientNotificationProvider = ({ children }) => {
       const params = new URLSearchParams();
       params.append("userId", userId);
 
-      console.log("📤 [CLIENT CONTEXT] Fetching from /api/notifications/client");
-      console.log("📤 [CLIENT CONTEXT] Params:", params.toString());
+      console.log(" [CLIENT CONTEXT] Fetching from /api/notifications/client");
+      console.log("[CLIENT CONTEXT] Params:", params.toString());
 
       const response = await fetch(`/api/notifications/client?${params.toString()}`);
 
@@ -90,13 +90,13 @@ export const ClientNotificationProvider = ({ children }) => {
       const result = await response.json();
 
       if (!result.success) {
-        console.error("❌ [CLIENT CONTEXT] API returned error:", result.error);
+        console.error(" [CLIENT CONTEXT] API returned error:", result.error);
         return;
       }
 
       const data = result.notifications;
 
-      console.log("✅ [CLIENT CONTEXT] Loaded", data?.length || 0, "notifications");
+      console.log(" [CLIENT CONTEXT] Loaded", data?.length || 0, "notifications");
 
       // Transform API data to component format
       const transformedNotifications = (data || []).map((notification) => ({
@@ -122,9 +122,9 @@ export const ClientNotificationProvider = ({ children }) => {
       // Count unread notifications
       const unread = transformedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unread);
-      console.log("🔔 [CLIENT CONTEXT] Unread count:", unread);
+      console.log(" [CLIENT CONTEXT] Unread count:", unread);
     } catch (error) {
-      console.error("❌ [CLIENT CONTEXT] Exception in loadNotifications:", error);
+      console.error(" [CLIENT CONTEXT] Exception in loadNotifications:", error);
     } finally {
       setLoading(false);
     }
@@ -148,7 +148,7 @@ export const ClientNotificationProvider = ({ children }) => {
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log("🚀 [CLIENT CONTEXT] Setting up...");
+    console.log(" [CLIENT CONTEXT] Setting up...");
 
     let notificationSubscription = null;
     let reconnectTimeout = null;
@@ -160,7 +160,7 @@ export const ClientNotificationProvider = ({ children }) => {
         const { data: { session } } = await supabaseClient.auth.getSession();
 
         if (!session) {
-          console.warn("⚠️ [CLIENT CONTEXT] No session for real-time subscription");
+          console.warn(" [CLIENT CONTEXT] No session for real-time subscription");
           await loadNotifications();
           return;
         }
@@ -173,7 +173,7 @@ export const ClientNotificationProvider = ({ children }) => {
         await loadNotifications();
 
         // Set up real-time listener
-        console.log("📡 [CLIENT CONTEXT] Setting up real-time subscription...");
+        console.log(" [CLIENT CONTEXT] Setting up real-time subscription...");
         notificationSubscription = supabaseClient
           .channel("client_notifications_realtime", {
             config: {
@@ -188,11 +188,11 @@ export const ClientNotificationProvider = ({ children }) => {
               table: "notifications_tbl",
             },
             (payload) => {
-              console.log("🆕 [CLIENT CONTEXT] New notification received:", payload);
+              console.log("[CLIENT CONTEXT] New notification received:", payload);
 
               // STRICT filter: Only notifications where recipient_id EXACTLY matches
               if (payload.new.recipient_id !== userId) {
-                console.log("⏭️ [CLIENT CONTEXT] Skipping - recipient_id doesn't match");
+                console.log(" [CLIENT CONTEXT] Skipping - recipient_id doesn't match");
                 console.log(`   Expected: ${userId}, Got: ${payload.new.recipient_id}`);
                 return;
               }
@@ -215,7 +215,7 @@ export const ClientNotificationProvider = ({ children }) => {
                 recipient_role: payload.new.recipient_role,
               };
 
-              console.log("✅ [CLIENT CONTEXT] Adding notification:", newNotification.title);
+              console.log("[CLIENT CONTEXT] Adding notification:", newNotification.title);
 
               // Add to notifications list
               setNotifications((prev) => [newNotification, ...prev.slice(0, 49)]);
@@ -249,19 +249,19 @@ export const ClientNotificationProvider = ({ children }) => {
             }
           )
           .subscribe((status) => {
-            console.log("📡 [CLIENT CONTEXT] Subscription status:", status);
+            console.log(" [CLIENT CONTEXT] Subscription status:", status);
             setSubscriptionStatus(status);
 
             if (status === "SUBSCRIBED") {
-              console.log("✅ [CLIENT CONTEXT] Real-time subscription active!");
+              console.log("[CLIENT CONTEXT] Real-time subscription active!");
               if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
                 reconnectTimeout = null;
               }
             } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-              console.error(`❌ [CLIENT CONTEXT] Subscription ${status}! Reconnecting...`);
+              console.error(`[CLIENT CONTEXT] Subscription ${status}! Reconnecting...`);
               reconnectTimeout = setTimeout(() => {
-                console.log("🔄 [CLIENT CONTEXT] Attempting to reconnect...");
+                console.log("[CLIENT CONTEXT] Attempting to reconnect...");
                 if (notificationSubscription) {
                   supabaseClient.removeChannel(notificationSubscription);
                 }
@@ -275,7 +275,7 @@ export const ClientNotificationProvider = ({ children }) => {
           Notification.requestPermission();
         }
       } catch (error) {
-        console.error("❌ [CLIENT CONTEXT] Error setting up subscription:", error);
+        console.error("[CLIENT CONTEXT] Error setting up subscription:", error);
         setSubscriptionStatus("error");
       }
     };
@@ -284,7 +284,7 @@ export const ClientNotificationProvider = ({ children }) => {
 
     // Set up polling as fallback (every 30 seconds)
     pollingInterval = setInterval(() => {
-      console.log("🔄 [CLIENT CONTEXT] Polling for new notifications...");
+      console.log("[CLIENT CONTEXT] Polling for new notifications...");
       loadNotifications();
     }, 30000);
 

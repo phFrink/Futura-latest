@@ -358,7 +358,7 @@ export default function Properties() {
       return matchesPropertyType && isAvailable;
     });
 
-    console.log("✅ Filtered lots:", filtered.length);
+    console.log(" Filtered lots:", filtered.length);
     return filtered;
   };
 

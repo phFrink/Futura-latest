@@ -41,19 +41,19 @@ export const AdminNotificationProvider = ({ children }) => {
   // Load notifications from Admin API
   const loadNotifications = async () => {
     try {
-      console.log("🔍 [ADMIN CONTEXT] Loading notifications from API...");
+      console.log(" [ADMIN CONTEXT] Loading notifications from API...");
 
       // Get session from admin client
       const { data: { session }, error: sessionError } = await supabaseAdmin.auth.getSession();
 
       if (sessionError) {
-        console.error("❌ [ADMIN CONTEXT] Error getting session:", sessionError);
+        console.error("[ADMIN CONTEXT] Error getting session:", sessionError);
         setLoading(false);
         return;
       }
 
       if (!session) {
-        console.warn("⚠️ [ADMIN CONTEXT] No active session found");
+        console.warn(" [ADMIN CONTEXT] No active session found");
         setNotifications([]);
         setUnreadCount(0);
         setLoading(false);
@@ -65,13 +65,13 @@ export const AdminNotificationProvider = ({ children }) => {
       const userId = user?.id;
       const userRole = user?.user_metadata?.role?.toLowerCase();
 
-      console.log("👤 [ADMIN CONTEXT] Current User Info:");
+      console.log("[ADMIN CONTEXT] Current User Info:");
       console.log("  - User ID:", userId);
       console.log("  - User Email:", user?.email);
       console.log("  - User Role:", userRole);
 
       if (!userId) {
-        console.error("❌ [ADMIN CONTEXT] No user ID found in session!");
+        console.error("[ADMIN CONTEXT] No user ID found in session!");
         setLoading(false);
         return;
       }
@@ -81,8 +81,8 @@ export const AdminNotificationProvider = ({ children }) => {
       if (userId) params.append("userId", userId);
       if (userRole) params.append("role", userRole);
 
-      console.log("📤 [ADMIN CONTEXT] Fetching from /api/notifications/admin");
-      console.log("📤 [ADMIN CONTEXT] Params:", params.toString());
+      console.log("[ADMIN CONTEXT] Fetching from /api/notifications/admin");
+      console.log("[ADMIN CONTEXT] Params:", params.toString());
 
       const response = await fetch(`/api/notifications/admin?${params.toString()}`);
 
@@ -93,13 +93,13 @@ export const AdminNotificationProvider = ({ children }) => {
       const result = await response.json();
 
       if (!result.success) {
-        console.error("❌ [ADMIN CONTEXT] API returned error:", result.error);
+        console.error(" [ADMIN CONTEXT] API returned error:", result.error);
         return;
       }
 
       const data = result.notifications;
 
-      console.log("✅ [ADMIN CONTEXT] Loaded", data?.length || 0, "notifications");
+      console.log("[ADMIN CONTEXT] Loaded", data?.length || 0, "notifications");
 
       // Transform API data to component format
       const transformedNotifications = (data || []).map((notification) => ({
@@ -125,9 +125,9 @@ export const AdminNotificationProvider = ({ children }) => {
       // Count unread notifications
       const unread = transformedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unread);
-      console.log("🔔 [ADMIN CONTEXT] Unread count:", unread);
+      console.log(" [ADMIN CONTEXT] Unread count:", unread);
     } catch (error) {
-      console.error("❌ [ADMIN CONTEXT] Exception in loadNotifications:", error);
+      console.error(" [ADMIN CONTEXT] Exception in loadNotifications:", error);
     } finally {
       setLoading(false);
     }
@@ -156,7 +156,7 @@ export const AdminNotificationProvider = ({ children }) => {
   // Check if notification is for current user (admin-specific logic)
   const isNotificationForCurrentUser = (notification, userInfo = currentUser) => {
     if (!userInfo) {
-      console.warn("⚠️ [ADMIN CONTEXT] No current user set");
+      console.warn("[ADMIN CONTEXT] No current user set");
       return false;
     }
 
@@ -165,7 +165,7 @@ export const AdminNotificationProvider = ({ children }) => {
     const userId = userInfo.id;
     const userRole = userInfo.role?.toLowerCase();
 
-    console.log("🔍 [ADMIN CONTEXT] Checking notification visibility:");
+    console.log("[ADMIN CONTEXT] Checking notification visibility:");
     console.log("  - recipient_role:", recipientRole);
     console.log("  - recipient_id:", recipientId);
     console.log("  - user role:", userRole);
@@ -178,37 +178,37 @@ export const AdminNotificationProvider = ({ children }) => {
 
     // Exclude homeowner notifications
     if (recipientRole === 'homeowner' || recipientRole === 'home owner') {
-      console.log("  ❌ Homeowner notification - excluded");
+      console.log("  Homeowner notification - excluded");
       return false;
     }
 
     // Broadcast to all staff
     if (recipientRole === "all") {
-      console.log("  ✅ Broadcast notification");
+      console.log("  Broadcast notification");
       return true;
     }
 
     // Role matches
     if (recipientRole && recipientRole === userRole) {
       if (!recipientId || recipientId === userId) {
-        console.log("  ✅ Role-based notification");
+        console.log("   Role-based notification");
         return true;
       }
     }
 
     // Specific user ID matches
     if (recipientId === userId) {
-      console.log("  ✅ User-specific notification");
+      console.log("  User-specific notification");
       return true;
     }
 
-    console.log("  ❌ Not for current user");
+    console.log("   Not for current user");
     return false;
   };
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log("🚀 [ADMIN CONTEXT] Setting up...");
+    console.log(" [ADMIN CONTEXT] Setting up...");
 
     let notificationSubscription = null;
     let reconnectTimeout = null;
@@ -220,7 +220,7 @@ export const AdminNotificationProvider = ({ children }) => {
         const { data: { session } } = await supabaseAdmin.auth.getSession();
 
         if (!session) {
-          console.warn("⚠️ [ADMIN CONTEXT] No session for real-time subscription");
+          console.warn("[ADMIN CONTEXT] No session for real-time subscription");
           await loadNotifications();
           return;
         }
@@ -237,7 +237,7 @@ export const AdminNotificationProvider = ({ children }) => {
         await loadNotifications();
 
         // Set up real-time listener
-        console.log("📡 [ADMIN CONTEXT] Setting up real-time subscription...");
+        console.log("[ADMIN CONTEXT] Setting up real-time subscription...");
         notificationSubscription = supabaseAdmin
           .channel("admin_notifications_realtime", {
             config: {
@@ -252,11 +252,11 @@ export const AdminNotificationProvider = ({ children }) => {
               table: "notifications_tbl",
             },
             (payload) => {
-              console.log("🆕 [ADMIN CONTEXT] New notification received:", payload);
+              console.log("[ADMIN CONTEXT] New notification received:", payload);
 
               // Check if notification is for current user
               if (!isNotificationForCurrentUser(payload.new, userInfo)) {
-                console.log("⏭️ [ADMIN CONTEXT] Skipping - not for current user");
+                console.log("[ADMIN CONTEXT] Skipping - not for current user");
                 return;
               }
 
@@ -278,7 +278,7 @@ export const AdminNotificationProvider = ({ children }) => {
                 recipient_role: payload.new.recipient_role,
               };
 
-              console.log("✅ [ADMIN CONTEXT] Adding notification:", newNotification.title);
+              console.log(" [ADMIN CONTEXT] Adding notification:", newNotification.title);
 
               // Add to notifications list
               setNotifications((prev) => [newNotification, ...prev.slice(0, 49)]);
@@ -316,15 +316,15 @@ export const AdminNotificationProvider = ({ children }) => {
             setSubscriptionStatus(status);
 
             if (status === "SUBSCRIBED") {
-              console.log("✅ [ADMIN CONTEXT] Real-time subscription active!");
+              console.log(" [ADMIN CONTEXT] Real-time subscription active!");
               if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
                 reconnectTimeout = null;
               }
             } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-              console.error(`❌ [ADMIN CONTEXT] Subscription ${status}! Reconnecting...`);
+              console.error(`[ADMIN CONTEXT] Subscription ${status}! Reconnecting...`);
               reconnectTimeout = setTimeout(() => {
-                console.log("🔄 [ADMIN CONTEXT] Attempting to reconnect...");
+                console.log(" [ADMIN CONTEXT] Attempting to reconnect...");
                 if (notificationSubscription) {
                   supabaseAdmin.removeChannel(notificationSubscription);
                 }
@@ -338,7 +338,7 @@ export const AdminNotificationProvider = ({ children }) => {
           Notification.requestPermission();
         }
       } catch (error) {
-        console.error("❌ [ADMIN CONTEXT] Error setting up subscription:", error);
+        console.error("[ADMIN CONTEXT] Error setting up subscription:", error);
         setSubscriptionStatus("error");
       }
     };
@@ -347,7 +347,7 @@ export const AdminNotificationProvider = ({ children }) => {
 
     // Set up polling as fallback (every 30 seconds)
     pollingInterval = setInterval(() => {
-      console.log("🔄 [ADMIN CONTEXT] Polling for new notifications...");
+      console.log("[ADMIN CONTEXT] Polling for new notifications...");
       loadNotifications();
     }, 30000);
 

@@ -27,7 +27,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const reservationId = searchParams.get("reservation_id");
 
-    console.log("🔍 API: Fetching contract for reservation:", reservationId);
+    console.log("API: Fetching contract for reservation:", reservationId);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -83,7 +83,7 @@ export async function GET(request) {
       .order("installment_number", { ascending: true });
 
     if (schedulesError) {
-      console.error("❌ Payment schedules error:", schedulesError);
+      console.error("Payment schedules error:", schedulesError);
     }
 
     const result = {
@@ -91,7 +91,7 @@ export async function GET(request) {
       payment_schedules: schedules || [],
     };
 
-    console.log(`✅ Found contract with ${schedules?.length || 0} payment schedules`);
+    console.log(`Found contract with ${schedules?.length || 0} payment schedules`);
 
     return NextResponse.json({
       success: true,
@@ -100,7 +100,7 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error("❌ Fetch contract error:", error);
+    console.error("Fetch contract error:", error);
     return NextResponse.json(
       {
         success: false,

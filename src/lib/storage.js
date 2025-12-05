@@ -28,7 +28,7 @@ function createAdminClient() {
  */
 export async function uploadFileToStorage(file, bucket, folder = '', filename = null) {
   try {
-    console.log('🔄 Starting file upload to Supabase Storage...');
+    console.log('Starting file upload to Supabase Storage...');
     console.log('File info:', { name: file.name, size: file.size, type: file.type });
     console.log('Upload params:', { bucket, folder, filename });
 
@@ -59,14 +59,14 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
 
     // Construct file path
     const filePath = folder ? `${folder}/${filename}` : filename;
-    console.log('📁 Full file path:', filePath);
+    console.log(' Full file path:', filePath);
 
     // Convert file to proper format for Supabase
     const fileBuffer = await file.arrayBuffer();
-    console.log('📄 File converted to buffer, size:', fileBuffer.byteLength);
+    console.log('File converted to buffer, size:', fileBuffer.byteLength);
 
     // Upload file to Supabase Storage using admin client
-    console.log('☁️ Uploading to Supabase Storage with admin privileges...');
+    console.log(' Uploading to Supabase Storage with admin privileges...');
     const { data, error } = await adminClient.storage
       .from(bucket)
       .upload(filePath, fileBuffer, {
@@ -76,7 +76,7 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
       });
 
     if (error) {
-      console.error('❌ Supabase storage upload error:', error);
+      console.error('Supabase storage upload error:', error);
       console.error('Error details:', {
         message: error.message,
         statusCode: error.statusCode,
@@ -85,14 +85,14 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
       return { success: false, error: `Storage error: ${error.message}` };
     }
 
-    console.log('✅ Upload successful:', data);
+    console.log(' Upload successful:', data);
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
 
-    console.log('🔗 Public URL generated:', publicUrl);
+    console.log(' Public URL generated:', publicUrl);
 
     return {
       success: true,
@@ -105,7 +105,7 @@ export async function uploadFileToStorage(file, bucket, folder = '', filename = 
     };
 
   } catch (error) {
-    console.error('❌ Storage upload error:', error);
+    console.error(' Storage upload error:', error);
     console.error('Error stack:', error.stack);
     return { success: false, error: `Upload failed: ${error.message}` };
   }
@@ -125,7 +125,7 @@ export async function deleteFileFromStorage(bucket, filePath) {
       throw new Error('Admin client not initialized - check SUPABASE_SERVICE_ROLE_KEY');
     }
 
-    console.log('🗑️ Using service role key for deletion (bypasses RLS)');
+    console.log('Using service role key for deletion (bypasses RLS)');
 
     const { error } = await adminClient.storage
       .from(bucket)

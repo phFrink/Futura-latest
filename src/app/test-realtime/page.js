@@ -30,7 +30,7 @@ export default function TestRealtimePage() {
   };
 
   useEffect(() => {
-    addLog('🚀 Starting real-time test...', 'info');
+    addLog('Starting real-time test...', 'info');
 
     // Set up real-time listener
     const channel = supabase
@@ -47,38 +47,38 @@ export default function TestRealtimePage() {
           table: 'notifications_tbl',
         },
         (payload) => {
-          addLog('🆕 NEW NOTIFICATION RECEIVED!', 'success');
+          addLog(' NEW NOTIFICATION RECEIVED!', 'success');
           addLog(`Title: ${payload.new.title}`, 'success');
           addLog(`Message: ${payload.new.message}`, 'success');
           setNotifications(prev => [payload.new, ...prev]);
         }
       )
       .subscribe((status) => {
-        addLog(`📡 Subscription status: ${status}`, 'info');
+        addLog(`Subscription status: ${status}`, 'info');
 
         if (status === 'SUBSCRIBED') {
-          addLog('✅ Real-time subscription ACTIVE!', 'success');
+          addLog(' Real-time subscription ACTIVE!', 'success');
           setIsConnected(true);
         } else if (status === 'CHANNEL_ERROR') {
-          addLog('❌ Real-time subscription ERROR!', 'error');
+          addLog(' Real-time subscription ERROR!', 'error');
           setIsConnected(false);
         } else if (status === 'TIMED_OUT') {
-          addLog('⏱️ Real-time subscription TIMED OUT!', 'error');
+          addLog(' Real-time subscription TIMED OUT!', 'error');
           setIsConnected(false);
         } else if (status === 'CLOSED') {
-          addLog('🔒 Real-time subscription CLOSED!', 'warning');
+          addLog(' Real-time subscription CLOSED!', 'warning');
           setIsConnected(false);
         }
       });
 
     return () => {
-      addLog('🛑 Cleaning up subscription...', 'info');
+      addLog(' Cleaning up subscription...', 'info');
       supabase.removeChannel(channel);
     };
   }, []);
 
   const createTestNotification = async () => {
-    addLog('📝 Creating test notification via API...', 'info');
+    addLog('Creating test notification via API...', 'info');
 
     try {
       const response = await fetch('/api/notifications', {
@@ -96,13 +96,13 @@ export default function TestRealtimePage() {
       const result = await response.json();
 
       if (result.success) {
-        addLog('✅ Notification created successfully!', 'success');
-        addLog('⏳ Waiting for real-time update...', 'info');
+        addLog(' Notification created successfully!', 'success');
+        addLog(' Waiting for real-time update...', 'info');
       } else {
-        addLog(`❌ Failed to create notification: ${result.error}`, 'error');
+        addLog(` Failed to create notification: ${result.error}`, 'error');
       }
     } catch (error) {
-      addLog(`❌ Error: ${error.message}`, 'error');
+      addLog(` Error: ${error.message}`, 'error');
     }
   };
 
@@ -145,9 +145,9 @@ export default function TestRealtimePage() {
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-bold mb-2">How to Test:</h3>
             <ol className="list-decimal list-inside space-y-1 text-sm">
-              <li>Wait for "✅ Real-time subscription ACTIVE!" in the logs below</li>
+              <li>Wait for " Real-time subscription ACTIVE!" in the logs below</li>
               <li>Click "Create Test Notification" button</li>
-              <li>Watch the logs - you should see "🆕 NEW NOTIFICATION RECEIVED!" appear instantly</li>
+              <li>Watch the logs - you should see "NEW NOTIFICATION RECEIVED!" appear instantly</li>
               <li>If it appears, real-time is working!</li>
             </ol>
           </div>

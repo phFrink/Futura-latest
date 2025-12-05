@@ -106,6 +106,7 @@ export default function ClientLandingPage() {
   // Inquiry form state
   const [inquiryForm, setInquiryForm] = useState({
     firstname: "",
+    middlename: "",
     lastname: "",
     email: "",
     phone: "",
@@ -755,7 +756,7 @@ export default function ClientLandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-red-600 to-red-700 text-white py-20 lg:py-32">
+      <section id="about" className="relative bg-gradient-to-r from-red-600 to-red-700 text-white py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1472,14 +1473,20 @@ export default function ClientLandingPage() {
                             type="tel"
                             required
                             value={reservationForm.phone}
-                            onChange={(e) =>
-                              setReservationForm({
-                                ...reservationForm,
-                                phone: e.target.value,
-                              })
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              if (value.length <= 11) {
+                                setReservationForm({
+                                  ...reservationForm,
+                                  phone: value,
+                                });
+                              }
+                            }}
                             className="pl-10"
-                            placeholder="+63 XXX XXX XXXX"
+                            placeholder="09XXXXXXXXX (11 digits)"
+                            maxLength={11}
+                            pattern="[0-9]{11}"
+                            title="Please enter exactly 11 digits"
                           />
                         </div>
                         {profile?.phone && (
@@ -1961,6 +1968,27 @@ export default function ClientLandingPage() {
 
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Middle Name (Optional)
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+                            <Input
+                              type="text"
+                              value={inquiryForm.middlename}
+                              onChange={(e) =>
+                                setInquiryForm({
+                                  ...inquiryForm,
+                                  middlename: e.target.value,
+                                })
+                              }
+                              className="pl-10"
+                              placeholder="Middle Name"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
                             Last Name *
                           </label>
                           <div className="relative">
@@ -2103,14 +2131,20 @@ export default function ClientLandingPage() {
                             type="tel"
                             required
                             value={inquiryForm.phone}
-                            onChange={(e) =>
-                              setInquiryForm({
-                                ...inquiryForm,
-                                phone: e.target.value,
-                              })
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              if (value.length <= 11) {
+                                setInquiryForm({
+                                  ...inquiryForm,
+                                  phone: value,
+                                });
+                              }
+                            }}
                             className="pl-10"
-                            placeholder="+63 XXX XXX XXXX"
+                            placeholder="09XXXXXXXXX (11 digits)"
+                            maxLength={11}
+                            pattern="[0-9]{11}"
+                            title="Please enter exactly 11 digits"
                           />
                         </div>
                       </div>
@@ -2520,7 +2554,7 @@ export default function ClientLandingPage() {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer id="contact" className="bg-slate-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>

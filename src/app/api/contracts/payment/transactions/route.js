@@ -21,18 +21,7 @@ function createSupabaseAdmin() {
 // Create Supabase admin client
 const supabaseAdmin = createSupabaseAdmin();
 
-/**
- * GET /api/contracts/payment/transactions
- * Get all contract payment transactions with optional filters
- *
- * Query Parameters:
- * - start_date: Filter transactions from this date (YYYY-MM-DD)
- * - end_date: Filter transactions up to this date (YYYY-MM-DD)
- * - payment_status: Filter by payment status (completed, pending, failed)
- * - payment_method: Filter by payment method
- * - contract_id: Filter by specific contract ID
- * - schedule_id: Filter by specific schedule ID
- */
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -108,7 +97,7 @@ export async function GET(request) {
     const { data: transactions, error: transactionsError } = await query;
 
     if (transactionsError) {
-      console.error("❌ Transactions fetch error:", transactionsError);
+      console.error("Transactions fetch error:", transactionsError);
       return NextResponse.json(
         {
           success: false,
@@ -118,7 +107,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${transactions.length} payment transactions`);
+    console.log(`Found ${transactions.length} payment transactions`);
 
     // Calculate summary statistics
     const summary = {
@@ -150,7 +139,7 @@ export async function GET(request) {
       message: "Transactions fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Transactions API error:", error);
+    console.error("Transactions API error:", error);
     return NextResponse.json(
       {
         success: false,

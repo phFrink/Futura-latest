@@ -23,7 +23,7 @@ export default function LoginComponent() {
         const justLoggedOut = sessionStorage.getItem('just_logged_out');
 
         if (justLoggedOut) {
-          console.log("🔓 Just logged out, staying on login page");
+          console.log("Just logged out, staying on login page");
           sessionStorage.removeItem('just_logged_out');
 
           // Force clear any remaining session
@@ -34,16 +34,16 @@ export default function LoginComponent() {
         // Refresh session from server (don't use cached)
         const { data: { session }, error } = await supabase.auth.refreshSession();
 
-        console.log("🔍 Login page - Session check:", {
+        console.log(" Login page - Session check:", {
           hasSession: !!session,
           error: error?.message
         });
 
         if (session && !error) {
-          console.log("✅ Valid session found, redirecting to dashboard");
+          console.log(" Valid session found, redirecting to dashboard");
           router.push("/dashboard");
         } else {
-          console.log("❌ No valid session, staying on login page");
+          console.log("No valid session, staying on login page");
         }
       } catch (error) {
         console.error("Session check error:", error);
@@ -74,14 +74,14 @@ export default function LoginComponent() {
 
         // Only block login if status is explicitly "inactive" (undefined = active)
         if (userMetadataStatus === "inactive") {
-          console.log("❌ Login denied: User status is inactive");
+          console.log(" Login denied: User status is inactive");
           setError("Your account has been deactivated. Please contact the administrator.");
           await supabase.auth.signOut();
           return;
         }
 
         // Second, check if user's account is active/inactive in profiles table (fallback)
-        console.log("🔍 Checking user status in profiles table...");
+        console.log("Checking user status in profiles table...");
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("status")
@@ -91,7 +91,7 @@ export default function LoginComponent() {
         // Check user status from profiles table
         const profileStatus = profileData?.status;
 
-        console.log("📊 User status check:", {
+        console.log(" User status check:", {
           userId: data.user.id,
           email: data.user.email,
           userMetadataStatus: userMetadataStatus,
@@ -101,7 +101,7 @@ export default function LoginComponent() {
 
         // If profile status is inactive, deny login immediately
         if (profileStatus === "inactive") {
-          console.log("❌ Login denied: Profile status is inactive");
+          console.log(" Login denied: Profile status is inactive");
           setError("Your account has been deactivated. Please contact the administrator.");
           await supabase.auth.signOut();
           return;
@@ -110,7 +110,7 @@ export default function LoginComponent() {
         // Get user role from metadata
         const userRole = data.user?.user_metadata?.role?.toLowerCase();
 
-        console.log("✅ Login successful:", {
+        console.log("Login successful:", {
           email: data.user.email,
           role: userRole,
           userMetadataStatus: userMetadataStatus,

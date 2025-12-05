@@ -26,7 +26,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function POST(request) {
   try {
     const { reservation_id } = await request.json();
-    console.log("🔄 API: Reverting reservation to pending:", reservation_id);
+    console.log(" API: Reverting reservation to pending:", reservation_id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -56,7 +56,7 @@ export async function POST(request) {
       .single();
 
     if (fetchError) {
-      console.error("❌ Fetch error:", fetchError);
+      console.error("Fetch error:", fetchError);
       return NextResponse.json(
         {
           success: false,
@@ -91,7 +91,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error("Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -102,7 +102,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Reservation reverted to pending successfully:", reservation_id);
+    console.log("Reservation reverted to pending successfully:", reservation_id);
 
     // Send notification to the client
     try {
@@ -120,9 +120,9 @@ export async function POST(request) {
         recipientId: existingReservation.user_id, // Send to specific client
         recipientRole: null, // Override role-based targeting
       });
-      console.log(`✅ Revert notification sent to user: ${existingReservation.user_id}`);
+      console.log(`Revert notification sent to user: ${existingReservation.user_id}`);
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error("Exception creating notification:", notificationError);
       // Don't fail the revert if notification fails
     }
 
@@ -134,11 +134,11 @@ export async function POST(request) {
       .eq("payment_status", "pending");
 
     if (deleteTransactionError) {
-      console.error("⚠️ Transaction deletion error:", deleteTransactionError);
+      console.error("Transaction deletion error:", deleteTransactionError);
       // Don't fail the revert if transaction deletion fails
       // Just log the error
     } else {
-      console.log("✅ Associated pending transactions deleted");
+      console.log("Associated pending transactions deleted");
     }
 
     return NextResponse.json({
@@ -147,7 +147,7 @@ export async function POST(request) {
       message: "Reservation reverted to pending successfully!",
     });
   } catch (error) {
-    console.error("❌ Revert reservation error:", error);
+    console.error("Revert reservation error:", error);
     return NextResponse.json(
       {
         success: false,

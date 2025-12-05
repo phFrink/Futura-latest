@@ -21,7 +21,10 @@ function ClientSignupPageContent() {
     password: '',
     confirmPassword: '',
     phone: '',
-    address: ''
+    street: '',
+    barangay: '',
+    city: '',
+    province: ''
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -45,6 +48,28 @@ function ClientSignupPageContent() {
       newErrors.email = 'Invalid email address';
     }
 
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^09\d{9}$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number must be exactly 11 digits starting with 09';
+    }
+
+    if (!formData.street.trim()) {
+      newErrors.street = 'Street is required';
+    }
+
+    if (!formData.barangay.trim()) {
+      newErrors.barangay = 'Barangay is required';
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+
+    if (!formData.province.trim()) {
+      newErrors.province = 'Province is required';
+    }
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -65,6 +90,15 @@ function ClientSignupPageContent() {
     if (!validateForm()) return;
 
     setLoading(true);
+
+    // Combine address fields into a single string
+    const addressParts = [
+      formData.street,
+      formData.barangay,
+      formData.city,
+      formData.province
+    ].filter(part => part.trim()).join(', ');
+
     const { data, error } = await signup(
       formData.firstName,
       formData.middleName,
@@ -72,7 +106,7 @@ function ClientSignupPageContent() {
       formData.email,
       formData.password,
       formData.phone,
-      formData.address
+      addressParts
     );
 
     setLoading(false);
@@ -190,32 +224,97 @@ function ClientSignupPageContent() {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Phone Number (Optional)
+                  Phone Number *
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
                   <Input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 11) {
+                        setFormData({ ...formData, phone: value });
+                      }
+                    }}
                     className="pl-10"
-                    placeholder="+63 XXX XXX XXXX"
+                    placeholder="09123456789"
+                    maxLength={11}
+                    required
                   />
                 </div>
+                {errors.phone && (
+                  <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+                )}
               </div>
 
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Address (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter your full address"
-                />
+              {/* Address Fields */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Street *
+                  </label>
+                  <Input
+                    type="text"
+                    value={formData.street}
+                    onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                    placeholder="House No., Street Name"
+                    required
+                  />
+                  {errors.street && (
+                    <p className="text-red-600 text-sm mt-1">{errors.street}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Barangay *
+                  </label>
+                  <Input
+                    type="text"
+                    value={formData.barangay}
+                    onChange={(e) => setFormData({ ...formData, barangay: e.target.value })}
+                    placeholder="Barangay Name"
+                    required
+                  />
+                  {errors.barangay && (
+                    <p className="text-red-600 text-sm mt-1">{errors.barangay}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      City *
+                    </label>
+                    <Input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="City Name"
+                      required
+                    />
+                    {errors.city && (
+                      <p className="text-red-600 text-sm mt-1">{errors.city}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Province *
+                    </label>
+                    <Input
+                      type="text"
+                      value={formData.province}
+                      onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                      placeholder="Province Name"
+                      required
+                    />
+                    {errors.province && (
+                      <p className="text-red-600 text-sm mt-1">{errors.province}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Password */}

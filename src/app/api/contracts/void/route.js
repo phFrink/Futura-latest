@@ -17,7 +17,7 @@ export async function POST(request) {
   try {
     const { contract_id, reason } = await request.json();
 
-    console.log("🗑️ API: Voiding contract:", contract_id);
+    console.log("API: Voiding contract:", contract_id);
 
     if (!contract_id) {
       return NextResponse.json(
@@ -34,11 +34,11 @@ export async function POST(request) {
     const { data: contract, error: contractError } = await supabaseAdmin
       .from("property_contracts")
       .select("*")
-      .eq("id", contract_id)
+      .eq("contract_id", contract_id)
       .single();
 
     if (contractError || !contract) {
-      console.error("❌ Error fetching contract:", contractError);
+      console.error("Error fetching contract:", contractError);
       return NextResponse.json(
         {
           success: false,
@@ -58,10 +58,10 @@ export async function POST(request) {
         void_reason: reason || "Non-payment for 3 consecutive months",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", contract_id);
+      .eq("contract_id", contract_id);
 
     if (updateError) {
-      console.error("❌ Error updating contract:", updateError);
+      console.error("Error updating contract:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -72,7 +72,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Contract status updated to 'voided'");
+    console.log("Contract status updated to 'voided'");
 
     // 3. Delete associated billing/payment schedules
     try {
@@ -84,11 +84,11 @@ export async function POST(request) {
 
       if (scheduleDeleteError) {
         console.warn(
-          "⚠️ Warning: Failed to delete payment schedules:",
+          " Warning: Failed to delete payment schedules:",
           scheduleDeleteError.message
         );
       } else {
-        console.log("✅ Payment schedules deleted");
+        console.log("Payment schedules deleted");
       }
 
       // Try to delete from billing table if it exists
@@ -99,11 +99,11 @@ export async function POST(request) {
 
       if (billingDeleteError) {
         console.warn(
-          "⚠️ Warning: Failed to delete billing records:",
+          " Warning: Failed to delete billing records:",
           billingDeleteError.message
         );
       } else {
-        console.log("✅ Billing records deleted");
+        console.log("Billing records deleted");
       }
 
       // Try to delete from installment_payments table if it exists
@@ -114,14 +114,14 @@ export async function POST(request) {
 
       if (installmentDeleteError) {
         console.warn(
-          "⚠️ Warning: Failed to delete installment payments:",
+          "Warning: Failed to delete installment payments:",
           installmentDeleteError.message
         );
       } else {
-        console.log("✅ Installment payments deleted");
+        console.log("Installment payments deleted");
       }
     } catch (deleteError) {
-      console.warn("⚠️ Warning during deletion:", deleteError);
+      console.warn(" Warning during deletion:", deleteError);
       // Don't fail the void operation if deletion fails
     }
 
@@ -138,18 +138,18 @@ export async function POST(request) {
 
         if (propertyError) {
           console.warn(
-            "⚠️ Warning: Failed to update property status:",
+            "Warning: Failed to update property status:",
             propertyError.message
           );
         } else {
-          console.log("✅ Property status updated to 'available'");
+          console.log("Property status updated to 'available'");
         }
       } catch (propertyError) {
-        console.warn("⚠️ Warning updating property:", propertyError);
+        console.warn("Warning updating property:", propertyError);
       }
     }
 
-    console.log("✅ Contract voided successfully");
+    console.log("Contract voided successfully");
 
     return NextResponse.json({
       success: true,
@@ -161,7 +161,7 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("❌ Void contract error:", error);
+    console.error("Void contract error:", error);
     return NextResponse.json(
       {
         success: false,

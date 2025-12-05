@@ -7,7 +7,7 @@ function createSupabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    console.error("❌ Missing Supabase credentials");
+    console.error(" Missing Supabase credentials");
     return null;
   }
 
@@ -25,7 +25,7 @@ const supabaseAdmin = createSupabaseAdmin();
 export async function GET(request) {
   try {
     if (!supabaseAdmin) {
-      console.error("❌ Supabase admin client not initialized");
+      console.error("Supabase admin client not initialized");
       return NextResponse.json(
         {
           success: true,
@@ -42,11 +42,11 @@ export async function GET(request) {
     const limit = searchParams.get("limit") || "50";
     const userId = searchParams.get("userId");
 
-    console.log("📥 [CLIENT API] Fetching client notifications...");
-    console.log("🔍 User ID:", userId);
+    console.log("[CLIENT API] Fetching client notifications...");
+    console.log("User ID:", userId);
 
     if (!userId) {
-      console.warn("⚠️ [CLIENT API] No userId provided - returning empty");
+      console.warn("[CLIENT API] No userId provided - returning empty");
       return NextResponse.json(
         {
           success: true,
@@ -60,7 +60,7 @@ export async function GET(request) {
     }
 
     // STRICT FILTER for clients: ONLY notifications where recipient_id EXACTLY matches
-    console.log(`🔒 [CLIENT API] STRICT filter: recipient_id = ${userId}`);
+    console.log(`[CLIENT API] STRICT filter: recipient_id = ${userId}`);
 
     let query = supabaseAdmin
       .from("notifications_tbl")
@@ -73,7 +73,7 @@ export async function GET(request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("❌ Error fetching client notifications:", error);
+      console.error("Error fetching client notifications:", error);
       return NextResponse.json(
         {
           success: false,
@@ -83,17 +83,17 @@ export async function GET(request) {
       );
     }
 
-    console.log("✅ [CLIENT API] Fetched notifications:", data?.length || 0);
-    console.log(`✅ All ${data?.length || 0} notifications have recipient_id = ${userId}`);
+    console.log("[CLIENT API] Fetched notifications:", data?.length || 0);
+    console.log(`All ${data?.length || 0} notifications have recipient_id = ${userId}`);
 
     // Debug: Show what notifications were returned
     if (data && data.length > 0) {
-      console.log("📋 Client Notifications:");
+      console.log("Client Notifications:");
       data.forEach((notif, index) => {
         console.log(`  ${index + 1}. "${notif.title}"`);
         console.log(`     - recipient_role: "${notif.recipient_role}"`);
         console.log(`     - recipient_id: ${notif.recipient_id}`);
-        console.log(`     - ✅ Matches user: ${notif.recipient_id === userId}`);
+        console.log(`     - Matches user: ${notif.recipient_id === userId}`);
       });
     }
 
@@ -110,7 +110,7 @@ export async function GET(request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Exception in client notifications API:", error);
+    console.error("Exception in client notifications API:", error);
     return NextResponse.json(
       {
         success: false,

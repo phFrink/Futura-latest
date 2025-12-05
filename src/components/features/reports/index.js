@@ -19,7 +19,8 @@ import {
   CreditCard,
   FileBarChart,
   Search,
-  Loader2
+  Loader2,
+  CalendarCheck
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClient } from '@supabase/supabase-js';
@@ -86,12 +87,19 @@ export default function Reports() {
       icon: Bell,
       description: 'All homeowners and their announcement publications',
       color: 'indigo'
+    },
+    {
+      id: 'reservations',
+      title: 'Reservations Report',
+      icon: CalendarCheck,
+      description: 'All property reservations with client details and status',
+      color: 'blue'
     }
   ];
 
   useEffect(() => {
     if (activeReport) {
-      console.log('🎯 Trigger: Report generation started for', activeReport);
+      console.log('Trigger: Report generation started for', activeReport);
       generateReport();
     }
   }, [activeReport, startDate, endDate]);
@@ -131,11 +139,12 @@ export default function Reports() {
             activeReport === 'complaints' ? 'complaint_tbl' :
               activeReport === 'billings' ? 'contract_payment_schedules' :
                 activeReport === 'announcements' ? 'homeowner_announcements' :
-                  'announcement_tbl';
+                  activeReport === 'reservations' ? 'property_reservations' :
+                    'announcement_tbl';
 
-      console.log('🔄 Generating fresh report for table:', tableName);
-      console.log('📅 Date filters:', { startDate, endDate });
-      console.log('⏰ Timestamp:', new Date().toISOString());
+      console.log('Generating fresh report for table:', tableName);
+      console.log('Date filters:', { startDate, endDate });
+      console.log('Timestamp:', new Date().toISOString());
 
       // Fetch ALL records from the table without any limits or pagination
       // No .limit() is applied - all data will be loaded and displayed
@@ -150,20 +159,21 @@ export default function Reports() {
               activeReport === 'complaints' ? 'created_at' :
                 activeReport === 'billings' ? 'due_date' :
                   activeReport === 'announcements' ? 'created_date' :
-                    'created_at';
+                    activeReport === 'reservations' ? 'created_at' :
+                      'created_at';
 
-        console.log('📊 Applying date filter on field:', dateField);
+        console.log('Applying date filter on field:', dateField);
         console.log('   From:', startDate, 'To:', endDate);
         query = query.gte(dateField, startDate).lte(dateField, endDate);
       } else {
-        console.log('📋 Loading ALL records without date filtering');
+        console.log('Loading ALL records without date filtering');
       }
 
       // Execute query - returns ALL matching records without any limits
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Supabase error:', error);
+        console.error('Supabase error:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         console.error('Error details:', error.details);
@@ -171,11 +181,11 @@ export default function Reports() {
 
         // If date filter caused error, try again without date filter
         if (startDate && endDate && error.code) {
-          console.log('🔄 Retrying query without date filter...');
+          console.log('Retrying query without date filter...');
           const { data: retryData, error: retryError } = await supabase.from(tableName).select('*');
 
           if (!retryError && retryData) {
-            console.log('✅ Retry successful! Retrieved', retryData.length, 'records');
+            console.log('Retry successful! Retrieved', retryData.length, 'records');
             let sortedData = retryData && retryData.length > 0 ? JSON.parse(JSON.stringify(retryData)) : [];
             setReportData(sortedData);
             setFilteredData(sortedData);
@@ -192,10 +202,10 @@ export default function Reports() {
         return;
       }
 
-      console.log('✅ Report data retrieved:', data?.length, 'records');
-      console.log('📋 Data sample:', data?.slice(0, 2));
+      console.log('Report data retrieved:', data?.length, 'records');
+      console.log('Data sample:', data?.slice(0, 2));
       if (data && data.length > 0) {
-        console.log('🔐 Data integrity - First record keys:', Object.keys(data[0]));
+        console.log('Data integrity - First record keys:', Object.keys(data[0]));
       }
 
       // Ensure data is fresh (force deep copy to avoid stale references)
@@ -213,7 +223,7 @@ export default function Reports() {
           }
           return 0;
         });
-        console.log('📊 Data sorted, showing first record:', sortedData[0]);
+        console.log('Data sorted, showing first record:', sortedData[0]);
       }
 
       // Force state update with fresh data

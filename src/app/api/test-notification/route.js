@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
 
 export async function GET(request) {
   try {
-    console.log("🧪 Creating test notification...");
+    console.log("Creating test notification...");
 
     // Insert test notification
     const { data: notificationData, error: notificationError } =
@@ -41,7 +41,7 @@ export async function GET(request) {
         .select();
 
     if (notificationError) {
-      console.error("❌ Error creating test notification:", notificationError);
+      console.error("Error creating test notification:", notificationError);
       return NextResponse.json(
         {
           success: false,
@@ -52,7 +52,7 @@ export async function GET(request) {
       );
     }
 
-    console.log("✅ Test notification created:", notificationData);
+    console.log("Test notification created:", notificationData);
 
     return NextResponse.json(
       {
@@ -63,7 +63,7 @@ export async function GET(request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Exception creating test notification:", error);
+    console.error("Exception creating test notification:", error);
     return NextResponse.json(
       {
         success: false,
@@ -84,7 +84,7 @@ export async function POST(request) {
       icon = "📢",
     } = body;
 
-    console.log("🧪 Creating custom test notification...");
+    console.log("Creating custom test notification...");
 
     // Insert custom test notification
     const { data: notificationData, error: notificationError } =
@@ -111,7 +111,7 @@ export async function POST(request) {
         .select();
 
     if (notificationError) {
-      console.error("❌ Error creating test notification:", notificationError);
+      console.error(" Error creating test notification:", notificationError);
       return NextResponse.json(
         {
           success: false,
@@ -122,7 +122,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Custom test notification created:", notificationData);
+    console.log("Custom test notification created:", notificationData);
 
     return NextResponse.json(
       {
@@ -133,7 +133,7 @@ export async function POST(request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Exception creating custom test notification:", error);
+    console.error(" Exception creating custom test notification:", error);
     return NextResponse.json(
       {
         success: false,

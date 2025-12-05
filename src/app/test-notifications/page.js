@@ -29,7 +29,7 @@ export default function TestNotificationsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: '🧪 Test Notification',
+          title: 'Test Notification',
           message: `Test notification created at ${new Date().toLocaleTimeString()}`,
           icon: '🧪',
           priority: 'high',

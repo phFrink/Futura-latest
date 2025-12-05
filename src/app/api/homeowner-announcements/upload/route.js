@@ -38,7 +38,7 @@ export async function POST(request) {
     const filename = `announcement-${timestamp}-${randomSuffix}.${extension}`;
 
     // Upload to Supabase Storage in announcements folder
-    console.log("🚀 Uploading announcement image to Supabase Storage...");
+    console.log("Uploading announcement image to Supabase Storage...");
     const uploadResult = await uploadFileToStorage(
       file,
       "futura",
@@ -47,7 +47,7 @@ export async function POST(request) {
     );
 
     if (!uploadResult.success) {
-      console.error("❌ Upload to storage failed:", uploadResult.error);
+      console.error(" Upload to storage failed:", uploadResult.error);
       return NextResponse.json(
         {
           error: "Failed to upload file to storage",
@@ -57,7 +57,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Announcement image uploaded successfully!");
+    console.log("Announcement image uploaded successfully!");
 
     // Return success response with file info
     return NextResponse.json(
@@ -118,7 +118,7 @@ export async function DELETE(request) {
       );
     }
 
-    console.log(`🗑️ Deleted announcement image: ${storageFilePath}`);
+    console.log(`Deleted announcement image: ${storageFilePath}`);
 
     return NextResponse.json(
       {

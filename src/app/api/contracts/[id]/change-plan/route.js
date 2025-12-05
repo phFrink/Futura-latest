@@ -28,9 +28,9 @@ export async function POST(request, { params }) {
     const body = await request.json();
     const { new_payment_plan_months, reason, changed_by } = body;
 
-    console.log("🔄 API: Changing payment plan for contract:", id);
-    console.log("📅 New payment plan months:", new_payment_plan_months);
-    console.log("📝 Reason:", reason);
+    console.log("API: Changing payment plan for contract:", id);
+    console.log("New payment plan months:", new_payment_plan_months);
+    console.log("Reason:", reason);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -90,7 +90,7 @@ export async function POST(request, { params }) {
       .order("installment_number", { ascending: true });
 
     if (schedulesError) {
-      console.error("❌ Payment schedules error:", schedulesError);
+      console.error("Payment schedules error:", schedulesError);
       return NextResponse.json(
         {
           success: false,
@@ -172,7 +172,7 @@ export async function POST(request, { params }) {
     const oldMonthlyInstallment = contract.monthly_installment;
     const oldFinalInstallmentDate = contract.final_installment_date;
 
-    console.log("💰 Plan change calculations:", {
+    console.log(" Plan change calculations:", {
       old_payment_plan_months: oldPaymentPlanMonths,
       new_payment_plan_months: new_payment_plan_months,
       old_monthly_installment: oldMonthlyInstallment,
@@ -195,7 +195,7 @@ export async function POST(request, { params }) {
       .single();
 
     if (updateError) {
-      console.error("❌ Contract update error:", updateError);
+      console.error(" Contract update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -206,7 +206,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    console.log("✅ Contract updated successfully");
+    console.log(" Contract updated successfully");
 
     // Delete all pending payment schedules
     if (pendingSchedules.length > 0) {
@@ -218,7 +218,7 @@ export async function POST(request, { params }) {
         .in("schedule_id", pendingScheduleIds);
 
       if (deleteError) {
-        console.error("❌ Delete schedules error:", deleteError);
+        console.error("Delete schedules error:", deleteError);
 
         // Rollback contract update
         await supabaseAdmin
@@ -240,7 +240,7 @@ export async function POST(request, { params }) {
         );
       }
 
-      console.log(`✅ Deleted ${pendingSchedules.length} pending payment schedules`);
+      console.log(`Deleted ${pendingSchedules.length} pending payment schedules`);
     }
 
     // Generate new payment schedules
@@ -278,7 +278,7 @@ export async function POST(request, { params }) {
       .select();
 
     if (insertError) {
-      console.error("❌ Insert schedules error:", insertError);
+      console.error(" Insert schedules error:", insertError);
 
       // Rollback: Restore old schedules and contract
       await supabaseAdmin
@@ -307,7 +307,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    console.log(`✅ Created ${newSchedules.length} new payment schedules`);
+    console.log(` Created ${newSchedules.length} new payment schedules`);
 
     // Create audit record for plan change
     try {
@@ -329,13 +329,13 @@ export async function POST(request, { params }) {
         .insert(auditRecord);
 
       if (auditError) {
-        console.warn("⚠️ Audit record creation failed (non-critical):", auditError.message);
+        console.warn("Audit record creation failed (non-critical):", auditError.message);
         // Don't fail the entire operation if audit fails
       } else {
-        console.log("✅ Audit record created");
+        console.log("Audit record created");
       }
     } catch (auditErr) {
-      console.warn("⚠️ Audit record creation error (non-critical):", auditErr);
+      console.warn("Audit record creation error (non-critical):", auditErr);
     }
 
     // Return success response
@@ -368,7 +368,7 @@ export async function POST(request, { params }) {
     });
 
   } catch (error) {
-    console.error("❌ Change plan error:", error);
+    console.error(" Change plan error:", error);
     return NextResponse.json(
       {
         success: false,

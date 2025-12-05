@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET() {
-  console.log('🔍 Storage Debug API called');
+  console.log(' Storage Debug API called');
 
   const diagnostics = {
     timestamp: new Date().toISOString(),
@@ -48,7 +48,7 @@ export async function GET() {
     diagnostics.storage = 'Connection failed';
   }
 
-  console.log('📊 Diagnostics result:', diagnostics);
+  console.log('Diagnostics result:', diagnostics);
 
   return NextResponse.json(diagnostics, { status: 200 });
 }

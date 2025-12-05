@@ -28,8 +28,8 @@ export async function POST(request, { params }) {
     const body = await request.json();
     const { new_payment_plan_months } = body;
 
-    console.log("🔍 API: Validating plan change for contract:", id);
-    console.log("📅 New payment plan months:", new_payment_plan_months);
+    console.log("API: Validating plan change for contract:", id);
+    console.log("New payment plan months:", new_payment_plan_months);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -91,7 +91,7 @@ export async function POST(request, { params }) {
       .order("installment_number", { ascending: true });
 
     if (schedulesError) {
-      console.error("❌ Payment schedules error:", schedulesError);
+      console.error("Payment schedules error:", schedulesError);
       return NextResponse.json(
         {
           success: false,
@@ -206,12 +206,12 @@ export async function POST(request, { params }) {
         : "Plan change is not allowed due to validation errors",
     };
 
-    console.log(`✅ Validation complete. Allowed: ${isAllowed}`);
+    console.log(`Validation complete. Allowed: ${isAllowed}`);
 
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error("❌ Validate plan change error:", error);
+    console.error(" Validate plan change error:", error);
     return NextResponse.json(
       {
         success: false,

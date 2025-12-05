@@ -23,7 +23,7 @@ const supabaseAdmin = createSupabaseAdmin();
 
 export async function GET(request) {
   try {
-    console.log("🔍 API: Fetching users with admin client...");
+    console.log(" API: Fetching users with admin client...");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -44,11 +44,11 @@ export async function GET(request) {
     } = await supabaseAdmin.auth.admin.listUsers();
 
     if (error) {
-      console.error("❌ Supabase admin error:", error);
+      console.error("Supabase admin error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log(`✅ Found ${users.length} total users`);
+    console.log(`Found ${users.length} total users`);
 
     // Try to get profiles data and veterinary_staff data for additional info
     let profiles = [];
@@ -60,9 +60,9 @@ export async function GET(request) {
         .from("profiles")
         .select("*");
       profiles = profilesData || [];
-      console.log(`✅ Found ${profiles.length} profiles`);
+      console.log(` Found ${profiles.length} profiles`);
     } catch (profilesErr) {
-      console.log("⚠️ Profiles not available, using auth data only");
+      console.log("Profiles not available, using auth data only");
     }
 
     try {
@@ -82,9 +82,9 @@ export async function GET(request) {
           )
         `);
       veterinaryStaff = staffData || [];
-      console.log(`✅ Found ${veterinaryStaff.length} veterinary staff`);
+      console.log(` Found ${veterinaryStaff.length} veterinary staff`);
     } catch (staffErr) {
-      console.log("⚠️ Veterinary staff not available:", staffErr.message);
+      console.log(" Veterinary staff not available:", staffErr.message);
     }
 
     try {
@@ -93,9 +93,9 @@ export async function GET(request) {
         .from("vet_owner_branches")
         .select("*");
       branches = branchesData || [];
-      console.log(`✅ Found ${branches.length} branches`);
+      console.log(` Found ${branches.length} branches`);
     } catch (branchErr) {
-      console.log("⚠️ Branches not available:", branchErr.message);
+      console.log("Branches not available:", branchErr.message);
     }
 
     // Format users with profile data and staff information
@@ -126,11 +126,6 @@ export async function GET(request) {
         };
       }
 
-      // Determine user status from multiple sources (priority order):
-      // 1. user_metadata.status (explicitly set)
-      // 2. profile.status (from profiles table)
-      // 3. banned_until (Supabase Auth ban status)
-      // 4. default to "active"
       let userStatus = "active";
       if (user.user_metadata?.status) {
         userStatus = user.user_metadata.status;
@@ -192,11 +187,11 @@ export async function GET(request) {
         );
       });
       console.log(
-        `✅ Filtered to ${filteredUsers.length} users with user_metadata.role: ${roleFilter}`
+        `Filtered to ${filteredUsers.length} users with user_metadata.role: ${roleFilter}`
       );
     }
 
-    console.log(`✅ Returning ${filteredUsers.length} formatted users`);
+    console.log(` Returning ${filteredUsers.length} formatted users`);
 
     return NextResponse.json({
       success: true,
@@ -205,7 +200,7 @@ export async function GET(request) {
       message: `Loaded ${filteredUsers.length} users successfully`,
     });
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error(" API Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch users: " + error.message },
       { status: 500 }
@@ -217,7 +212,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const userData = await request.json();
-    console.log("➕ API: Creating user:", userData.email);
+    console.log(" API: Creating user:", userData.email);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -270,7 +265,7 @@ export async function POST(request) {
       });
 
     if (authError) {
-      console.error("❌ Auth error:", authError);
+      console.error(" Auth error:", authError);
       return NextResponse.json(
         {
           success: false,
@@ -281,7 +276,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ User created successfully:", authData.user.id);
+    console.log(" User created successfully:", authData.user.id);
 
     // Create profile in profiles table if it exists
     try {
@@ -301,12 +296,12 @@ export async function POST(request) {
         .insert(profileData);
 
       if (profileError) {
-        console.log("⚠️ Profile creation warning:", profileError.message);
+        console.log(" Profile creation warning:", profileError.message);
       } else {
-        console.log("✅ Profile created successfully");
+        console.log(" Profile created successfully");
       }
     } catch (profileErr) {
-      console.log("⚠️ Profile table not available or error:", profileErr.message);
+      console.log("Profile table not available or error:", profileErr.message);
     }
 
     // Return formatted user data
@@ -334,7 +329,7 @@ export async function POST(request) {
       message: "User created successfully",
     });
   } catch (error) {
-    console.error("❌ Create user error:", error);
+    console.error("Create user error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -350,12 +345,12 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const { userId, ...userData } = await request.json();
-    console.log("✏️ [API] Updating user:", userId);
-    console.log("📋 [API] Received user data:", userData);
+    console.log("[API] Updating user:", userId);
+    console.log("[API] Received user data:", userData);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
-      console.error("❌ [API] Supabase admin client not available");
+      console.error(" [API] Supabase admin client not available");
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -363,7 +358,7 @@ export async function PUT(request) {
     }
 
     if (!userId) {
-      console.error("❌ [API] No userId provided");
+      console.error(" [API] No userId provided");
       return NextResponse.json(
         {
           success: false,
@@ -397,24 +392,24 @@ export async function PUT(request) {
       },
     };
 
-    console.log("📝 [API] Prepared user_metadata update:", updateData.user_metadata);
+    console.log(" [API] Prepared user_metadata update:", updateData.user_metadata);
 
     // Add banned_until to the same update call if status is being changed
     if (userData.status !== undefined) {
       if (userData.status === "inactive") {
-        console.log(`🔒 Setting banned_until for user: ${userId}`);
+        console.log(` Setting banned_until for user: ${userId}`);
         const bannedUntil = new Date();
         bannedUntil.setFullYear(bannedUntil.getFullYear() + 100);
         updateData.banned_until = bannedUntil.toISOString();
       } else if (userData.status === "active") {
-        console.log(`🔓 Removing ban for user: ${userId}`);
+        console.log(`Removing ban for user: ${userId}`);
         updateData.banned_until = "none";
       }
     }
 
     // Update user in Supabase Auth (single call with all updates)
-    console.log("📝 [API] Calling Supabase updateUserById for:", userId);
-    console.log("📝 [API] Update data:", {
+    console.log("[API] Calling Supabase updateUserById for:", userId);
+    console.log("[API] Update data:", {
       status: userData.status,
       banned_until: updateData.banned_until,
       user_metadata: updateData.user_metadata,
@@ -424,7 +419,7 @@ export async function PUT(request) {
       await supabaseAdmin.auth.admin.updateUserById(userId, updateData);
 
     if (authError) {
-      console.error("❌ [API] Auth update error:", authError);
+      console.error(" [API] Auth update error:", authError);
       return NextResponse.json(
         {
           success: false,
@@ -435,10 +430,10 @@ export async function PUT(request) {
       );
     }
 
-    console.log("✅ [API] User updated successfully in Auth:", userId);
-    console.log("✅ [API] Updated user_metadata:", authData.user.user_metadata);
-    console.log("✅ [API] User metadata status:", authData.user.user_metadata?.status);
-    console.log("✅ [API] Banned until:", authData.user.banned_until || "not banned");
+    console.log("[API] User updated successfully in Auth:", userId);
+    console.log("[API] Updated user_metadata:", authData.user.user_metadata);
+    console.log("[API] User metadata status:", authData.user.user_metadata?.status);
+    console.log("[API] Banned until:", authData.user.banned_until || "not banned");
 
     // Update profile in profiles table if it exists
     try {
@@ -460,12 +455,12 @@ export async function PUT(request) {
         .upsert({ id: userId, ...profileUpdate });
 
       if (profileError) {
-        console.log("⚠️ Profile update warning:", profileError.message);
+        console.log("Profile update warning:", profileError.message);
       } else {
-        console.log("✅ Profile updated successfully");
+        console.log("Profile updated successfully");
       }
     } catch (profileErr) {
-      console.log("⚠️ Profile table not available or error:", profileErr.message);
+      console.log("Profile table not available or error:", profileErr.message);
     }
 
     // Return formatted user data
@@ -494,7 +489,7 @@ export async function PUT(request) {
       message: "User updated successfully",
     });
   } catch (error) {
-    console.error("❌ Update user error:", error);
+    console.error(" Update user error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -512,7 +507,7 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    console.log("🗑️ API: Deleting user:", userId);
+    console.log("API: Deleting user:", userId);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -539,7 +534,7 @@ export async function DELETE(request) {
     );
 
     if (authError) {
-      console.error("❌ Auth delete error:", authError);
+      console.error("Auth delete error:", authError);
       return NextResponse.json(
         {
           success: false,
@@ -550,14 +545,14 @@ export async function DELETE(request) {
       );
     }
 
-    console.log("✅ User deleted successfully:", userId);
+    console.log("User deleted successfully:", userId);
 
     return NextResponse.json({
       success: true,
       message: "User deleted successfully",
     });
   } catch (error) {
-    console.error("❌ Delete user error:", error);
+    console.error(" Delete user error:", error);
     return NextResponse.json(
       {
         success: false,

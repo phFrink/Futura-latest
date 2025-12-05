@@ -219,6 +219,7 @@ export default function NotificationsPage() {
   const stats = {
     total: notifications.length,
     unread: notifications.filter(n => n.status === 'unread').length,
+    read: notifications.filter(n => n.status === 'read').length,
     urgent: notifications.filter(n => n.priority === 'urgent').length,
   };
 
@@ -269,10 +270,10 @@ export default function NotificationsPage() {
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm text-slate-600">Your Role</p>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-900 capitalize truncate">{userRole || 'Loading...'}</p>
+                  <p className="text-xs sm:text-sm text-slate-600">Read</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.read}</p>
                 </div>
-                <Info className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
+                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
               </div>
             </CardContent>
           </Card>

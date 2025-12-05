@@ -29,7 +29,7 @@ export async function GET(request) {
     const status = searchParams.get("status");
     const contractNumber = searchParams.get("contract_number");
 
-    console.log("🔍 API: Fetching contracts with filters:", {
+    console.log("API: Fetching contracts with filters:", {
       userId,
       status,
       contractNumber,
@@ -75,7 +75,7 @@ export async function GET(request) {
     const { data: contracts, error: contractsError } = await query;
 
     if (contractsError) {
-      console.error("❌ Contracts fetch error:", contractsError);
+      console.error(" Contracts fetch error:", contractsError);
       return NextResponse.json(
         {
           success: false,
@@ -98,7 +98,7 @@ export async function GET(request) {
 
         if (schedulesError) {
           console.error(
-            `❌ Payment schedules error for contract ${contract.contract_id}:`,
+            ` Payment schedules error for contract ${contract.contract_id}:`,
             schedulesError
           );
         }
@@ -177,7 +177,7 @@ export async function GET(request) {
       })
     );
 
-    console.log(`✅ Found ${contractsWithDetails.length} contracts`);
+    console.log(`Found ${contractsWithDetails.length} contracts`);
 
     return NextResponse.json({
       success: true,
@@ -186,7 +186,7 @@ export async function GET(request) {
       total: contractsWithDetails.length,
     });
   } catch (error) {
-    console.error("❌ Fetch contracts error:", error);
+    console.error("Fetch contracts error:", error);
     return NextResponse.json(
       {
         success: false,

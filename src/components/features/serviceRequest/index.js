@@ -130,7 +130,7 @@ export default function ServiceRequests() {
 
       if (contractsError) throw contractsError;
 
-      console.log("✅ Loaded contracts:", contractsData?.length || 0);
+      console.log("Loaded contracts:", contractsData?.length || 0);
 
       setRequests(requestsData || []);
       setProperties(propertiesData || []);
@@ -1189,13 +1189,13 @@ export default function ServiceRequests() {
                   <option value="general_maintenance">
                     🔨 General Maintenance
                   </option>
-                  <option value="cleaning">🧹 Cleaning</option>
-                  <option value="appliance">🏠 Appliance</option>
-                  <option value="electrical">⚡ Electrical</option>
-                  <option value="security">🔒 Security</option>
-                  <option value="landscaping">🌳 Landscaping</option>
-                  <option value="hvac">❄️ HVAC</option>
-                  <option value="other">📋 Other</option>
+                  <option value="cleaning"> Cleaning</option>
+                  <option value="appliance"> Appliance</option>
+                  <option value="electrical"> Electrical</option>
+                  <option value="security">Security</option>
+                  <option value="landscaping"> Landscaping</option>
+                  <option value="hvac">HVAC</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 

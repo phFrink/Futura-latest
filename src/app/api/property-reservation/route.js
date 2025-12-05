@@ -37,9 +37,9 @@ export async function POST(request) {
     const reservationDataStr = formData.get('reservation_data');
     const reservationData = reservationDataStr ? JSON.parse(reservationDataStr) : {};
 
-    console.log("🏠 API: Creating property reservation:", reservationData);
-    console.log("📄 ID File:", idFile ? `${idFile.name} (${idFile.size} bytes)` : 'No file uploaded');
-    console.log("🆔 ID Type:", idType);
+    console.log("API: Creating property reservation:", reservationData);
+    console.log("ID File:", idFile ? `${idFile.name} (${idFile.size} bytes)` : 'No file uploaded');
+    console.log("ID Type:", idType);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -97,7 +97,7 @@ export async function POST(request) {
     // Handle file upload if provided
     let idUploadPath = null;
     if (idFile && idFile.size > 0) {
-      console.log("📤 Uploading ID file...");
+      console.log("Uploading ID file...");
 
       // Validate file (allow images and PDFs for ID documents)
       const validation = validateFile(idFile, {
@@ -142,13 +142,13 @@ export async function POST(request) {
       }
 
       idUploadPath = uploadResult.data.publicUrl;
-      console.log("✅ ID file uploaded successfully:", idUploadPath);
+      console.log("ID file uploaded successfully:", idUploadPath);
     }
 
     // Generate unique tracking number
     const randomId = Math.random().toString(36).substring(2, 10).toUpperCase();
     const trackingNumber = `TRK-${randomId}`;
-    console.log("📝 Generated tracking number:", trackingNumber);
+    console.log("Generated tracking number:", trackingNumber);
 
     // Insert reservation into database
     const { data: reservation, error: insertError } = await supabaseAdmin
@@ -197,7 +197,7 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
-      console.error("❌ Insert error:", insertError);
+      console.error("Insert error:", insertError);
       return NextResponse.json(
         {
           success: false,
@@ -208,7 +208,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("✅ Reservation created successfully:", reservation.reservation_id);
+    console.log("Reservation created successfully:", reservation.reservation_id);
 
     // Create notification for new reservation (role-based: sales reps + admins)
     try {
@@ -229,9 +229,9 @@ export async function POST(request) {
         // Customer service will NOT see it (role doesn't match)
       });
 
-      console.log(`✅ Notification created for sales representatives and admins`);
+      console.log(` Notification created for sales representatives and admins`);
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error(" Exception creating notification:", notificationError);
       // Don't fail the reservation if notification fails
     }
 
@@ -241,7 +241,7 @@ export async function POST(request) {
       message: "Reservation submitted successfully! Our team will review your application and contact you soon.",
     });
   } catch (error) {
-    console.error("❌ Property reservation error:", error);
+    console.error("Property reservation error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -259,7 +259,7 @@ export async function PUT(request) {
     const body = await request.json();
     const { reservationId, status, notes } = body;
 
-    console.log("🔄 API: Updating reservation status:", { reservationId, status });
+    console.log(" API: Updating reservation status:", { reservationId, status });
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -329,7 +329,7 @@ export async function PUT(request) {
       .single();
 
     if (updateError) {
-      console.error("❌ Update error:", updateError);
+      console.error(" Update error:", updateError);
       return NextResponse.json(
         {
           success: false,
@@ -340,7 +340,7 @@ export async function PUT(request) {
       );
     }
 
-    console.log(`✅ Reservation ${reservationId} status updated to: ${status}`);
+    console.log(` Reservation ${reservationId} status updated to: ${status}`);
 
     // Create notification for the client who made the reservation
     try {
@@ -363,7 +363,7 @@ export async function PUT(request) {
           recipientId: existingReservation.user_id, // Send to specific client
           recipientRole: null, // Override role-based targeting
         });
-        console.log(`✅ Approval notification sent to user: ${existingReservation.user_id}`);
+        console.log(` Approval notification sent to user: ${existingReservation.user_id}`);
       } else if (status === "rejected") {
         // Send rejection notification to the client
         await createNotification(supabaseAdmin, {
@@ -371,10 +371,10 @@ export async function PUT(request) {
           recipientId: existingReservation.user_id, // Send to specific client
           recipientRole: null, // Override role-based targeting
         });
-        console.log(`✅ Rejection notification sent to user: ${existingReservation.user_id}`);
+        console.log(` Rejection notification sent to user: ${existingReservation.user_id}`);
       }
     } catch (notificationError) {
-      console.error("❌ Exception creating notification:", notificationError);
+      console.error("Exception creating notification:", notificationError);
       // Don't fail the update if notification fails
     }
 
@@ -384,7 +384,7 @@ export async function PUT(request) {
       message: `Reservation ${status} successfully`,
     });
   } catch (error) {
-    console.error("❌ Update reservation error:", error);
+    console.error("Update reservation error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -403,7 +403,7 @@ export async function GET(request) {
     const userId = searchParams.get("userId");
     const status = searchParams.get("status");
 
-    console.log("🔍 API: Fetching property reservations for user:", userId);
+    console.log("API: Fetching property reservations for user:", userId);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -437,7 +437,7 @@ export async function GET(request) {
     const { data: reservations, error } = await query;
 
     if (error) {
-      console.error("❌ Fetch error:", error);
+      console.error("Fetch error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -489,7 +489,7 @@ export async function GET(request) {
       })
     );
 
-    console.log(`✅ Found ${reservationsWithContracts.length} reservations`);
+    console.log(`Found ${reservationsWithContracts.length} reservations`);
 
     return NextResponse.json({
       success: true,
@@ -498,7 +498,7 @@ export async function GET(request) {
       message: `Found ${reservationsWithContracts.length} reservations`,
     });
   } catch (error) {
-    console.error("❌ Fetch reservations error:", error);
+    console.error(" Fetch reservations error:", error);
     return NextResponse.json(
       {
         success: false,

@@ -33,7 +33,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    console.log("🔍 DEBUG: Checking notifications for userId:", userId);
+    console.log("DEBUG: Checking notifications for userId:", userId);
 
     // Get ALL notifications to see what's in the database
     const { data: allNotifications, error: allError } = await supabaseAdmin
@@ -49,7 +49,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`📊 Total notifications in database: ${allNotifications.length}`);
+    console.log(`Total notifications in database: ${allNotifications.length}`);
 
     // Analyze the data
     const analysis = {
@@ -74,7 +74,7 @@ export async function GET(request) {
       analysis.byRole[role] = (analysis.byRole[role] || 0) + 1;
     });
 
-    console.log("📊 Analysis:", analysis);
+    console.log("Analysis:", analysis);
 
     // Now test the actual filter query
     let testQuery = supabaseAdmin
@@ -91,10 +91,10 @@ export async function GET(request) {
     const { data: filteredNotifications, error: filterError } = await testQuery;
 
     if (filterError) {
-      console.error("❌ Filter error:", filterError);
+      console.error("Filter error:", filterError);
     }
 
-    console.log(`✅ Filtered notifications: ${filteredNotifications?.length || 0}`);
+    console.log(`Filtered notifications: ${filteredNotifications?.length || 0}`);
 
     return NextResponse.json({
       success: true,
@@ -109,7 +109,7 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error("❌ Debug error:", error);
+    console.error("Debug error:", error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
@@ -131,7 +131,7 @@ export async function POST(request) {
 
     if (action === 'assign_to_user') {
       // Update all notifications without recipient_id to be assigned to this user
-      console.log(`🔧 Assigning all NULL recipient_id notifications to user: ${userId}`);
+      console.log(` Assigning all NULL recipient_id notifications to user: ${userId}`);
 
       const { data, error } = await supabaseAdmin
         .from('notifications_tbl')
@@ -156,7 +156,7 @@ export async function POST(request) {
 
     if (action === 'set_all_to_broadcast') {
       // Set all notifications without recipient_id/role to 'all'
-      console.log(`🔧 Setting all NULL notifications to recipient_role='all'`);
+      console.log(`Setting all NULL notifications to recipient_role='all'`);
 
       const { data, error } = await supabaseAdmin
         .from('notifications_tbl')
@@ -185,7 +185,7 @@ export async function POST(request) {
     );
 
   } catch (error) {
-    console.error("❌ Fix error:", error);
+    console.error(" Fix error:", error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

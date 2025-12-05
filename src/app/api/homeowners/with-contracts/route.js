@@ -24,7 +24,7 @@ const supabaseAdmin = createSupabaseAdmin();
 // GET endpoint to fetch homeowners who have contracts
 export async function GET(request) {
   try {
-    console.log("🔍 API: Fetching homeowners with contracts");
+    console.log("API: Fetching homeowners with contracts");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -50,7 +50,7 @@ export async function GET(request) {
       .order("client_name", { ascending: true });
 
     if (contractsError) {
-      console.error("❌ Contracts fetch error:", contractsError);
+      console.error("Contracts fetch error:", contractsError);
       return NextResponse.json(
         {
           success: false,
@@ -98,7 +98,7 @@ export async function GET(request) {
 
     const uniqueHomeowners = Array.from(homeownerMap.values());
 
-    console.log(`✅ Found ${uniqueHomeowners.length} homeowners with contracts`);
+    console.log(`Found ${uniqueHomeowners.length} homeowners with contracts`);
 
     return NextResponse.json({
       success: true,
@@ -106,7 +106,7 @@ export async function GET(request) {
       total: uniqueHomeowners.length,
     });
   } catch (error) {
-    console.error("❌ Fetch homeowners with contracts error:", error);
+    console.error("Fetch homeowners with contracts error:", error);
     return NextResponse.json(
       {
         success: false,

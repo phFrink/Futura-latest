@@ -24,9 +24,9 @@ const supabaseAdmin = createSupabaseAdmin();
 // GET endpoint to fetch contract details with payment schedules
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
-    console.log("🔍 API: Fetching contract:", id);
+    console.log("API: Fetching contract:", id);
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -62,7 +62,7 @@ export async function GET(request, { params }) {
       .order("installment_number", { ascending: true });
 
     if (schedulesError) {
-      console.error("❌ Payment schedules error:", schedulesError);
+      console.error("Payment schedules error:", schedulesError);
     }
 
     // Calculate statistics
@@ -94,7 +94,7 @@ export async function GET(request, { params }) {
       next_payment: nextPayment || null,
     };
 
-    console.log(`✅ Found contract with ${schedules?.length || 0} payment schedules`);
+    console.log(`Found contract with ${schedules?.length || 0} payment schedules`);
 
     return NextResponse.json({
       success: true,
@@ -103,12 +103,94 @@ export async function GET(request, { params }) {
     });
 
   } catch (error) {
-    console.error("❌ Fetch contract error:", error);
+    console.error("Fetch contract error:", error);
     return NextResponse.json(
       {
         success: false,
         error: error.message,
         message: "Failed to fetch contract: " + error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH endpoint to update contract status
+export async function PATCH(request, { params }) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { contract_status } = body;
+
+    console.log("API: Updating contract status:", id, "to", contract_status);
+
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    // Validate contract_status
+    const validStatuses = ["active", "pending", "completed", "cancelled", "voided"];
+    if (!contract_status || !validStatuses.includes(contract_status)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid contract status",
+          message: "Contract status must be one of: " + validStatuses.join(", "),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Update contract status
+    const { data: updatedContract, error: updateError } = await supabaseAdmin
+      .from("property_contracts")
+      .update({ contract_status: contract_status })
+      .eq("contract_id", id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("Update contract error:", updateError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: updateError.message,
+          message: "Failed to update contract status",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!updatedContract) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Contract not found",
+          message: "Contract not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    console.log("Contract status updated successfully:", updatedContract.contract_number);
+
+    return NextResponse.json({
+      success: true,
+      data: updatedContract,
+      message: "Contract status updated successfully",
+    });
+
+  } catch (error) {
+    console.error("Update contract error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+        message: "Failed to update contract: " + error.message,
       },
       { status: 500 }
     );

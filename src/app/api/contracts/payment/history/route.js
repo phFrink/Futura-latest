@@ -31,7 +31,7 @@ export async function GET(request) {
     const contractId = searchParams.get("contract_id");
     const scheduleId = searchParams.get("schedule_id");
 
-    console.log("🔍 Fetching payment history:", { contractId, scheduleId });
+    console.log("Fetching payment history:", { contractId, scheduleId });
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -73,7 +73,7 @@ export async function GET(request) {
     const { data: transactions, error: transactionsError } = await query;
 
     if (transactionsError) {
-      console.error("❌ Payment history error:", transactionsError);
+      console.error(" Payment history error:", transactionsError);
       return NextResponse.json(
         {
           success: false,
@@ -83,7 +83,7 @@ export async function GET(request) {
       );
     }
 
-    console.log(`✅ Found ${transactions.length} payment transactions`);
+    console.log(`Found ${transactions.length} payment transactions`);
 
     // Calculate summary statistics
     const summary = {
@@ -110,7 +110,7 @@ export async function GET(request) {
       message: "Payment history fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Payment history API error:", error);
+    console.error("Payment history API error:", error);
     return NextResponse.json(
       {
         success: false,

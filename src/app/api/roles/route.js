@@ -23,7 +23,7 @@ const supabaseAdmin = createSupabaseAdmin();
 
 export async function GET(request) {
   try {
-    console.log("🔍 API: Fetching roles...");
+    console.log(" API: Fetching roles...");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -40,11 +40,11 @@ export async function GET(request) {
       .order("role_id", { ascending: true });
 
     if (error) {
-      console.error("❌ Supabase error:", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log(`✅ Found ${roles?.length || 0} roles`);
+    console.log(`Found ${roles?.length || 0} roles`);
     console.log("Role structure:", roles?.[0]);
 
     return NextResponse.json({
@@ -54,7 +54,7 @@ export async function GET(request) {
       message: `Loaded ${roles?.length || 0} roles successfully`,
     });
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error(" API Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch roles: " + error.message },
       { status: 500 }
@@ -64,7 +64,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    console.log("➕ API: Creating new role...");
+    console.log(" API: Creating new role...");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -91,14 +91,14 @@ export async function POST(request) {
       .select();
 
     if (error) {
-      console.error("❌ Supabase error:", error);
+      console.error(" Supabase error:", error);
       return NextResponse.json(
         { success: false, message: error.message },
         { status: 500 }
       );
     }
 
-    console.log("✅ Role created successfully:", data);
+    console.log("Role created successfully:", data);
 
     return NextResponse.json({
       success: true,
@@ -106,7 +106,7 @@ export async function POST(request) {
       message: "Role created successfully",
     });
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error(" API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to create role: " + error.message },
       { status: 500 }
@@ -116,7 +116,7 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    console.log("✏️ API: Updating role...");
+    console.log("API: Updating role...");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -151,14 +151,14 @@ export async function PUT(request) {
       .select();
 
     if (error) {
-      console.error("❌ Supabase error:", error);
+      console.error("Supabase error:", error);
       return NextResponse.json(
         { success: false, message: error.message },
         { status: 500 }
       );
     }
 
-    console.log("✅ Role updated successfully:", data);
+    console.log("Role updated successfully:", data);
 
     return NextResponse.json({
       success: true,
@@ -166,7 +166,7 @@ export async function PUT(request) {
       message: "Role updated successfully",
     });
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error(" API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to update role: " + error.message },
       { status: 500 }
@@ -176,7 +176,7 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
-    console.log("🗑️ API: Deleting role...");
+    console.log("API: Deleting role...");
 
     // Check if Supabase admin client is available
     if (!supabaseAdmin) {
@@ -203,21 +203,21 @@ export async function DELETE(request) {
       .eq("role_id", roleId);
 
     if (error) {
-      console.error("❌ Supabase error:", error);
+      console.error("Supabase error:", error);
       return NextResponse.json(
         { success: false, message: error.message },
         { status: 500 }
       );
     }
 
-    console.log("✅ Role deleted successfully");
+    console.log("Role deleted successfully");
 
     return NextResponse.json({
       success: true,
       message: "Role deleted successfully",
     });
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error(" API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to delete role: " + error.message },
       { status: 500 }

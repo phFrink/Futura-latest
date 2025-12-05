@@ -27,22 +27,18 @@ const ComplaintsPage = () => {
       }
 
       // Check if user has any contracts
-      const { data: contracts, error } = await supabase
+      const { data: contracts, error: contractError } = await supabase
         .from('property_contracts')
         .select('id')
         .eq('client_email', user.email)
         .limit(1);
 
-      if (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error checking contracts:', error);
+      if (contractError) {
         setHasContract(false);
       } else {
         setHasContract(contracts && contracts.length > 0);
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error in checkUserContract:', error);
+    } catch (err) {
       setHasContract(false);
     } finally {
       setLoading(false);

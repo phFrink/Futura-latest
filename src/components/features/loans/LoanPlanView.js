@@ -362,7 +362,39 @@ export default function LoanPlanView({ contractId }) {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? (
+                          {parseFloat(schedule.remaining_amount || 0) > 0 ? (
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                size="sm"
+                                onClick={() => handleWalkInPayment(schedule, contract)}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <CreditCard className="w-4 h-4 mr-1" />
+                                {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? "Pay More" : "Pay"}
+                              </Button>
+                              {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRevertToPending(schedule)}
+                                  disabled={revertingScheduleId === schedule.schedule_id}
+                                  className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
+                                >
+                                  {revertingScheduleId === schedule.schedule_id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                      Reverting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <RotateCcw className="w-4 h-4 mr-1" />
+                                      Revert
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          ) : schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? (
                             <Button
                               size="sm"
                               variant="outline"
@@ -381,15 +413,6 @@ export default function LoanPlanView({ contractId }) {
                                   Revert
                                 </>
                               )}
-                            </Button>
-                          ) : schedule.remaining_amount > 0 ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handleWalkInPayment(schedule, contract)}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              <CreditCard className="w-4 h-4 mr-1" />
-                              Pay
                             </Button>
                           ) : (
                             <span className="text-xs text-gray-400">—</span>

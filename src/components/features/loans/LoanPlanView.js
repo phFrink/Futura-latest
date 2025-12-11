@@ -18,6 +18,8 @@ import {
   CreditCard,
   RotateCcw,
   ArrowLeft,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import WalkInPaymentModal from "./WalkInPaymentModal";
@@ -30,6 +32,7 @@ export default function LoanPlanView({ contractId }) {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [paymentContract, setPaymentContract] = useState(null);
   const [revertingScheduleId, setRevertingScheduleId] = useState(null);
+  const [isTableExpanded, setIsTableExpanded] = useState(true);
 
   useEffect(() => {
     if (contractId) {
@@ -232,12 +235,33 @@ export default function LoanPlanView({ contractId }) {
       {contract.payment_schedules && contract.payment_schedules.length > 0 && (
         <Card className="shadow-sm">
           <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <Receipt className="w-6 h-6 text-amber-600" />
-              Installment Schedule
-            </h3>
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <Receipt className="w-6 h-6 text-amber-600" />
+                Installment Schedule
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsTableExpanded(!isTableExpanded)}
+                className="flex items-center gap-2"
+              >
+                {isTableExpanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    Collapse
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4" />
+                    Expand
+                  </>
+                )}
+              </Button>
+            </div>
+            {isTableExpanded && (
+              <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr className="border-b border-gray-200">
                     <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wide">
@@ -362,17 +386,46 @@ export default function LoanPlanView({ contractId }) {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {parseFloat(schedule.remaining_amount || 0) > 0 ? (
-                            <div className="flex gap-2 justify-center">
-                              <Button
-                                size="sm"
-                                onClick={() => handleWalkInPayment(schedule, contract)}
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                              >
-                                <CreditCard className="w-4 h-4 mr-1" />
-                                {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? "Pay More" : "Pay"}
-                              </Button>
-                              {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 && (
+                          {(() => {
+                            const remainingAmount = parseFloat(schedule.remaining_amount || 0);
+                            const paidAmount = parseFloat(schedule.paid_amount || 0);
+                            
+                            if (remainingAmount > 0) {
+                              return (
+                                <div className="flex gap-2 justify-center">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleWalkInPayment(schedule, contract)}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    <CreditCard className="w-4 h-4 mr-1" />
+                                    {paidAmount > 0 ? "Pay More" : "Pay"}
+                                  </Button>
+                                  {paidAmount > 0 && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleRevertToPending(schedule)}
+                                      disabled={revertingScheduleId === schedule.schedule_id}
+                                      className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
+                                    >
+                                      {revertingScheduleId === schedule.schedule_id ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Reverting...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <RotateCcw className="w-4 h-4 mr-1" />
+                                          Revert
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            } else if (paidAmount > 0) {
+                              return (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -392,31 +445,11 @@ export default function LoanPlanView({ contractId }) {
                                     </>
                                   )}
                                 </Button>
-                              )}
-                            </div>
-                          ) : schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRevertToPending(schedule)}
-                              disabled={revertingScheduleId === schedule.schedule_id}
-                              className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
-                            >
-                              {revertingScheduleId === schedule.schedule_id ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                  Reverting...
-                                </>
-                              ) : (
-                                <>
-                                  <RotateCcw className="w-4 h-4 mr-1" />
-                                  Revert
-                                </>
-                              )}
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
+                              );
+                            } else {
+                              return <span className="text-xs text-gray-400">—</span>;
+                            }
+                          })()}
                         </td>
                       </tr>
                     );
@@ -424,6 +457,30 @@ export default function LoanPlanView({ contractId }) {
                 </tbody>
               </table>
             </div>
+            )}
+            
+            {!isTableExpanded && (
+              <div className="p-6 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center">
+                    <p className="text-gray-500 mb-1">Total Installments</p>
+                    <p className="font-semibold text-lg">{contract.payment_schedules.length}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-500 mb-1">Paid Installments</p>
+                    <p className="font-semibold text-lg text-green-600">
+                      {contract.payment_schedules.filter(s => s.payment_status === 'paid').length}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-500 mb-1">Pending Installments</p>
+                    <p className="font-semibold text-lg text-orange-600">
+                      {contract.payment_schedules.filter(s => s.payment_status === 'pending' || s.payment_status === 'partial').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

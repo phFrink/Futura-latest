@@ -408,6 +408,76 @@ export default function ReservationDetails() {
     }
   };
 
+  const handleDownloadDocument = async (documentId, fileName) => {
+    try {
+      // First get the document details to get the file path
+      const response = await fetch(`/api/reservations/documents/${documentId}`);
+      if (!response.ok) {
+        toast.error('Failed to get document details');
+        return;
+      }
+      
+      const docData = await response.json();
+      if (!docData.success || !docData.document) {
+        toast.error('Document not found');
+        return;
+      }
+      
+      const filePath = docData.document.file_path;
+      
+      // If it's a Supabase Storage URL, download directly
+      if (filePath.includes('supabase.co/storage')) {
+        try {
+          const fileResponse = await fetch(filePath);
+          if (!fileResponse.ok) {
+            toast.error('File not accessible from storage');
+            return;
+          }
+          
+          const blob = await fileResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          toast.success(`Downloaded: ${fileName}`);
+        } catch (error) {
+          console.error('Direct download error:', error);
+          toast.error(`Failed to download: ${error.message}`);
+        }
+      } else {
+        // Fallback to API download for local files
+        const downloadResponse = await fetch(`/api/reservations/documents/${documentId}/download`);
+        if (!downloadResponse.ok) {
+          const errorData = await downloadResponse.json();
+          toast.error(`Download failed: ${errorData.message || 'Unknown error'}`);
+          return;
+        }
+        
+        const blob = await downloadResponse.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success(`Downloaded: ${fileName}`);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(`Failed to download document: ${error.message}`);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
@@ -2303,7 +2373,7 @@ export default function ReservationDetails() {
         ) : (
           <>
             {/* Mobile/Tablet Card View */}
-            <div className="block 2xl:hidden space-y-4">
+            <div className="block lg:hidden space-y-4">
               {filteredReservations.map((reservation, index) => (
                 <motion.div
                   key={reservation.reservation_id}
@@ -2567,8 +2637,8 @@ export default function ReservationDetails() {
               ))}
             </div>
 
-            {/* Desktop Table View (2XL+ screens only) */}
-            <Card className="hidden 2xl:block overflow-hidden">
+            {/* Desktop Table View */}
+            <Card className="hidden lg:block overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
@@ -3192,7 +3262,7 @@ export default function ReservationDetails() {
                                 size="sm"
                                 variant="outline"
                                 className="text-slate-700 border-slate-300 hover:bg-slate-50"
-                                onClick={() => window.open(`/api/reservations/documents/${doc.id}/download`, '_blank')}
+                                onClick={() => handleDownloadDocument(doc.id, doc.file_name)}
                               >
                                 <Download className="w-4 h-4 mr-1" />
                                 Download

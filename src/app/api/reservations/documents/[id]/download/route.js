@@ -1,7 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
 
 function createSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -60,18 +58,92 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Handle Supabase Storage URLs
+    if (document.file_path.includes('supabase.co/storage')) {
+      // For Supabase Storage URLs, redirect to the URL directly
+      try {
+        const response = await fetch(document.file_path);
+        if (!response.ok) {
+          console.log(`Supabase file not accessible: ${document.file_path}`);
+          return NextResponse.json(
+            {
+              success: false,
+              error: "File not accessible",
+              message: `Document file is not accessible from Supabase Storage. Status: ${response.status}`,
+              debug: {
+                documentId: documentId,
+                fileName: document.file_name,
+                filePath: document.file_path,
+                storageResponse: response.status
+              }
+            },
+            { status: 404 }
+          );
+        }
+
+        const fileBuffer = await response.arrayBuffer();
+        
+        const headers = new Headers();
+        headers.set('Content-Type', document.file_type || response.headers.get('content-type') || 'application/octet-stream');
+        headers.set('Content-Disposition', `attachment; filename="${document.file_name}"`);
+        headers.set('Content-Length', fileBuffer.byteLength.toString());
+
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers: headers,
+        });
+
+      } catch (fetchError) {
+        console.error(`Failed to fetch from Supabase Storage: ${document.file_path}`, fetchError);
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Storage fetch error",
+            message: `Unable to fetch document from storage: ${fetchError.message}`,
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Legacy handling for local file paths (if any exist)
+    const fs = await import('fs/promises');
+    const { existsSync } = await import('fs');
+    
     if (!existsSync(document.file_path)) {
+      console.log(`Local file not found at: ${document.file_path}`);
+      console.log(`Document ID: ${documentId}, File name: ${document.file_name}`);
+      
       return NextResponse.json(
         {
           success: false,
           error: "File not found",
-          message: "Document file has been removed or moved",
+          message: `Document file has been removed or moved. Path: ${document.file_path}`,
+          debug: {
+            documentId: documentId,
+            fileName: document.file_name,
+            filePath: document.file_path,
+            fileExists: false
+          }
         },
         { status: 404 }
       );
     }
 
-    const fileBuffer = await readFile(document.file_path);
+    let fileBuffer;
+    try {
+      fileBuffer = await fs.readFile(document.file_path);
+    } catch (readError) {
+      console.error(`Failed to read local file: ${document.file_path}`, readError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "File read error",
+          message: `Unable to read document file: ${readError.message}`,
+        },
+        { status: 500 }
+      );
+    }
     
     const headers = new Headers();
     headers.set('Content-Type', document.file_type);

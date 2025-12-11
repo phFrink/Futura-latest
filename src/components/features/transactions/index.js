@@ -62,6 +62,22 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClients, setSelectedClients] = useState(new Set());
 
+  // Column visibility and pagination states
+  const [visibleColumns, setVisibleColumns] = useState({
+    transactionId: true,
+    clientName: true,
+    contractId: true,
+    date: true,
+    amount: true,
+    penalty: true,
+    method: true,
+    processedBy: true,
+    status: true,
+    actions: true,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -192,6 +208,14 @@ export default function Transactions() {
     setContractId("all");
     setSearchTerm("");
     setSelectedClients(new Set());
+    setCurrentPage(1);
+  };
+
+  const toggleColumnVisibility = (columnKey) => {
+    setVisibleColumns(prev => ({
+      ...prev,
+      [columnKey]: !prev[columnKey]
+    }));
   };
 
   // Generate individual receipt
@@ -424,6 +448,12 @@ export default function Transactions() {
     ...new Set(transactions.map((t) => t.contract_id).filter(Boolean)),
   ].sort((a, b) => a - b);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -591,6 +621,56 @@ export default function Transactions() {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Column Visibility Filter */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card className="bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200 shadow-md">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <div className="w-5 h-5 bg-slate-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  ⚙
+                </div>
+                Column Visibility
+              </CardTitle>
+              <p className="text-sm text-slate-700 mt-1">
+                Toggle which columns to show in the transactions table
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {Object.entries({
+                  transactionId: "Transaction ID",
+                  clientName: "Client Name",
+                  contractId: "Contract ID",
+                  date: "Date",
+                  amount: "Amount",
+                  penalty: "Penalty",
+                  method: "Payment Method",
+                  processedBy: "Processed By",
+                  status: "Status",
+                  actions: "Actions",
+                }).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center p-3 rounded-lg border border-slate-200 hover:bg-slate-100/50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns[key]}
+                      onChange={() => toggleColumnVisibility(key)}
+                      className="mr-3"
+                    />
+                    <span className="text-sm font-medium text-slate-900">{label}</span>
+                  </label>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -784,7 +864,7 @@ export default function Transactions() {
                 <>
                   {/* Mobile/Tablet Card View */}
                   <div className="block 2xl:hidden space-y-4 p-4">
-                    {filteredTransactions.map((transaction, index) => (
+                    {paginatedTransactions.map((transaction, index) => (
                       <motion.div
                         key={transaction.transaction_id}
                         initial={{ opacity: 0, y: 10 }}
@@ -910,40 +990,60 @@ export default function Transactions() {
                     <table className="w-full">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Transaction ID
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Client Name
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Contract ID
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Penalty
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Method
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Processed By
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                          Actions
-                        </th>
+                        {visibleColumns.transactionId && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Transaction ID
+                          </th>
+                        )}
+                        {visibleColumns.clientName && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Client Name
+                          </th>
+                        )}
+                        {visibleColumns.contractId && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Contract ID
+                          </th>
+                        )}
+                        {visibleColumns.date && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Date
+                          </th>
+                        )}
+                        {visibleColumns.amount && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Amount
+                          </th>
+                        )}
+                        {visibleColumns.penalty && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Penalty
+                          </th>
+                        )}
+                        {visibleColumns.method && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Method
+                          </th>
+                        )}
+                        {visibleColumns.processedBy && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Processed By
+                          </th>
+                        )}
+                        {visibleColumns.status && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Status
+                          </th>
+                        )}
+                        {visibleColumns.actions && (
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
-                      {filteredTransactions.map((transaction, index) => (
+                      {paginatedTransactions.map((transaction, index) => (
                         <motion.tr
                           key={transaction.transaction_id}
                           initial={{ opacity: 0, y: 10 }}
@@ -951,106 +1051,126 @@ export default function Transactions() {
                           transition={{ delay: index * 0.03 }}
                           className="hover:bg-slate-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-medium text-slate-900">
-                              {transaction.transaction_id}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
+                          {visibleColumns.transactionId && (
+                            <td className="px-6 py-4 whitespace-nowrap">
                               <span className="text-sm font-medium text-slate-900">
-                                {transaction.property_contracts?.client_name ||
-                                  "N/A"}
+                                {transaction.transaction_id}
                               </span>
-                              {transaction.property_contracts?.client_phone && (
-                                <span className="text-xs text-slate-500">
-                                  {transaction.property_contracts.client_phone}
+                            </td>
+                          )}
+                          {visibleColumns.clientName && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-slate-900">
+                                  {transaction.property_contracts?.client_name ||
+                                    "N/A"}
                                 </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-slate-600">
-                              {transaction.contract_id || "N/A"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Calendar className="w-4 h-4 text-slate-400" />
-                              {transaction.transaction_date
-                                ? format(
-                                    new Date(transaction.transaction_date),
-                                    "MMM dd, yyyy"
-                                  )
-                                : "N/A"}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-semibold text-green-600">
-                              ₱
-                              {parseFloat(
-                                transaction.total_amount || 0
-                              ).toLocaleString()}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-semibold text-orange-600">
-                              ₱
-                              {parseFloat(
-                                transaction.penalty_paid || 0
-                              ).toLocaleString()}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge className="bg-blue-50 text-blue-700 border-blue-200 capitalize">
-                              {transaction.payment_method || "N/A"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-slate-700">
-                              {transaction.processed_by_name || "—"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge
-                              className={`${getStatusColor(
-                                transaction.payment_status
-                              )} capitalize flex items-center gap-1 w-fit`}
-                            >
-                              {getStatusIcon(transaction.payment_status)}
-                              {transaction.payment_status || "N/A"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleGenerateReceipt(
-                                    transaction.transaction_id,
-                                    "print"
-                                  )
-                                }
-                                className="bg-purple-500 hover:bg-purple-600 text-white"
-                                title="Print Receipt"
+                                {transaction.property_contracts?.client_phone && (
+                                  <span className="text-xs text-slate-500">
+                                    {transaction.property_contracts.client_phone}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                          {visibleColumns.contractId && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm text-slate-600">
+                                {transaction.contract_id || "N/A"}
+                              </span>
+                            </td>
+                          )}
+                          {visibleColumns.date && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Calendar className="w-4 h-4 text-slate-400" />
+                                {transaction.transaction_date
+                                  ? format(
+                                      new Date(transaction.transaction_date),
+                                      "MMM dd, yyyy"
+                                    )
+                                  : "N/A"}
+                              </div>
+                            </td>
+                          )}
+                          {visibleColumns.amount && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-semibold text-green-600">
+                                ₱
+                                {parseFloat(
+                                  transaction.total_amount || 0
+                                ).toLocaleString()}
+                              </span>
+                            </td>
+                          )}
+                          {visibleColumns.penalty && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-semibold text-orange-600">
+                                ₱
+                                {parseFloat(
+                                  transaction.penalty_paid || 0
+                                ).toLocaleString()}
+                              </span>
+                            </td>
+                          )}
+                          {visibleColumns.method && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-200 capitalize">
+                                {transaction.payment_method || "N/A"}
+                              </Badge>
+                            </td>
+                          )}
+                          {visibleColumns.processedBy && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm text-slate-700">
+                                {transaction.processed_by_name || "—"}
+                              </span>
+                            </td>
+                          )}
+                          {visibleColumns.status && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <Badge
+                                className={`${getStatusColor(
+                                  transaction.payment_status
+                                )} capitalize flex items-center gap-1 w-fit`}
                               >
-                                <Printer className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleGenerateReceipt(
-                                    transaction.transaction_id,
-                                    "download"
-                                  )
-                                }
-                                className="bg-green-500 hover:bg-green-600 text-white"
-                                title="Download Receipt"
-                              >
-                                <Download className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
+                                {getStatusIcon(transaction.payment_status)}
+                                {transaction.payment_status || "N/A"}
+                              </Badge>
+                            </td>
+                          )}
+                          {visibleColumns.actions && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleGenerateReceipt(
+                                      transaction.transaction_id,
+                                      "print"
+                                    )
+                                  }
+                                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                                  title="Print Receipt"
+                                >
+                                  <Printer className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleGenerateReceipt(
+                                      transaction.transaction_id,
+                                      "download"
+                                    )
+                                  }
+                                  className="bg-green-500 hover:bg-green-600 text-white"
+                                  title="Download Receipt"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          )}
                         </motion.tr>
                       ))}
                     </tbody>
@@ -1061,6 +1181,64 @@ export default function Transactions() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex justify-center items-center gap-2 mt-6"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4"
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                let page;
+                if (totalPages <= 5) {
+                  page = index + 1;
+                } else if (currentPage <= 3) {
+                  page = index + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  page = totalPages - 4 + index;
+                } else {
+                  page = currentPage - 2 + index;
+                }
+                
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className="w-10 h-10"
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4"
+            >
+              Next
+            </Button>
+            <div className="ml-4 text-sm text-slate-600">
+              Page {currentPage} of {totalPages} ({filteredTransactions.length} total records)
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

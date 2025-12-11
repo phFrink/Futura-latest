@@ -158,8 +158,6 @@ export default function WalkInPaymentModal({
   const validatePayment = () => {
     const amount = calculatePaymentAmount();
     const remaining = parseFloat(schedule?.remaining_amount || 0);
-    const monthlyInstallment = parseFloat(contract?.monthly_installment || 0);
-    const minAmount = monthlyInstallment * 0.1; // 10% minimum
 
     if (amount <= 0) {
       return { valid: false, error: "Payment amount must be greater than zero" };
@@ -167,13 +165,6 @@ export default function WalkInPaymentModal({
 
     if (amount > remaining) {
       return { valid: false, error: "Payment exceeds remaining balance" };
-    }
-
-    if (paymentType === 'partial' && amount < minAmount) {
-      return {
-        valid: false,
-        error: `Minimum partial payment is ${formatCurrency(minAmount)}`
-      };
     }
 
     return { valid: true };
@@ -523,17 +514,16 @@ export default function WalkInPaymentModal({
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">Partial/Custom Amount</p>
                         <p className="text-xs text-gray-600 mb-2">
-                          Enter custom amount (min: {formatCurrency(contract.monthly_installment * 0.1)})
+                          Enter any custom amount up to remaining balance
                         </p>
                         {paymentType === 'partial' && (
                           <Input
                             type="number"
                             step="0.01"
-                            min={contract.monthly_installment * 0.1}
                             max={schedule.remaining_amount}
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
-                            placeholder="Enter amount"
+                            placeholder="Enter any amount"
                             className="mt-2"
                             onClick={(e) => e.stopPropagation()}
                           />

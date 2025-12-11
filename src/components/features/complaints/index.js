@@ -234,6 +234,7 @@ export default function Complaints() {
         evidence_photos: [publicUrl]  // Store as array to match mobile format
       }));
       setEvidencePhoto(file);
+      console.log('Web upload - storing evidence_photos as:', [publicUrl]);
       toast.success('Evidence photo uploaded successfully!');
     } catch (error) {
       console.error('Error uploading photo:', error);
@@ -571,15 +572,17 @@ export default function Complaints() {
           status: formData.status,
           contract_id: formData.contract_id,
           property_id: formData.property_id,
-          evidence_photos: formData.evidence_photoss
+          evidence_photos: formData.evidence_photos
         };
 
+        console.log('Updating complaint with evidence_photos:', updateData.evidence_photos);
         await updateComplaint(editingComplaint.id, updateData);
         toast.success('Complaint updated successfully!');
         setIsEditModalOpen(false);
         setEditingComplaint(null);
       } else {
         // Insert new complaint into Supabase
+        console.log('Saving complaint with evidence_photos:', formData.evidence_photos);
         const { data, error } = await supabase
           .from('complaint_tbl')
           .insert([{
@@ -590,7 +593,7 @@ export default function Complaints() {
             status: formData.status,
             contract_id: formData.contract_id,
             property_id: formData.property_id,
-            evidence_photos: formData.evidence_photoss,
+            evidence_photos: formData.evidence_photos,
             created_date: new Date().toISOString()
           }])
           .select(`

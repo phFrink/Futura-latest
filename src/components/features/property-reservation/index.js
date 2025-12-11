@@ -56,6 +56,8 @@ export default function ReservationDetails() {
   const [userRole, setUserRole] = useState(null);
   const [showContractViewModal, setShowContractViewModal] = useState(false);
   const [contractPreviewHtml, setContractPreviewHtml] = useState(null);
+  const [reservationDocuments, setReservationDocuments] = useState([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   useEffect(() => {
     getUserRole();
@@ -95,6 +97,14 @@ export default function ReservationDetails() {
   useEffect(() => {
     applyFilters();
   }, [searchTerm, statusFilter, startDate, endDate, reservations]);
+
+  useEffect(() => {
+    if (selectedReservation && selectedReservation.status === "pre-approved") {
+      loadDocuments(selectedReservation.reservation_id);
+    } else {
+      setReservationDocuments([]);
+    }
+  }, [selectedReservation]);
 
   const loadReservations = async () => {
     setLoading(true);
@@ -196,6 +206,43 @@ export default function ReservationDetails() {
     } catch (error) {
       console.error("Error approving reservation:", error);
       toast.error("Error approving reservation");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handlePreApprove = async (reservationId) => {
+    if (!confirm("Are you sure you want to pre-approve this reservation? The client will be able to upload supporting documents.")) {
+      return;
+    }
+
+    setProcessingId(reservationId);
+    try {
+      const response = await fetch("/api/property-reservation/pre-approve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reservation_id: reservationId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Reservation pre-approved successfully!");
+        loadReservations();
+        if (selectedReservation?.reservation_id === reservationId) {
+          setShowDetailModal(false);
+          setSelectedReservation(null);
+        }
+      } else {
+        toast.error(result.message || "Failed to pre-approve reservation");
+      }
+    } catch (error) {
+      console.error("Error pre-approving reservation:", error);
+      toast.error("Error pre-approving reservation");
     } finally {
       setProcessingId(null);
     }
@@ -339,6 +386,28 @@ export default function ReservationDetails() {
     }
   };
 
+  const loadDocuments = async (reservationId) => {
+    if (!reservationId) return;
+    
+    setLoadingDocuments(true);
+    try {
+      const response = await fetch(`/api/reservations/${reservationId}/documents`);
+      const result = await response.json();
+
+      if (result.success) {
+        setReservationDocuments(result.documents || []);
+      } else {
+        console.error("Failed to load documents:", result.message);
+        setReservationDocuments([]);
+      }
+    } catch (error) {
+      console.error("Error loading documents:", error);
+      setReservationDocuments([]);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
@@ -347,6 +416,13 @@ export default function ReservationDetails() {
         bgColor: "bg-yellow-50",
         textColor: "text-yellow-700",
         borderColor: "border-yellow-200",
+      },
+      "pre-approved": {
+        icon: <CalendarCheck className="w-4 h-4" />,
+        text: "Pre-Approved",
+        bgColor: "bg-blue-50",
+        textColor: "text-blue-700",
+        borderColor: "border-blue-200",
       },
       approved: {
         icon: <CheckCircle className="w-4 h-4" />,
@@ -1994,6 +2070,7 @@ export default function ReservationDetails() {
     return {
       all: reservations.length,
       pending: reservations.filter((r) => r.status === "pending").length,
+      "pre-approved": reservations.filter((r) => r.status === "pre-approved").length,
       approved: reservations.filter((r) => r.status === "approved").length,
       rejected: reservations.filter((r) => r.status === "rejected").length,
     };
@@ -2070,6 +2147,20 @@ export default function ReservationDetails() {
             </CardContent>
           </Card>
 
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-600">Pre-Approved</p>
+                  <p className="text-3xl font-bold text-blue-900">
+                    {statusCounts["pre-approved"]}
+                  </p>
+                </div>
+                <CalendarCheck className="w-12 h-12 text-blue-600 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -2127,6 +2218,9 @@ export default function ReservationDetails() {
                     <option value="all">All Status ({statusCounts.all})</option>
                     <option value="pending">
                       Pending ({statusCounts.pending})
+                    </option>
+                    <option value="pre-approved">
+                      Pre-Approved ({statusCounts["pre-approved"]})
                     </option>
                     <option value="approved">
                       Approved ({statusCounts.approved})
@@ -2323,7 +2417,8 @@ export default function ReservationDetails() {
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleApprove(reservation.reservation_id);
+                              setSelectedReservation(reservation);
+                              setShowDetailModal(true);
                             }}
                             disabled={processingId === reservation.reservation_id}
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-xs flex-1"
@@ -2642,7 +2737,8 @@ export default function ReservationDetails() {
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleApprove(reservation.reservation_id);
+                                  setSelectedReservation(reservation);
+                                  setShowDetailModal(true);
                                 }}
                                 disabled={
                                   processingId === reservation.reservation_id
@@ -3060,6 +3156,67 @@ export default function ReservationDetails() {
                   </div>
                 )}
 
+                {/* Supporting Documents */}
+                {selectedReservation.status === "pre-approved" && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-700 mb-3 text-lg border-b pb-2 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      Supporting Documents
+                    </h3>
+                    {loadingDocuments ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-blue-600 mr-2" />
+                        <span className="text-slate-600">Loading documents...</span>
+                      </div>
+                    ) : reservationDocuments.length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-slate-600 mb-3">
+                          The client has uploaded the following supporting documents:
+                        </p>
+                        {reservationDocuments.map((doc, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-100 rounded">
+                                <FileText className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-900">{doc.file_name}</p>
+                                <p className="text-xs text-slate-500">
+                                  {(doc.file_size / 1024 / 1024).toFixed(2)} MB • 
+                                  Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-slate-700 border-slate-300 hover:bg-slate-50"
+                                onClick={() => window.open(`/api/reservations/documents/${doc.id}/download`, '_blank')}
+                              >
+                                <Download className="w-4 h-4 mr-1" />
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            <CheckCircle className="w-4 h-4 inline mr-1" />
+                            <strong>Review Complete:</strong> Use the "Final Approve" or "Reject" buttons below to complete the approval process based on the uploaded documents.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
+                        <FileText className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                        <p className="text-slate-500 font-medium">No documents uploaded yet</p>
+                        <p className="text-sm text-slate-400">Client needs to upload supporting documents for final approval</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Additional Notes */}
                 {selectedReservation.message && (
                   <div className="mb-6">
@@ -3077,6 +3234,44 @@ export default function ReservationDetails() {
                   <div className="flex gap-4 pt-6 border-t">
                     <Button
                       onClick={() =>
+                        handlePreApprove(selectedReservation.reservation_id)
+                      }
+                      disabled={
+                        processingId === selectedReservation.reservation_id
+                      }
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {processingId === selectedReservation.reservation_id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                      )}
+                      Pre-Approve
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        handleReject(selectedReservation.reservation_id)
+                      }
+                      disabled={
+                        processingId === selectedReservation.reservation_id
+                      }
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {processingId === selectedReservation.reservation_id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <XCircle className="mr-2 h-4 w-4" />
+                      )}
+                      Reject Reservation
+                    </Button>
+                  </div>
+                )}
+
+                {selectedReservation.status === "pre-approved" && (
+                  <div className="flex gap-4 pt-6 border-t">
+                    <Button
+                      onClick={() =>
                         handleApprove(selectedReservation.reservation_id)
                       }
                       disabled={
@@ -3089,7 +3284,7 @@ export default function ReservationDetails() {
                       ) : (
                         <CheckCircle className="mr-2 h-4 w-4" />
                       )}
-                      Approve Reservation
+                      Final Approve
                     </Button>
 
                     <Button

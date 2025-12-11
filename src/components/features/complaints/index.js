@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import ReactSelect from "react-select";
-import { Plus, Search, AlertTriangle, Building2, User, X, Edit, Trash2, AlertTriangle as AlertTriangleIcon, Loader2, Sparkles, Eye, CheckCircle, XCircle, Ban, RotateCcw } from "lucide-react";
+import { Plus, Search, AlertTriangle, Building2, User, X, Edit, Trash2, AlertTriangle as AlertTriangleIcon, Loader2, Sparkles, Eye, CheckCircle, XCircle, Ban, RotateCcw, Upload, Image as ImageIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { formattedDate, isNewItem, getRelativeTime } from "@/lib/utils";
@@ -17,6 +17,32 @@ import { toast } from "react-toastify";
 const supabase = createClientComponentClient();
 
 export default function Complaints() {
+  // Helper function to get evidence photo URL from either column
+  const getEvidencePhotoUrl = (complaint) => {
+    let evidencePhoto = complaint.evidence_photo || complaint.evidence_photos;
+    
+    if (!evidencePhoto) return null;
+    
+    // If mobile format (array), get the first URL
+    if (Array.isArray(evidencePhoto)) {
+      evidencePhoto = evidencePhoto[0];
+    }
+    
+    if (!evidencePhoto || typeof evidencePhoto !== 'string') return null;
+    
+    // If it's already a full URL, return as is
+    if (evidencePhoto.startsWith('http://') || evidencePhoto.startsWith('https://')) {
+      return evidencePhoto;
+    }
+    
+    // If it's a path like "complaints/filename.jpg", convert to full URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('futura')
+      .getPublicUrl(evidencePhoto);
+    
+    return publicUrl;
+  };
+
   const [complaints, setComplaints] = useState([]);
   const [properties, setProperties] = useState([]);
   const [homeowners, setHomeowners] = useState([]);
@@ -33,6 +59,8 @@ export default function Complaints() {
   const [editingComplaint, setEditingComplaint] = useState(null);
   const [deletingComplaint, setDeletingComplaint] = useState(null);
   const [viewingComplaint, setViewingComplaint] = useState(null);
+  const [evidencePhoto, setEvidencePhoto] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,6 +71,7 @@ export default function Complaints() {
     status: 'pending',
     contract_id: '', // Changed from homeowner_id to contract_id
     property_id: '',
+    evidence_photos: [],
     created_date: new Date().toISOString()
   });
 
@@ -159,6 +188,100 @@ export default function Complaints() {
     }));
   };
 
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type and size first
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomSuffix = Math.round(Math.random() * 1e9);
+      const extension = file.name.split('.').pop();
+      const filename = `complaint-${timestamp}-${randomSuffix}.${extension}`;
+
+      // Upload directly using Supabase client (requires proper RLS policies)
+      // Using exact same path as mobile team
+      const { data, error } = await supabase.storage
+        .from('futura')
+        .upload(`complaints/${filename}`, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('futura')
+        .getPublicUrl(`complaints/${filename}`);
+
+      setFormData(prev => ({
+        ...prev,
+        evidence_photos: [publicUrl]  // Store as array to match mobile format
+      }));
+      setEvidencePhoto(file);
+      toast.success('Evidence photo uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      
+      // If RLS error, try using API endpoint instead
+      if (error.message?.includes('RLS') || error.message?.includes('policy')) {
+        try {
+          // Fallback to API upload endpoint
+          const formData = new FormData();
+          formData.append('evidence_photo', file);
+          
+          const response = await fetch('/api/upload-complaint-evidence', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.error || 'Upload failed');
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            evidence_photos: [result.url]  // Store as array to match mobile format
+          }));
+          setEvidencePhoto(file);
+          toast.success('Evidence photo uploaded successfully!');
+        } catch (apiError) {
+          console.error('API upload also failed:', apiError);
+          toast.error('Error uploading photo: ' + apiError.message);
+        }
+      } else {
+        toast.error('Error uploading photo: ' + error.message);
+      }
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setEvidencePhoto(null);
+    setFormData(prev => ({
+      ...prev,
+      evidence_photos: []
+    }));
+  };
+
   // Handle opening edit modal
   const handleEditComplaint = (complaint) => {
     setEditingComplaint(complaint);
@@ -170,8 +293,10 @@ export default function Complaints() {
       status: complaint.status,
       contract_id: complaint.contract_id?.toString() || '', // Changed from homeowner_id
       property_id: complaint.property_id?.toString() || '',
+      evidence_photos: complaint.evidence_photos || [],
       created_date: complaint.created_date
     });
+    setEvidencePhoto(null);
     setIsEditModalOpen(true);
   };
 
@@ -412,8 +537,10 @@ export default function Complaints() {
       status: 'pending',
       contract_id: '', // Changed from homeowner_id
       property_id: '',
+      evidence_photos: [],
       created_date: new Date().toISOString()
     });
+    setEvidencePhoto(null);
   };
 
   const handleSubmit = async (e) => {
@@ -443,7 +570,8 @@ export default function Complaints() {
           severity: formData.severity,
           status: formData.status,
           contract_id: formData.contract_id,
-          property_id: formData.property_id
+          property_id: formData.property_id,
+          evidence_photos: formData.evidence_photoss
         };
 
         await updateComplaint(editingComplaint.id, updateData);
@@ -462,6 +590,7 @@ export default function Complaints() {
             status: formData.status,
             contract_id: formData.contract_id,
             property_id: formData.property_id,
+            evidence_photos: formData.evidence_photoss,
             created_date: new Date().toISOString()
           }])
           .select(`
@@ -784,6 +913,72 @@ export default function Complaints() {
                   />
                 </div>
 
+                {/* Evidence Photo Upload */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Evidence Photo <span className="text-slate-500">(Optional)</span>
+                  </label>
+                  <div className="space-y-3">
+                    {(!formData.evidence_photos || formData.evidence_photos.length === 0) && !evidencePhoto ? (
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="evidence-upload-add"
+                          disabled={photoUploading}
+                        />
+                        <label
+                          htmlFor="evidence-upload-add"
+                          className="flex flex-col items-center justify-center w-full h-32 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+                        >
+                          {photoUploading ? (
+                            <>
+                              <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-2" />
+                              <span className="text-sm text-slate-600">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                              <span className="text-sm text-slate-600">Click to upload evidence photo</span>
+                              <span className="text-xs text-slate-500">Max 5MB, Image files only</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <ImageIcon className="w-6 h-6 text-green-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">Evidence photo uploaded</p>
+                            <p className="text-xs text-green-600">Photo will be attached to this complaint</p>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={removePhoto}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {formData.evidence_photos && formData.evidence_photos.length > 0 && (
+                          <div className="mt-2">
+                            <img
+                              src={Array.isArray(formData.evidence_photos) ? formData.evidence_photos[0] : formData.evidence_photos}
+                              alt="Evidence preview"
+                              className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="homeowner" className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
@@ -1003,6 +1198,72 @@ export default function Complaints() {
                     className="w-full px-4 py-3 text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     required
                   />
+                </div>
+
+                {/* Evidence Photo Upload */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Evidence Photo <span className="text-slate-500">(Optional)</span>
+                  </label>
+                  <div className="space-y-3">
+                    {(!formData.evidence_photos || formData.evidence_photos.length === 0) && !evidencePhoto ? (
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="evidence-upload-edit"
+                          disabled={photoUploading}
+                        />
+                        <label
+                          htmlFor="evidence-upload-edit"
+                          className="flex flex-col items-center justify-center w-full h-32 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+                        >
+                          {photoUploading ? (
+                            <>
+                              <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-2" />
+                              <span className="text-sm text-slate-600">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                              <span className="text-sm text-slate-600">Click to upload evidence photo</span>
+                              <span className="text-xs text-slate-500">Max 5MB, Image files only</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <ImageIcon className="w-6 h-6 text-green-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">Evidence photo uploaded</p>
+                            <p className="text-xs text-green-600">Photo will be attached to this complaint</p>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={removePhoto}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {formData.evidence_photos && formData.evidence_photos.length > 0 && (
+                          <div className="mt-2">
+                            <img
+                              src={Array.isArray(formData.evidence_photos) ? formData.evidence_photos[0] : formData.evidence_photos}
+                              alt="Evidence preview"
+                              className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1307,6 +1568,30 @@ export default function Complaints() {
                     <h4 className="text-sm font-semibold text-slate-700 mb-2">Description</h4>
                     <p className="text-slate-900">{viewingComplaint.description}</p>
                   </div>
+                  
+                  {(viewingComplaint.evidence_photo || viewingComplaint.evidence_photos) && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-2">Evidence Photo</h4>
+                      <div className="relative">
+                        <img
+                          src={getEvidencePhotoUrl(viewingComplaint)}
+                          alt="Complaint evidence"
+                          className="w-full max-w-md h-48 object-cover rounded-lg border-2 border-slate-200 shadow-sm"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <a
+                            href={getEvidencePhotoUrl(viewingComplaint)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                            title="View full size"
+                          >
+                            <Eye className="w-4 h-4 text-slate-700" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

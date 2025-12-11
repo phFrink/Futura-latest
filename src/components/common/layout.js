@@ -26,8 +26,6 @@ import {
   UserCog,
   HandCoins,
   Bell,
-  Armchair,
-  Package,
 } from "lucide-react";
 import AdminNotificationBell from "@/components/ui/AdminNotificationBell";
 import { useNewItemCounts } from "@/hooks/useNewItemCounts";
@@ -349,29 +347,6 @@ const navigationItems = [
     icon: FileSignature,
     countKey: "certified",
     roles: ["admin", "customer service"],
-  },
-  {
-    title: "Amenities",
-    url: "/amenties",
-    icon: Armchair,
-    countKey: null,
-    roles: ["admin", "customer service"],
-    children: [
-      {
-        title: "Manage Amenities",
-        url: "/manage-amenities",
-        icon: Package,
-        countKey: null,
-        roles: ["admin", "customer service"],
-      },
-      {
-        title: "Borrow Requests",
-        url: "/amenties",
-        icon: Armchair,
-        countKey: null,
-        roles: ["admin", "customer service"],
-      },
-    ],
   },
   {
     title: "Service Requests",

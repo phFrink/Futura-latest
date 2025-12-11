@@ -133,19 +133,56 @@ export default function Reports() {
     setLoading(true);
     toast.info('Generating report, please wait...');
     try {
-      // Determine table name based on active report
-      const tableName = activeReport === 'service_requests' ? 'request_tbl' :
-        activeReport === 'homeowners' ? 'property_contracts' :
-          activeReport === 'properties' ? 'property_info_tbl' :
+      let data, error;
+      
+      if (activeReport === 'properties') {
+        // For properties report, we need to get properties with contract status
+        const { data: propertiesData, error: propertiesError } = await supabase
+          .from('property_info_tbl')
+          .select('*');
+          
+        if (propertiesError) throw propertiesError;
+        
+        // Get active contracts to determine occupied status
+        const { data: contractsData } = await supabase
+          .from('property_contracts')
+          .select('property_id, contract_status')
+          .eq('contract_status', 'active');
+        
+        const propertiesWithContracts = new Set(
+          contractsData?.map(c => c.property_id) || []
+        );
+        
+        // Process the properties data to show correct availability and amenities
+        data = propertiesData?.map(property => ({
+          ...property,
+          // Fix availability status - use displayAvailability logic from properties page
+          property_availability: propertiesWithContracts.has(property.property_id)
+            ? "occupied"
+            : property.property_availability,
+          // Fix amenities display - convert array to readable string
+          amenities: Array.isArray(property.amenities) 
+            ? property.amenities.length > 0 
+              ? property.amenities.join(', ')
+              : 'None'
+            : property.amenities || 'None'
+        })) || [];
+        
+        error = propertiesError;
+      } else {
+        // For other reports, use original logic
+        const tableName = activeReport === 'service_requests' ? 'request_tbl' :
+          activeReport === 'homeowners' ? 'property_contracts' :
             activeReport === 'complaints' ? 'complaint_tbl' :
               activeReport === 'billings' ? 'contract_payment_schedules' :
                 activeReport === 'announcements' ? 'homeowner_announcements' :
                   activeReport === 'reservations' ? 'property_reservations' :
                     'announcement_tbl';
 
-      // Fetch ALL records from the table without any limits or pagination
-      // No .limit() is applied - all data will be loaded and displayed
-      const { data, error } = await supabase.from(tableName).select('*');
+        const result = await supabase.from(tableName).select('*');
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
         // Set empty data to show "No data" message
@@ -349,7 +386,10 @@ export default function Reports() {
             if (typeof value === 'boolean') return value ? 'Yes' : 'No';
 
             if (typeof value === 'object') {
-              return Array.isArray(value) ? value.join(', ') : 'Object';
+              if (Array.isArray(value)) {
+                return value.length > 0 ? value.join(', ') : 'None';
+              }
+              return 'Object';
             }
 
             if (col.includes('date') && value) {
@@ -939,6 +979,9 @@ export default function Reports() {
                                                       }
 
                                                       if (typeof value === 'object') {
+                                                        if (Array.isArray(value)) {
+                                                          return <span className="text-slate-600">{value.length > 0 ? value.join(', ') : 'None'}</span>;
+                                                        }
                                                         return <span className="text-slate-500 text-xs">Object</span>;
                                                       }
 
@@ -1130,7 +1173,12 @@ export default function Reports() {
                                                     </Badge>
                                                   );
                                                 }
-                                                if (typeof value === 'object') return JSON.stringify(value);
+                                                if (typeof value === 'object') {
+                                                  if (Array.isArray(value)) {
+                                                    return value.length > 0 ? value.join(', ') : 'None';
+                                                  }
+                                                  return JSON.stringify(value);
+                                                }
                                                 if (key.includes('date') && value !== '-') {
                                                   try {
                                                     return format(new Date(value), 'PP');

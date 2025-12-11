@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,12 +34,11 @@ const supabase = createClient(
 );
 
 export default function Loans() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState([]);
   const [filteredContracts, setFilteredContracts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedContract, setSelectedContract] = useState(null);
-  const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [paymentContract, setPaymentContract] = useState(null);
@@ -116,8 +116,7 @@ export default function Loans() {
   };
 
   const handleViewPlan = (contract) => {
-    setSelectedContract(contract);
-    setShowPlanModal(true);
+    router.push(`/loans/${contract.contract_id}/plan`);
   };
 
   const handleWalkInPayment = (schedule, contract) => {
@@ -159,58 +158,6 @@ export default function Loans() {
     }
   };
 
-  const handleRevertToPending = async (schedule) => {
-    if (!window.confirm(
-      `Are you sure you want to revert installment #${schedule.installment_number} to pending status? This will undo the payment.`
-    )) {
-      return;
-    }
-
-    setRevertingScheduleId(schedule.schedule_id);
-    try {
-      const response = await fetch("/api/contracts/payment/revert", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          schedule_id: schedule.schedule_id,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success("Payment reverted to pending successfully!");
-
-        // Reload contracts and update selected contract
-        await loadContracts();
-
-        // If modal is open, refresh the selected contract with updated data
-        if (selectedContract) {
-          // Re-fetch contracts to get the latest data
-          const response = await fetch("/api/contracts");
-          const contractsResult = await response.json();
-
-          if (contractsResult.success) {
-            const updatedContract = contractsResult.data.find(
-              (c) => c.contract_id === selectedContract.contract_id
-            );
-            if (updatedContract) {
-              setSelectedContract(updatedContract);
-            }
-          }
-        }
-      } else {
-        toast.error(result.message || "Failed to revert payment");
-      }
-    } catch (error) {
-      console.error("Error reverting payment:", error);
-      toast.error("Error reverting payment");
-    } finally {
-      setRevertingScheduleId(null);
-    }
-  };
 
   const getPaymentProgressPercent = (contract) => {
     if (!contract.statistics) return 0;
@@ -232,8 +179,6 @@ export default function Loans() {
     indexOfLastItem
   );
   const totalPages = Math.ceil(filteredContracts.length / itemsPerPage);
-  const totalAmountProperty10 = Number(selectedContract?.downpayment_total || 0) ?? Number(selectedContract.property_price * 0.10) ?? 0;
-  const totalAmountProperty = Number(totalAmountProperty10);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -553,283 +498,6 @@ export default function Loans() {
         </>
       )}
 
-      {/* Payment Plan Modal */}
-      <AnimatePresence>
-        {showPlanModal && selectedContract && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowPlanModal(false)}
-          >
-            <motion.div
-              className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto"
-              initial={{ scale: 0.9, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 50 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6 border-b sticky top-0 bg-white z-10">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                      Payment Plan Details
-                    </h2>
-                    <p className="text-lg text-blue-600 font-semibold">
-                      {selectedContract.contract_number}
-                    </p>
-                    {(selectedContract.reservation?.tracking_number || selectedContract.tracking_number) && (
-                      <p className="text-sm text-gray-500 font-mono mt-1">
-                        Tracking #: {selectedContract.reservation?.tracking_number || selectedContract.tracking_number}
-                      </p>
-                    )}
-                    <p className="text-gray-600 mt-1">
-                      {selectedContract.client_name}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPlanModal(false)}
-                  >
-                    <XCircle className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="p-6">
-                {/* Payment Summary
-               */}
-               {selectedContract.reservation?.reservation_fee}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <p className="text-xs text-blue-600 font-semibold mb-1">
-                      10% Total Amount of Property
-                    </p>
-                    <p className="text-2xl font-bold text-blue-900">
-                      {formatCurrency(totalAmountProperty - Number(selectedContract?.reservation_fee_paid))}
-                    </p>
-                  </div>
-                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                    <p className="text-xs text-amber-600 font-semibold mb-1">
-                      Downpayment
-                    </p>
-                    <p className="text-2xl font-bold text-amber-900">
-                      {formatCurrency(selectedContract.reservation?.reservation_fee || selectedContract.reservation_fee_paid || 0)}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <p className="text-xs text-green-600 font-semibold mb-1">
-                      Monthly Payment
-                    </p>
-                    <p className="text-2xl font-bold text-green-900">
-                      {formatCurrency(selectedContract.monthly_installment)}
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <p className="text-xs text-purple-600 font-semibold mb-1">
-                      Remaining Balance
-                    </p>
-                    <p className="text-2xl font-bold text-purple-900">
-                      {formatCurrency(
-                        Math.max(0, parseFloat(selectedContract.remaining_balance) || parseFloat(selectedContract.remaining_downpayment) || 0)
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Payment Schedule Table */}
-                {selectedContract.payment_schedules &&
-                  selectedContract.payment_schedules.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <Receipt className="w-5 h-5 text-amber-600" />
-                        Installment Schedule
-                      </h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b-2 border-gray-200">
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                #
-                              </th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Description
-                              </th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Due Date
-                              </th>
-                              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Scheduled
-                              </th>
-                              <th className="text-right px-4 py-3 text-xs font-semibold text-green-600 uppercase">
-                                Paid
-                              </th>
-                              <th className="text-right px-4 py-3 text-xs font-semibold text-blue-600 uppercase">
-                                Remaining
-                              </th>
-                              <th className="text-right px-4 py-3 text-xs font-semibold text-orange-600 uppercase">
-                                Penalty
-                              </th>
-                              <th className="text-right px-4 py-3 text-xs font-semibold text-red-600 uppercase">
-                                Running Balance
-                              </th>
-                              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Status
-                              </th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Processed By
-                              </th>
-                              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                Action
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {selectedContract.payment_schedules.map((schedule, index) => {
-                              // Calculate the balance BEFORE this row's payment
-                              // This is: downpayment_total - all payments made INCLUDING this row
-                              const downpaymentTotal = parseFloat(selectedContract.downpayment_total) || (parseFloat(selectedContract.property_price) * 0.10) || 0;
-
-                              // Total paid up to and including this row
-                              const totalPaidUpToHere = selectedContract.payment_schedules
-                                .slice(0, index + 1)
-                                .reduce((sum, s) => sum + (parseFloat(s.paid_amount) || 0), 0);
-
-                              // Running balance = original - all payments made up to here
-                              const runningBalance = Math.max(0, downpaymentTotal - totalPaidUpToHere);
-
-                              return (
-                                <tr
-                                  key={schedule.schedule_id}
-                                  className="hover:bg-gray-50"
-                                >
-                                  <td className="px-4 py-3">
-                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
-                                      {schedule.installment_number}
-                                    </span>
-                                  </td>
-                                  <td className="px-4 py-3 font-medium text-gray-900">
-                                    {schedule.installment_description}
-                                  </td>
-                                  <td className="px-4 py-3 text-gray-700">
-                                    {formatDate(schedule.due_date)}
-                                  </td>
-                                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                                    {formatCurrency(schedule.scheduled_amount)}
-                                  </td>
-                                  <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                                    {formatCurrency(schedule.paid_amount || 0)}
-                                  </td>
-                                  <td className="px-4 py-3 text-right font-semibold">
-                                    <span className={
-                                      parseFloat(schedule.remaining_amount || 0) <= 0
-                                        ? "text-gray-400"
-                                        : parseFloat(schedule.remaining_amount || 0) >= parseFloat(schedule.scheduled_amount || 0)
-                                        ? "text-blue-600"
-                                        : "text-orange-600"
-                                    }>
-                                      {parseFloat(schedule.remaining_amount || 0) <= 0
-                                        ? "—"
-                                        : formatCurrency(schedule.remaining_amount)}
-                                    </span>
-                                  </td>
-                                  <td className="px-4 py-3 text-right text-orange-600 font-semibold">
-                                    {schedule.penalty_amount > 0 ? formatCurrency(schedule.penalty_amount) : "—"}
-                                  </td>
-                                  <td className="px-4 py-3 text-right text-red-600 font-semibold">
-                                    {formatCurrency(runningBalance)}
-                                  </td>
-                                  <td className="px-4 py-3 text-center">
-                                    <Badge
-                                      className={
-                                        schedule.payment_status === "paid"
-                                          ? "bg-green-100 text-green-800"
-                                          : schedule.payment_status === "partial"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : schedule.is_overdue
-                                          ? "bg-red-100 text-red-800"
-                                          : "bg-yellow-100 text-yellow-800"
-                                      }
-                                    >
-                                      {schedule.payment_status === "paid" ? (
-                                        <>
-                                          <CheckCircle className="w-3 h-3 mr-1 inline" />
-                                          Paid
-                                        </>
-                                      ) : schedule.payment_status === "partial" ? (
-                                        <>
-                                          <DollarSign className="w-3 h-3 mr-1 inline" />
-                                          Partial
-                                        </>
-                                      ) : schedule.is_overdue ? (
-                                        <>
-                                          <Clock className="w-3 h-3 mr-1 inline" />
-                                          Overdue
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Clock className="w-3 h-3 mr-1 inline" />
-                                          Pending
-                                        </>
-                                      )}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <span className="text-sm text-gray-700">
-                                      {schedule.processed_by_name || "—"}
-                                    </span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center">
-                                    {schedule.paid_amount && parseFloat(schedule.paid_amount) > 0 ? (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleRevertToPending(schedule)}
-                                        disabled={revertingScheduleId === schedule.schedule_id}
-                                        className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
-                                      >
-                                        {revertingScheduleId === schedule.schedule_id ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Reverting...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <RotateCcw className="w-4 h-4 mr-1" />
-                                            Revert
-                                          </>
-                                        )}
-                                      </Button>
-                                    ) : schedule.remaining_amount > 0 ? (
-                                      <Button
-                                        size="sm"
-                                        onClick={() =>
-                                          handleWalkInPayment(schedule, selectedContract)
-                                        }
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                      >
-                                        <CreditCard className="w-4 h-4 mr-1" />
-                                        Pay
-                                      </Button>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">—</span>
-                                    )}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Walk-in Payment Modal */}
       <WalkInPaymentModal

@@ -8,7 +8,7 @@ import {
   Calendar, Clock, MapPin, Home, ArrowLeft, Building2, CheckCircle,
   XCircle, AlertCircle, Loader2, MessageSquare, User, Mail, Phone,
   FileText, Download, Printer, Briefcase, DollarSign, TrendingUp, Eye,
-  Search, Filter, RefreshCw, Users
+  Search, Filter, RefreshCw, Users, Upload, File
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useClientAuth } from '@/contexts/ClientAuthContext';
@@ -24,6 +24,8 @@ export default function ClientBookingsPage() {
   const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [uploadedDocuments, setUploadedDocuments] = useState({});
+  const [uploadingFiles, setUploadingFiles] = useState({});
 
   useEffect(() => {
     // Wait for auth to initialize - don't redirect while still loading
@@ -94,6 +96,13 @@ export default function ClientBookingsPage() {
         textColor: 'text-yellow-700',
         borderColor: 'border-yellow-200',
       },
+      'pre-approved': {
+        icon: <Clock className="w-4 h-4" />,
+        text: 'Pre-Approved',
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-700',
+        borderColor: 'border-blue-200',
+      },
       approved: {
         icon: <CheckCircle className="w-4 h-4" />,
         text: 'Approved',
@@ -142,6 +151,60 @@ export default function ClientBookingsPage() {
       currency: 'PHP',
       minimumFractionDigits: 2,
     }).format(amount || 0);
+  };
+
+  const handleFileUpload = async (reservationId, files) => {
+    if (!files || files.length === 0) return;
+
+    const allowedTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    for (let file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Only PDF and Word documents are allowed');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error('File size must be less than 10MB');
+        return;
+      }
+    }
+
+    setUploadingFiles(prev => ({ ...prev, [reservationId]: true }));
+
+    try {
+      const formData = new FormData();
+      formData.append('reservationId', reservationId);
+      for (let file of files) {
+        formData.append('documents', file);
+      }
+
+      const response = await fetch('/api/reservations/upload-documents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Documents uploaded successfully!');
+        setUploadedDocuments(prev => ({
+          ...prev,
+          [reservationId]: [...(prev[reservationId] || []), ...result.documents]
+        }));
+        loadReservations(); // Refresh to get updated status
+      } else {
+        toast.error(result.message || 'Failed to upload documents');
+      }
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      toast.error('Error uploading documents');
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [reservationId]: false }));
+    }
   };
 
   const downloadReceipt = async (reservation) => {
@@ -642,6 +705,7 @@ export default function ClientBookingsPage() {
                       >
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
+                        <option value="pre-approved">Pre-Approved</option>
                         <option value="approved">Approved</option>
                       </select>
                     </div>
@@ -1045,6 +1109,72 @@ export default function ClientBookingsPage() {
                                         <li>• Make sure to provide your <strong>receipt with tracking number</strong> after payment</li>
                                         <li>• Keep your receipt as proof of payment</li>
                                       </ul>
+                                    </div>
+                                  )}
+                                  {reservation.status === 'pre-approved' && (
+                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                      <p className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                                        <Clock className="w-5 h-5 inline mr-2" />
+                                        Pre-Approved - Upload Supporting Documents
+                                      </p>
+                                      <p className="text-sm text-blue-700 mb-4">
+                                        Your reservation has been pre-approved! Please upload your supporting documents to complete the approval process.
+                                      </p>
+                                      
+                                      <div className="space-y-3">
+                                        {/* File Upload */}
+                                        <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                          <input
+                                            type="file"
+                                            id={`file-upload-${reservation.reservation_id}`}
+                                            multiple
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={(e) => handleFileUpload(reservation.reservation_id, e.target.files)}
+                                            className="hidden"
+                                          />
+                                          <label
+                                            htmlFor={`file-upload-${reservation.reservation_id}`}
+                                            className="cursor-pointer"
+                                          >
+                                            {uploadingFiles[reservation.reservation_id] ? (
+                                              <div className="flex items-center justify-center">
+                                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin mr-2" />
+                                                <span className="text-blue-600">Uploading...</span>
+                                              </div>
+                                            ) : (
+                                              <div>
+                                                <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                                                <p className="text-blue-600 font-medium">Click to upload documents</p>
+                                                <p className="text-xs text-blue-500 mt-1">PDF, DOC, DOCX (Max 10MB each)</p>
+                                              </div>
+                                            )}
+                                          </label>
+                                        </div>
+
+                                        {/* Uploaded Files List */}
+                                        {uploadedDocuments[reservation.reservation_id] && uploadedDocuments[reservation.reservation_id].length > 0 && (
+                                          <div>
+                                            <p className="text-sm font-medium text-blue-700 mb-2">Uploaded Documents:</p>
+                                            <div className="space-y-2">
+                                              {uploadedDocuments[reservation.reservation_id].map((doc, index) => (
+                                                <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                                                  <div className="flex items-center">
+                                                    <File className="w-4 h-4 text-blue-600 mr-2" />
+                                                    <span className="text-sm text-slate-700">{doc.name}</span>
+                                                  </div>
+                                                  <span className="text-xs text-slate-500">
+                                                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                        
+                                        <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                                          <strong>Required documents:</strong> Valid ID, Proof of Income, Employment Certificate, and any other supporting documents that verify your eligibility.
+                                        </div>
+                                      </div>
                                     </div>
                                   )}
                                   {reservation.status === 'approved' && !reservation.contract && (

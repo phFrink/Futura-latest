@@ -17,6 +17,32 @@ import { toast } from "react-toastify";
 const supabase = createClientComponentClient();
 
 export default function Complaints() {
+  // Helper function to get evidence photo URL from either column
+  const getEvidencePhotoUrl = (complaint) => {
+    let evidencePhoto = complaint.evidence_photo || complaint.evidence_photos;
+    
+    if (!evidencePhoto) return null;
+    
+    // If mobile format (array), get the first URL
+    if (Array.isArray(evidencePhoto)) {
+      evidencePhoto = evidencePhoto[0];
+    }
+    
+    if (!evidencePhoto || typeof evidencePhoto !== 'string') return null;
+    
+    // If it's already a full URL, return as is
+    if (evidencePhoto.startsWith('http://') || evidencePhoto.startsWith('https://')) {
+      return evidencePhoto;
+    }
+    
+    // If it's a path like "complaints/filename.jpg", convert to full URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('futura')
+      .getPublicUrl(evidencePhoto);
+    
+    return publicUrl;
+  };
+
   const [complaints, setComplaints] = useState([]);
   const [properties, setProperties] = useState([]);
   const [homeowners, setHomeowners] = useState([]);
@@ -45,7 +71,7 @@ export default function Complaints() {
     status: 'pending',
     contract_id: '', // Changed from homeowner_id to contract_id
     property_id: '',
-    evidence_photo: '',
+    evidence_photos: [],
     created_date: new Date().toISOString()
   });
 
@@ -186,6 +212,7 @@ export default function Complaints() {
       const filename = `complaint-${timestamp}-${randomSuffix}.${extension}`;
 
       // Upload directly using Supabase client (requires proper RLS policies)
+      // Using exact same path as mobile team
       const { data, error } = await supabase.storage
         .from('futura')
         .upload(`complaints/${filename}`, file, {
@@ -204,7 +231,7 @@ export default function Complaints() {
 
       setFormData(prev => ({
         ...prev,
-        evidence_photo: publicUrl
+        evidence_photos: [publicUrl]  // Store as array to match mobile format
       }));
       setEvidencePhoto(file);
       toast.success('Evidence photo uploaded successfully!');
@@ -231,7 +258,7 @@ export default function Complaints() {
           
           setFormData(prev => ({
             ...prev,
-            evidence_photo: result.url
+            evidence_photos: [result.url]  // Store as array to match mobile format
           }));
           setEvidencePhoto(file);
           toast.success('Evidence photo uploaded successfully!');
@@ -251,7 +278,7 @@ export default function Complaints() {
     setEvidencePhoto(null);
     setFormData(prev => ({
       ...prev,
-      evidence_photo: ''
+      evidence_photos: []
     }));
   };
 
@@ -266,7 +293,7 @@ export default function Complaints() {
       status: complaint.status,
       contract_id: complaint.contract_id?.toString() || '', // Changed from homeowner_id
       property_id: complaint.property_id?.toString() || '',
-      evidence_photo: complaint.evidence_photo || '',
+      evidence_photos: complaint.evidence_photos || [],
       created_date: complaint.created_date
     });
     setEvidencePhoto(null);
@@ -510,7 +537,7 @@ export default function Complaints() {
       status: 'pending',
       contract_id: '', // Changed from homeowner_id
       property_id: '',
-      evidence_photo: '',
+      evidence_photos: [],
       created_date: new Date().toISOString()
     });
     setEvidencePhoto(null);
@@ -544,7 +571,7 @@ export default function Complaints() {
           status: formData.status,
           contract_id: formData.contract_id,
           property_id: formData.property_id,
-          evidence_photo: formData.evidence_photo
+          evidence_photos: formData.evidence_photoss
         };
 
         await updateComplaint(editingComplaint.id, updateData);
@@ -563,7 +590,7 @@ export default function Complaints() {
             status: formData.status,
             contract_id: formData.contract_id,
             property_id: formData.property_id,
-            evidence_photo: formData.evidence_photo,
+            evidence_photos: formData.evidence_photoss,
             created_date: new Date().toISOString()
           }])
           .select(`
@@ -892,7 +919,7 @@ export default function Complaints() {
                     Evidence Photo <span className="text-slate-500">(Optional)</span>
                   </label>
                   <div className="space-y-3">
-                    {!formData.evidence_photo && !evidencePhoto ? (
+                    {(!formData.evidence_photos || formData.evidence_photos.length === 0) && !evidencePhoto ? (
                       <div className="relative">
                         <input
                           type="file"
@@ -938,10 +965,10 @@ export default function Complaints() {
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
-                        {formData.evidence_photo && (
+                        {formData.evidence_photos && formData.evidence_photos.length > 0 && (
                           <div className="mt-2">
                             <img
-                              src={formData.evidence_photo}
+                              src={Array.isArray(formData.evidence_photos) ? formData.evidence_photos[0] : formData.evidence_photos}
                               alt="Evidence preview"
                               className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
                             />
@@ -1179,7 +1206,7 @@ export default function Complaints() {
                     Evidence Photo <span className="text-slate-500">(Optional)</span>
                   </label>
                   <div className="space-y-3">
-                    {!formData.evidence_photo && !evidencePhoto ? (
+                    {(!formData.evidence_photos || formData.evidence_photos.length === 0) && !evidencePhoto ? (
                       <div className="relative">
                         <input
                           type="file"
@@ -1225,10 +1252,10 @@ export default function Complaints() {
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
-                        {formData.evidence_photo && (
+                        {formData.evidence_photos && formData.evidence_photos.length > 0 && (
                           <div className="mt-2">
                             <img
-                              src={formData.evidence_photo}
+                              src={Array.isArray(formData.evidence_photos) ? formData.evidence_photos[0] : formData.evidence_photos}
                               alt="Evidence preview"
                               className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
                             />
@@ -1542,18 +1569,18 @@ export default function Complaints() {
                     <p className="text-slate-900">{viewingComplaint.description}</p>
                   </div>
                   
-                  {viewingComplaint.evidence_photo && (
+                  {(viewingComplaint.evidence_photo || viewingComplaint.evidence_photos) && (
                     <div>
                       <h4 className="text-sm font-semibold text-slate-700 mb-2">Evidence Photo</h4>
                       <div className="relative">
                         <img
-                          src={viewingComplaint.evidence_photo}
+                          src={getEvidencePhotoUrl(viewingComplaint)}
                           alt="Complaint evidence"
                           className="w-full max-w-md h-48 object-cover rounded-lg border-2 border-slate-200 shadow-sm"
                         />
                         <div className="absolute top-2 right-2">
                           <a
-                            href={viewingComplaint.evidence_photo}
+                            href={getEvidencePhotoUrl(viewingComplaint)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"

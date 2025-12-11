@@ -55,6 +55,8 @@ export default function ClientBookingsPage() {
       if (result.success) {
         setReservations(result.data);
         setFilteredReservations(result.data);
+        // Load documents for each reservation
+        loadAllDocuments(result.data);
       } else {
         toast.error(result.message || 'Failed to load reservations');
       }
@@ -64,6 +66,35 @@ export default function ClientBookingsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAllDocuments = async (reservations) => {
+    const documentsMap = {};
+    
+    // Load documents for each reservation
+    for (const reservation of reservations) {
+      if (reservation.status === 'pre-approved' || reservation.status === 'approved') {
+        try {
+          const response = await fetch(`/api/reservations/${reservation.reservation_id}/documents`);
+          const result = await response.json();
+          
+          if (result.success && result.documents.length > 0) {
+            documentsMap[reservation.reservation_id] = result.documents.map(doc => ({
+              id: doc.id,
+              name: doc.file_name,
+              size: doc.file_size,
+              type: doc.file_type,
+              uploadedAt: doc.uploaded_at,
+              url: doc.file_path
+            }));
+          }
+        } catch (error) {
+          console.error(`Error loading documents for reservation ${reservation.reservation_id}:`, error);
+        }
+      }
+    }
+    
+    setUploadedDocuments(documentsMap);
   };
 
   // Filter reservations based on search and status
@@ -1115,66 +1146,109 @@ export default function ClientBookingsPage() {
                                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                       <p className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
                                         <Clock className="w-5 h-5 inline mr-2" />
-                                        Pre-Approved - Upload Supporting Documents
-                                      </p>
-                                      <p className="text-sm text-blue-700 mb-4">
-                                        Your reservation has been pre-approved! Please upload your supporting documents to complete the approval process.
+                                        Pre-Approved - Supporting Documents
                                       </p>
                                       
-                                      <div className="space-y-3">
-                                        {/* File Upload */}
-                                        <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                                          <input
-                                            type="file"
-                                            id={`file-upload-${reservation.reservation_id}`}
-                                            multiple
-                                            accept=".pdf,.doc,.docx"
-                                            onChange={(e) => handleFileUpload(reservation.reservation_id, e.target.files)}
-                                            className="hidden"
-                                          />
-                                          <label
-                                            htmlFor={`file-upload-${reservation.reservation_id}`}
-                                            className="cursor-pointer"
-                                          >
-                                            {uploadingFiles[reservation.reservation_id] ? (
-                                              <div className="flex items-center justify-center">
-                                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin mr-2" />
-                                                <span className="text-blue-600">Uploading...</span>
-                                              </div>
-                                            ) : (
-                                              <div>
-                                                <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                                                <p className="text-blue-600 font-medium">Click to upload documents</p>
-                                                <p className="text-xs text-blue-500 mt-1">PDF, DOC, DOCX (Max 10MB each)</p>
-                                              </div>
-                                            )}
-                                          </label>
-                                        </div>
-
-                                        {/* Uploaded Files List */}
-                                        {uploadedDocuments[reservation.reservation_id] && uploadedDocuments[reservation.reservation_id].length > 0 && (
+                                      {uploadedDocuments[reservation.reservation_id] && uploadedDocuments[reservation.reservation_id].length > 0 ? (
+                                        <div className="space-y-3">
+                                          <div className="flex items-center gap-2 text-green-700">
+                                            <CheckCircle className="w-5 h-5" />
+                                            <span className="text-sm font-medium">Documents submitted successfully!</span>
+                                          </div>
+                                          
                                           <div>
                                             <p className="text-sm font-medium text-blue-700 mb-2">Uploaded Documents:</p>
                                             <div className="space-y-2">
                                               {uploadedDocuments[reservation.reservation_id].map((doc, index) => (
-                                                <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                                                <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
                                                   <div className="flex items-center">
                                                     <File className="w-4 h-4 text-blue-600 mr-2" />
-                                                    <span className="text-sm text-slate-700">{doc.name}</span>
+                                                    <div>
+                                                      <span className="text-sm text-slate-700 font-medium">{doc.name}</span>
+                                                      <p className="text-xs text-slate-500">
+                                                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                      </p>
+                                                    </div>
                                                   </div>
-                                                  <span className="text-xs text-slate-500">
-                                                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                                    ✓ Received
                                                   </span>
                                                 </div>
                                               ))}
                                             </div>
                                           </div>
-                                        )}
-                                        
-                                        <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                                          <strong>Required documents:</strong> Valid ID, Proof of Income, Employment Certificate, and any other supporting documents that verify your eligibility.
+                                          
+                                          {/* Option to upload more documents */}
+                                          <div className="border-t border-blue-200 pt-3 mt-3">
+                                            <p className="text-sm text-blue-700 mb-2">Need to upload additional documents?</p>
+                                            <div className="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                                              <input
+                                                type="file"
+                                                id={`file-upload-${reservation.reservation_id}`}
+                                                multiple
+                                                accept=".pdf,.doc,.docx"
+                                                onChange={(e) => handleFileUpload(reservation.reservation_id, e.target.files)}
+                                                className="hidden"
+                                              />
+                                              <label
+                                                htmlFor={`file-upload-${reservation.reservation_id}`}
+                                                className="cursor-pointer"
+                                              >
+                                                {uploadingFiles[reservation.reservation_id] ? (
+                                                  <div className="flex items-center justify-center">
+                                                    <Loader2 className="w-5 h-5 text-blue-600 animate-spin mr-2" />
+                                                    <span className="text-blue-600">Uploading...</span>
+                                                  </div>
+                                                ) : (
+                                                  <div>
+                                                    <Upload className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+                                                    <p className="text-blue-600 text-sm">Upload more documents</p>
+                                                  </div>
+                                                )}
+                                              </label>
+                                            </div>
+                                          </div>
                                         </div>
-                                      </div>
+                                      ) : (
+                                        <div className="space-y-3">
+                                          <p className="text-sm text-blue-700 mb-4">
+                                            Your reservation has been pre-approved! Please upload your supporting documents to complete the approval process.
+                                          </p>
+                                          
+                                          {/* File Upload */}
+                                          <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                            <input
+                                              type="file"
+                                              id={`file-upload-${reservation.reservation_id}`}
+                                              multiple
+                                              accept=".pdf,.doc,.docx"
+                                              onChange={(e) => handleFileUpload(reservation.reservation_id, e.target.files)}
+                                              className="hidden"
+                                            />
+                                            <label
+                                              htmlFor={`file-upload-${reservation.reservation_id}`}
+                                              className="cursor-pointer"
+                                            >
+                                              {uploadingFiles[reservation.reservation_id] ? (
+                                                <div className="flex items-center justify-center">
+                                                  <Loader2 className="w-6 h-6 text-blue-600 animate-spin mr-2" />
+                                                  <span className="text-blue-600">Uploading...</span>
+                                                </div>
+                                              ) : (
+                                                <div>
+                                                  <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                                                  <p className="text-blue-600 font-medium">Click to upload documents</p>
+                                                  <p className="text-xs text-blue-500 mt-1">PDF, DOC, DOCX (Max 10MB each)</p>
+                                                </div>
+                                              )}
+                                            </label>
+                                          </div>
+                                          
+                                          <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                                            <strong>Required documents:</strong> Valid ID, Proof of Income, Employment Certificate, and any other supporting documents that verify your eligibility.
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                   {reservation.status === 'approved' && !reservation.contract && (

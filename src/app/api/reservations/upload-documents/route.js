@@ -1,8 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { uploadFileToStorage } from '@/lib/storage';
 
 function createSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -75,11 +73,6 @@ export async function POST(request) {
     }
 
     const uploadedDocuments = [];
-    const uploadDir = path.join(process.cwd(), 'uploads', 'reservation-documents', reservationId);
-
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
 
     for (const file of files) {
       if (!file.name) continue;
@@ -112,19 +105,28 @@ export async function POST(request) {
         );
       }
 
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
+      // Upload to Supabase Storage
       const timestamp = new Date().getTime();
       const fileName = `${timestamp}-${file.name}`;
-      const filePath = path.join(uploadDir, fileName);
-
-      await writeFile(filePath, buffer);
+      const folderPath = `reservation-documents/${reservationId}`;
+      
+      const uploadResult = await uploadFileToStorage(file, 'futura', folderPath, fileName);
+      
+      if (!uploadResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Upload failed",
+            message: `Failed to upload ${file.name}: ${uploadResult.error}`,
+          },
+          { status: 500 }
+        );
+      }
 
       const documentRecord = {
         reservation_id: reservationId,
         file_name: file.name,
-        file_path: filePath,
+        file_path: uploadResult.data.publicUrl,
         file_size: file.size,
         file_type: file.type,
         uploaded_at: new Date().toISOString(),
@@ -147,6 +149,7 @@ export async function POST(request) {
         size: file.size,
         type: file.type,
         uploadedAt: document.uploaded_at,
+        url: uploadResult.data.publicUrl,
       });
     }
 
